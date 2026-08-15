@@ -34,22 +34,26 @@ const DEFAULT_SETTINGS = {
     defaultCategory: "personal",
 };
 
-/** `true`/`yes`/`on`/`1` 을 참으로 본다. 값 없이 `help:` 만 써도 켜진다. */
-function isTruthy(v) {
-    if (v === undefined) return false;
-    const s = String(v).trim().toLowerCase();
-    return s === "" || s === "true" || s === "yes" || s === "on" || s === "1";
-}
-
-/** 코드블록 본문 파싱: `scope: vault` · `source: <쿼리>` · `help: true` (빈 블록이면 폴더 스코프) */
+/**
+ * 코드블록 본문 파싱: `scope: vault` · `source: <쿼리>` · `note: <설명>`
+ * (빈 블록이면 폴더 스코프)
+ *
+ * `note` 만 여러 줄을 허용해 배열로 모은다 — 설명이 길면 줄을 나눠 쓰는 게 자연스럽다.
+ */
 function parseOptions(src) {
-    const o = {};
+    const o = { note: [] };
     for (const raw of (src || "").split("\n")) {
         const line = raw.trim();
         if (!line || line.startsWith("#")) continue;
         const i = line.indexOf(":");
         if (i < 0) continue;
-        o[line.slice(0, i).trim().toLowerCase()] = line.slice(i + 1).trim();
+        const key = line.slice(0, i).trim().toLowerCase();
+        const val = line.slice(i + 1).trim();
+        if (key === "note") {
+            if (val) o.note.push(val);
+        } else {
+            o[key] = val;
+        }
     }
     return o;
 }
@@ -69,7 +73,7 @@ function resolveSource(opts, sourcePath) {
  * 캘린더 한 개를 container 안에 그린다. 반환값의 refresh() 를 호출부가 인덱스 변경에 물린다.
  * 본문은 dataviewjs 시절 로직 그대로다(레인 배치·드래그·낙관적 갱신·스크롤 복원·⏰).
  */
-function createCalendar({ plugin, api, container, source, help }) {
+function createCalendar({ plugin, api, container, source, notes }) {
     const app = plugin.app;
     const L = api.luxon.DateTime;   // Dataview 가 들고 있는 luxon 재사용
     const root = container.createEl("div");
@@ -170,27 +174,15 @@ function createCalendar({ plugin, api, container, source, help }) {
     // ═════════════════════════════════════════════════════════════════════════════
 
     /**
-     * `help: true` 일 때 캘린더 위에 접히는 사용법을 그린다.
-     * 예전에는 이 설명을 노트마다 콜아웃으로 복붙해 두었다 — 조작법이 바뀌면 전부 손봐야 했다.
-     * 블록 옵션으로 옮겨서 설명도 코드와 같이 갱신되게 한다.
+     * `note:` 로 적어 둔 설명을 캘린더 위에 그린다. 여러 줄이면 줄마다 한 항목.
+     * 이 캘린더가 무엇을 모으는지·왜 여기 있는지는 블록마다 다르므로 옵션으로 받는다.
      */
-    function helpBlock() {
-        const d = document.createElement("details");
-        d.style.cssText = "margin-bottom:8px;border:1px solid var(--background-modifier-border);border-radius:4px;padding:4px 8px;";
-        const sum = d.createEl("summary", { text: "사용법" });
-        sum.style.cssText = "font-size:12px;opacity:.75;cursor:pointer;";
-        const ul = d.createEl("ul");
-        ul.style.cssText = "font-size:12px;line-height:1.6;margin:6px 0 2px;padding-left:18px;opacity:.85;";
-        const items = [
-            `스코프: ${source} — 노트를 옮기면 폴더 스코프도 따라간다.`,
-            "태스크는 기간 막대(🛫 시작 ~ 📅 마감)로 그린다. 🛫 가 없으면 📅 하루짜리.",
-            "막대 드래그 = 기간째 이동(놓은 칸이 시작일) · Shift+드래그 = 📅 마감일만 조정.",
-            "클릭 = 원본 열기(현재 탭) · Ctrl+클릭 = 새 탭 · Ctrl+Shift+클릭 = 분할 · 우클릭 = Tasks 편집 모달.",
-            "일간 보기: 블록 드래그 = 시각 이동(15분 단위) · 아래끝 드래그 = 종료 시각 · 종일 줄 ↔ 그리드 = 시각 부여/제거.",
-            "📥 날짜 없음 · 🔴 지연 카드의 빠른 버튼·날짜선택기로도 마감일을 바꾼다.",
-            "변경은 노트에 바로 쓰이고 tasks-gcal-sync 가 Google Calendar 로 올린다.",
-        ];
-        for (const t of items) ul.createEl("li", { text: t });
+    function noteBlock() {
+        const d = document.createElement("div");
+        d.style.cssText =
+            "margin-bottom:8px;padding:6px 10px;border-left:3px solid var(--interactive-accent);" +
+            "background:var(--background-secondary);border-radius:0 4px 4px 0;font-size:12px;line-height:1.6;opacity:.9;";
+        for (const t of notes) d.createEl("div", { text: t });
         return d;
     }
 
@@ -805,7 +797,7 @@ function createCalendar({ plugin, api, container, source, help }) {
         dayBox = null;   // 이번 렌더에서 일간 보기를 그리면 renderDay 가 다시 채운다
         // 분리된 DOM 에 먼저 조립한 뒤 한 번에 교체 → 화면이 비는 프레임이 없다
         const box = document.createElement("div");
-        if (help) box.appendChild(helpBlock());
+        if (notes && notes.length) box.appendChild(noteBlock());
         const all = collect().filter(t => activeCats.has(t.cat));
         const tasks = all.filter(t => !t.done && !t.cancelled);   // 트레이/현황 = 미완료(취소[-] 제외)
         const calTasks = showDone ? all : tasks;   // 달력 = 토글에 따라 완료·취소 포함
@@ -1050,7 +1042,7 @@ module.exports = class GcalCalendarViewPlugin extends Plugin {
         const source = resolveSource(opts, ctx.sourcePath);
         let cal;
         try {
-            cal = createCalendar({ plugin: this, api, container: el, source, help: isTruthy(opts.help) });
+            cal = createCalendar({ plugin: this, api, container: el, source, notes: opts.note });
         } catch (e) {
             console.error("[gcal-calendar-view] 렌더 실패", e);
             el.createEl("div", { text: "캘린더 렌더 실패 — 콘솔을 확인하세요: " + e.message });
@@ -1070,4 +1062,4 @@ module.exports = class GcalCalendarViewPlugin extends Plugin {
 
 // 순수 함수만 테스트에서 꺼내 쓴다(스코프 결정은 노트 위치에 따라 갈리는 유일한 분기다).
 // Obsidian 은 module.exports 의 기본 export 만 보므로 이 속성은 무해하다.
-module.exports.__test = { parseOptions, resolveSource, isTruthy };
+module.exports.__test = { parseOptions, resolveSource };
