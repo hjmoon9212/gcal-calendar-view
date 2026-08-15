@@ -32,6 +32,16 @@ const DEFAULT_SETTINGS = {
         { key: "non-core", label: "Non-core", color: "#a79b8e" },
     ],
     defaultCategory: "personal",
+    // 캘린더 위에 공통으로 뜨는 설명. 예전에는 노트마다 콜아웃으로 복붙해 두던 내용이라
+    // 조작법이 바뀌면 전부 손봐야 했다 — 한 곳에 두고 여기만 고친다.
+    // 마크다운으로 렌더된다. 블록에 note: 가 있으면 그 블록에서는 그쪽이 이긴다.
+    note: [
+        "- 태스크는 **기간 막대**(🛫 start ~ 📅 due)로 표시. start 없으면 due 하루짜리 막대.",
+        "- 막대(또는 트레이 카드)를 날짜로 **드래그 = 기간째 이동**(놓은 칸 = 🛫 시작일, 없으면 📅 마감일). **Shift + 드래그 = 📅 마감일만 조정**(🛫 없으면 생성).",
+        "- **일간 보기**에서 블록 **드래그 = 시각 이동**(15분 단위), **아래끝 드래그 = 종료 시각**, **종일 줄 ↔ 그리드 = 시각 부여/제거**.",
+        "- 막대/카드 · 트레이의 📄 파일명 **클릭** = 원본 열기(현재 탭), **Ctrl+클릭** = 새 탭, **Ctrl+Shift+클릭** = 분할 창, **우클릭** = Tasks 편집 모달.",
+        "- **📥 날짜 없음 / 🔴 지연** 카드의 빠른 버튼·날짜선택기로도 변경. 변경은 `tasks-gcal-sync` 가 자동 푸시.",
+    ].join("\n"),
 };
 
 /**
@@ -180,12 +190,16 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
      * 옮겨 담는 것이라, `**굵게**`·`` `코드` ``·`- 목록`·[[링크]] 가 글자 그대로
      * 보이면 옮길 수가 없다.
      */
-    function noteBlock() {
+    // 블록의 note: 가 있으면 그것을, 없으면 설정의 공통 설명을 쓴다.
+    // 매 렌더마다 읽는다 — 설정을 고치면 껐다 켜지 않아도 반영돼야 한다(카테고리와 같은 이유).
+    const noteMarkdown = () =>
+        notes && notes.length ? notes.join("\n") : (plugin.settings.note || "").trim();
+
+    function noteBlock(md) {
         const d = document.createElement("div");
         d.style.cssText =
             "margin-bottom:8px;padding:6px 10px;border-left:3px solid var(--interactive-accent);" +
             "background:var(--background-secondary);border-radius:0 4px 4px 0;font-size:12px;line-height:1.6;opacity:.9;";
-        const md = notes.join("\n");
         // Obsidian 1.5+ 는 정적 render(), 그 이전은 renderMarkdown(). 둘 다 받아준다.
         try {
             if (typeof MarkdownRenderer.render === "function") {
@@ -811,7 +825,8 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
         dayBox = null;   // 이번 렌더에서 일간 보기를 그리면 renderDay 가 다시 채운다
         // 분리된 DOM 에 먼저 조립한 뒤 한 번에 교체 → 화면이 비는 프레임이 없다
         const box = document.createElement("div");
-        if (notes && notes.length) box.appendChild(noteBlock());
+        const noteMd = noteMarkdown();
+        if (noteMd) box.appendChild(noteBlock(noteMd));
         const all = collect().filter(t => activeCats.has(t.cat));
         const tasks = all.filter(t => !t.done && !t.cancelled);   // 트레이/현황 = 미완료(취소[-] 제외)
         const calTasks = showDone ? all : tasks;   // 달력 = 토글에 따라 완료·취소 포함
@@ -975,6 +990,27 @@ class GcalCalendarSettingTab extends PluginSettingTab {
             })
         );
 
+        containerEl.createEl("h3", { text: "설명" });
+        new Setting(containerEl)
+            .setName("캘린더 위에 표시할 설명")
+            .setDesc(
+                "모든 캘린더 위에 공통으로 뜬다. 마크다운을 쓸 수 있다(굵게·코드·목록·[[링크]]). " +
+                "예전에 노트마다 콜아웃으로 복붙해 두던 조작법을 여기 한 곳에 두면, 바뀔 때 여기만 고치면 된다. " +
+                "블록에 note: 를 적으면 그 블록에서는 그쪽이 이긴다. 비우면 아무것도 그리지 않는다."
+            )
+            .addTextArea((t) => {
+                t.setPlaceholder("- **드래그** = 기간째 이동 …")
+                    .setValue(this.plugin.settings.note || "")
+                    .onChange(async (v) => {
+                        this.plugin.settings.note = v;
+                        await this.plugin.saveSettings();
+                    });
+                t.inputEl.rows = 8;
+                t.inputEl.style.width = "100%";
+            })
+            .settingEl.style.setProperty("display", "block");   // 넓은 입력이라 한 줄을 통째로 쓴다
+
+        containerEl.createEl("h3", { text: "기타" });
         new Setting(containerEl)
             .setName("기본 카테고리")
             .setDesc("#gcal/ 태그가 없는 task 에 쓰인다. 색 폴백도 겸한다.")
