@@ -927,9 +927,71 @@ class GcalCalendarSettingTab extends PluginSettingTab {
         this.plugin = plugin;
     }
 
+    /** 복사 버튼이 달린 코드 샘플 한 덩어리. 설정 화면에서 바로 집어 갈 수 있게 한다. */
+    sample(parent, label, code) {
+        const box = parent.createEl("div");
+        box.style.cssText = "margin:0 0 10px;";
+        const head = box.createEl("div");
+        head.style.cssText = "display:flex;align-items:center;gap:8px;margin-bottom:3px;";
+        const cap = head.createEl("span", { text: label });
+        cap.style.cssText = "font-size:11px;opacity:.6;";
+        const btn = head.createEl("button", { text: "복사" });
+        btn.style.cssText = "font-size:11px;padding:1px 8px;border-radius:10px;cursor:pointer;";
+        btn.onclick = async () => {
+            try {
+                await navigator.clipboard.writeText(code);
+                btn.setText("복사됨");
+                setTimeout(() => btn.setText("복사"), 1200);
+            } catch (e) {
+                new Notice("복사 실패: " + e.message);
+            }
+        };
+        const pre = box.createEl("pre");
+        pre.style.cssText =
+            "font-size:11px;padding:8px;border-radius:4px;background:var(--background-secondary);" +
+            "margin:0;white-space:pre;overflow-x:auto;user-select:text;";
+        pre.setText(code);
+    }
+
     display() {
         const { containerEl } = this;
         containerEl.empty();
+
+        // ── 사용법: 편집 대상이 아니라 붙박이 설명이다 ──
+        // 예전에는 이 내용을 노트마다 콜아웃으로 복붙해 뒀다. 노트에서 지우면 조작법을
+        // 어디서도 찾을 수 없게 되므로, 잊어버리지 않게 설정 화면 맨 위에 박아 둔다.
+        containerEl.createEl("h3", { text: "사용법" });
+        const usage = containerEl.createEl("div");
+        usage.style.cssText = "font-size:12px;line-height:1.7;opacity:.85;";
+        usage.createEl("p", { text: "노트에 코드블록으로 넣는다:" }).style.margin = "0 0 6px";
+
+        this.sample(usage, "이 노트가 놓인 폴더 이하 (기본)", "```gcal-calendar\n```");
+        this.sample(usage, "볼트 전체", "```gcal-calendar\nscope: vault\n```");
+        this.sample(
+            usage,
+            "소스 쿼리 직접 지정 · 이 블록에만 붙일 설명(여러 줄, 마크다운)",
+            "```gcal-calendar\n" +
+                'source: "0. Note/1. Project" and !"Template"\n' +
+                "note: - 이 프로젝트의 할 일만 모읍니다.\n" +
+                "note: - **마감 임박**한 것부터 처리할 것.\n" +
+                "note: - 배경은 [[프로젝트 개요]] 참고.\n" +
+                "```"
+        );
+
+        const ul = usage.createEl("ul");
+        ul.style.cssText = "margin:0 0 4px;padding-left:18px;";
+        for (const t of [
+            "태스크는 기간 막대(🛫 start ~ 📅 due)로 표시. start 없으면 due 하루짜리 막대.",
+            "막대·트레이 카드를 날짜로 드래그 = 기간째 이동(놓은 칸 = 🛫 시작일, 없으면 📅 마감일).",
+            "Shift + 드래그 = 📅 마감일만 조정 (🛫 없으면 생성).",
+            "일간 보기: 블록 드래그 = 시각 이동(15분 단위) · 아래끝 드래그 = 종료 시각 · 종일 줄 ↔ 그리드 = 시각 부여/제거.",
+            "클릭 = 원본 열기(현재 탭) · Ctrl+클릭 = 새 탭 · Ctrl+Shift+클릭 = 분할 창 · 우클릭 = Tasks 편집 모달.",
+            "📥 날짜 없음 / 🔴 지연 카드의 빠른 버튼·날짜선택기로도 마감일 변경.",
+            "변경은 노트에 바로 쓰이고 tasks-gcal-sync 가 Google Calendar 로 올린다.",
+            "시각(⏰)은 일간 보기 드래그로만 넣는다 — 줄 끝에 적으면 Tasks 가 📅 까지 못 읽는다.",
+        ]) {
+            ul.createEl("li", { text: t });
+        }
 
         containerEl.createEl("h3", { text: "카테고리" });
         const desc = containerEl.createEl("p", {
@@ -978,44 +1040,6 @@ class GcalCalendarSettingTab extends PluginSettingTab {
             })
         );
 
-        // ── 사용법: 편집 대상이 아니라 붙박이 설명이다 ──
-        // 예전에는 이 내용을 노트마다 콜아웃으로 복붙해 뒀다. 노트에서 지우면 조작법을
-        // 어디서도 찾을 수 없게 되므로, 잊어버리지 않게 설정 화면에 박아 둔다.
-        containerEl.createEl("h3", { text: "사용법" });
-        const usage = containerEl.createEl("div");
-        usage.style.cssText = "font-size:12px;line-height:1.7;opacity:.85;";
-
-        usage.createEl("p", { text: "노트에 코드블록으로 넣는다:" }).style.margin = "0 0 4px";
-        const code = usage.createEl("pre");
-        code.style.cssText = "font-size:11px;padding:8px;border-radius:4px;background:var(--background-secondary);margin:0 0 10px;white-space:pre;";
-        code.setText(
-            "```gcal-calendar\n" +
-            "```                     ← 이 노트가 놓인 폴더 이하 (기본)\n\n" +
-            "```gcal-calendar\n" +
-            "scope: vault            ← 볼트 전체\n" +
-            "```\n\n" +
-            "```gcal-calendar\n" +
-            'source: "0. Note" and !"Template"   ← Dataview 소스 쿼리 직접 지정\n' +
-            "note: 이 블록에만 붙일 설명 (마크다운, 여러 줄 가능)\n" +
-            "```"
-        );
-
-        const ul = usage.createEl("ul");
-        ul.style.cssText = "margin:0;padding-left:18px;";
-        for (const t of [
-            "태스크는 기간 막대(🛫 start ~ 📅 due)로 표시. start 없으면 due 하루짜리 막대.",
-            "막대·트레이 카드를 날짜로 드래그 = 기간째 이동(놓은 칸 = 🛫 시작일, 없으면 📅 마감일).",
-            "Shift + 드래그 = 📅 마감일만 조정 (🛫 없으면 생성).",
-            "일간 보기: 블록 드래그 = 시각 이동(15분 단위) · 아래끝 드래그 = 종료 시각 · 종일 줄 ↔ 그리드 = 시각 부여/제거.",
-            "클릭 = 원본 열기(현재 탭) · Ctrl+클릭 = 새 탭 · Ctrl+Shift+클릭 = 분할 창 · 우클릭 = Tasks 편집 모달.",
-            "📥 날짜 없음 / 🔴 지연 카드의 빠른 버튼·날짜선택기로도 마감일 변경.",
-            "변경은 노트에 바로 쓰이고 tasks-gcal-sync 가 Google Calendar 로 올린다.",
-            "시각(⏰)은 일간 보기 드래그로만 넣는다 — 줄 끝에 적으면 Tasks 가 📅 까지 못 읽는다.",
-        ]) {
-            ul.createEl("li", { text: t });
-        }
-
-        containerEl.createEl("h3", { text: "기타" });
         new Setting(containerEl)
             .setName("기본 카테고리")
             .setDesc("#gcal/ 태그가 없는 task 에 쓰인다. 색 폴백도 겸한다.")
