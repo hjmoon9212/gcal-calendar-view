@@ -18,7 +18,7 @@
  *
  * Dataview 는 계속 필요하다 — 페이지 수집(api.pages)과 luxon 을 빌려 쓴다.
  */
-const { Plugin, PluginSettingTab, Setting, Notice, Keymap, MarkdownRenderChild } = require("obsidian");
+const { Plugin, PluginSettingTab, Setting, Notice, Keymap, MarkdownRenderChild, MarkdownRenderer } = require("obsidian");
 
 const DEFAULT_SETTINGS = {
     // 기본값은 개인 볼트 기준. 업무 볼트처럼 카테고리가 하나면 설정에서 지우면 된다.
@@ -73,7 +73,7 @@ function resolveSource(opts, sourcePath) {
  * 캘린더 한 개를 container 안에 그린다. 반환값의 refresh() 를 호출부가 인덱스 변경에 물린다.
  * 본문은 dataviewjs 시절 로직 그대로다(레인 배치·드래그·낙관적 갱신·스크롤 복원·⏰).
  */
-function createCalendar({ plugin, api, container, source, notes }) {
+function createCalendar({ plugin, api, container, source, notes, sourcePath, component }) {
     const app = plugin.app;
     const L = api.luxon.DateTime;   // Dataview 가 들고 있는 luxon 재사용
     const root = container.createEl("div");
@@ -174,15 +174,29 @@ function createCalendar({ plugin, api, container, source, notes }) {
     // ═════════════════════════════════════════════════════════════════════════════
 
     /**
-     * `note:` 로 적어 둔 설명을 캘린더 위에 그린다. 여러 줄이면 줄마다 한 항목.
-     * 이 캘린더가 무엇을 모으는지·왜 여기 있는지는 블록마다 다르므로 옵션으로 받는다.
+     * `note:` 로 적어 둔 설명을 캘린더 위에 그린다. 여러 줄은 줄바꿈으로 이어 붙인다.
+     *
+     * **마크다운으로 렌더한다.** 이 옵션의 용도가 원래 블록 위에 두던 콜아웃 내용을
+     * 옮겨 담는 것이라, `**굵게**`·`` `코드` ``·`- 목록`·[[링크]] 가 글자 그대로
+     * 보이면 옮길 수가 없다.
      */
     function noteBlock() {
         const d = document.createElement("div");
         d.style.cssText =
             "margin-bottom:8px;padding:6px 10px;border-left:3px solid var(--interactive-accent);" +
             "background:var(--background-secondary);border-radius:0 4px 4px 0;font-size:12px;line-height:1.6;opacity:.9;";
-        for (const t of notes) d.createEl("div", { text: t });
+        const md = notes.join("\n");
+        // Obsidian 1.5+ 는 정적 render(), 그 이전은 renderMarkdown(). 둘 다 받아준다.
+        try {
+            if (typeof MarkdownRenderer.render === "function") {
+                MarkdownRenderer.render(plugin.app, md, d, sourcePath, component);
+            } else {
+                MarkdownRenderer.renderMarkdown(md, d, sourcePath, component);
+            }
+        } catch (e) {
+            console.warn("[gcal-calendar-view] note 마크다운 렌더 실패 → 평문으로 표시", e);
+            d.setText(md);
+        }
         return d;
     }
 
@@ -1042,7 +1056,10 @@ module.exports = class GcalCalendarViewPlugin extends Plugin {
         const source = resolveSource(opts, ctx.sourcePath);
         let cal;
         try {
-            cal = createCalendar({ plugin: this, api, container: el, source, notes: opts.note });
+            cal = createCalendar({
+                plugin: this, api, container: el, source,
+                notes: opts.note, sourcePath: ctx.sourcePath, component: child,
+            });
         } catch (e) {
             console.error("[gcal-calendar-view] 렌더 실패", e);
             el.createEl("div", { text: "캘린더 렌더 실패 — 콘솔을 확인하세요: " + e.message });
