@@ -33,6 +33,20 @@ source: "0. Note/1. Project" and !"Template"
 
 Dataview 소스 쿼리를 직접 지정한다. `Template` 폴더는 어느 경우에도 제외된다.
 
+````markdown
+```gcal-calendar
+help: true
+```
+````
+
+캘린더 위에 접히는 **사용법**을 함께 그린다. 예전에는 이 설명을 노트마다 콜아웃으로 복붙해 뒀는데, 조작법이 바뀌면 전부 손봐야 했다. 옵션으로 옮겨서 설명이 코드와 같이 갱신된다. 다른 옵션과 함께 쓸 수 있다.
+
+| 옵션 | 값 | 기본 |
+|---|---|---|
+| `scope` | `vault` | (없음 = 노트가 놓인 폴더) |
+| `source` | Dataview 소스 쿼리 | (없음) |
+| `help` | `true`/`yes`/`on`/`1`, 또는 값 없이 `help:` | `false` |
+
 ## 조작
 
 | 동작 | 결과 |

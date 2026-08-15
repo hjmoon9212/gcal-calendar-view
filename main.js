@@ -34,7 +34,14 @@ const DEFAULT_SETTINGS = {
     defaultCategory: "personal",
 };
 
-/** 코드블록 본문 파싱: `scope: vault` · `source: <쿼리>` (빈 블록이면 폴더 스코프) */
+/** `true`/`yes`/`on`/`1` 을 참으로 본다. 값 없이 `help:` 만 써도 켜진다. */
+function isTruthy(v) {
+    if (v === undefined) return false;
+    const s = String(v).trim().toLowerCase();
+    return s === "" || s === "true" || s === "yes" || s === "on" || s === "1";
+}
+
+/** 코드블록 본문 파싱: `scope: vault` · `source: <쿼리>` · `help: true` (빈 블록이면 폴더 스코프) */
 function parseOptions(src) {
     const o = {};
     for (const raw of (src || "").split("\n")) {
@@ -62,7 +69,7 @@ function resolveSource(opts, sourcePath) {
  * 캘린더 한 개를 container 안에 그린다. 반환값의 refresh() 를 호출부가 인덱스 변경에 물린다.
  * 본문은 dataviewjs 시절 로직 그대로다(레인 배치·드래그·낙관적 갱신·스크롤 복원·⏰).
  */
-function createCalendar({ plugin, api, container, source }) {
+function createCalendar({ plugin, api, container, source, help }) {
     const app = plugin.app;
     const L = api.luxon.DateTime;   // Dataview 가 들고 있는 luxon 재사용
     const root = container.createEl("div");
@@ -138,13 +145,54 @@ function createCalendar({ plugin, api, container, source }) {
     // ══ 카테고리 (플러그인 설정에서 내려온다) ════════════════════════════════════
     // 볼트마다 다른 유일한 값이라 코드가 아니라 설정에 둔다 — 사본이 갈라지던 원인이었다.
     // 설정 탭에서 편집한다.
-    const CATS = plugin.settings.categories.map((c) => c.key);
-    const CATLABEL = Object.fromEntries(plugin.settings.categories.map((c) => [c.key, c.label]));
-    // 색은 실제 Google Calendar 의 커스텀 색 HEX 를 그대로 쓴다.
-    const CATCOLOR = Object.fromEntries(plugin.settings.categories.map((c) => [c.key, c.color]));
-    const CAT_DEFAULT = plugin.settings.defaultCategory || CATS[0];   // #gcal/ 태그가 없는 task
+    //
+    // ⚠️ const 로 한 번만 계산하면 안 된다. dataviewjs 시절에는 인덱스가 바뀔 때마다
+    //    스크립트가 통째로 재실행돼 자동으로 최신 설정이 반영됐지만, 플러그인에서는
+    //    createCalendar() 가 한 번만 돌고 이후엔 renderNow() 만 다시 돈다. 그래서
+    //    매 렌더 시작에 syncCategories() 로 설정을 다시 읽는다 — 안 그러면 설정을
+    //    바꿔도 플러그인을 껐다 켜야 반영된다.
+    let CATS = [], CATLABEL = {}, CATCOLOR = {}, CAT_DEFAULT = "";
+    const activeCats = new Set(Array.isArray(S.cats) ? S.cats : undefined);   // 필터도 재실행 후 유지
+    const syncCategories = () => {
+        const cats = plugin.settings.categories.filter((c) => c.key);
+        CATS = cats.map((c) => c.key);
+        CATLABEL = Object.fromEntries(cats.map((c) => [c.key, c.label || c.key]));
+        // 색은 실제 Google Calendar 의 커스텀 색 HEX 를 그대로 쓴다.
+        CATCOLOR = Object.fromEntries(cats.map((c) => [c.key, c.color]));
+        CAT_DEFAULT = plugin.settings.defaultCategory || CATS[0] || "";
+        // 설정에서 사라진 카테고리는 필터에서도 뺀다. 저장된 필터에 없던 새 카테고리는
+        // 켠 채로 시작한다 — 방금 만든 카테고리가 안 보이면 버그로 읽힌다.
+        const saved = Array.isArray(S.cats) ? S.cats : null;
+        for (const c of [...activeCats]) if (!CATS.includes(c)) activeCats.delete(c);
+        for (const c of CATS) if (!saved || !saved.includes(c)) activeCats.add(c);
+    };
+    syncCategories();
     // ═════════════════════════════════════════════════════════════════════════════
-    const activeCats = new Set(Array.isArray(S.cats) ? S.cats : CATS);   // 필터도 재실행 후 유지
+
+    /**
+     * `help: true` 일 때 캘린더 위에 접히는 사용법을 그린다.
+     * 예전에는 이 설명을 노트마다 콜아웃으로 복붙해 두었다 — 조작법이 바뀌면 전부 손봐야 했다.
+     * 블록 옵션으로 옮겨서 설명도 코드와 같이 갱신되게 한다.
+     */
+    function helpBlock() {
+        const d = document.createElement("details");
+        d.style.cssText = "margin-bottom:8px;border:1px solid var(--background-modifier-border);border-radius:4px;padding:4px 8px;";
+        const sum = d.createEl("summary", { text: "사용법" });
+        sum.style.cssText = "font-size:12px;opacity:.75;cursor:pointer;";
+        const ul = d.createEl("ul");
+        ul.style.cssText = "font-size:12px;line-height:1.6;margin:6px 0 2px;padding-left:18px;opacity:.85;";
+        const items = [
+            `스코프: ${source} — 노트를 옮기면 폴더 스코프도 따라간다.`,
+            "태스크는 기간 막대(🛫 시작 ~ 📅 마감)로 그린다. 🛫 가 없으면 📅 하루짜리.",
+            "막대 드래그 = 기간째 이동(놓은 칸이 시작일) · Shift+드래그 = 📅 마감일만 조정.",
+            "클릭 = 원본 열기(현재 탭) · Ctrl+클릭 = 새 탭 · Ctrl+Shift+클릭 = 분할 · 우클릭 = Tasks 편집 모달.",
+            "일간 보기: 블록 드래그 = 시각 이동(15분 단위) · 아래끝 드래그 = 종료 시각 · 종일 줄 ↔ 그리드 = 시각 부여/제거.",
+            "📥 날짜 없음 · 🔴 지연 카드의 빠른 버튼·날짜선택기로도 마감일을 바꾼다.",
+            "변경은 노트에 바로 쓰이고 tasks-gcal-sync 가 Google Calendar 로 올린다.",
+        ];
+        for (const t of items) ul.createEl("li", { text: t });
+        return d;
+    }
 
     // ---- 날짜 헬퍼 (날짜만, TZ 안전) ----
     const addDays = (iso, n) => { const d = new Date(iso + "T00:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
@@ -750,12 +798,14 @@ function createCalendar({ plugin, api, container, source }) {
     let dayScrollRestoring = false;   // 복원 중 발생하는 scroll 이벤트가 저장값을 덮지 않게
 
     function renderNow() {
+        syncCategories();   // 설정이 바뀌었을 수 있다 (플러그인 재시작 없이 반영하려면 매번 읽어야 한다)
         saveState();
         const first = firstRender;
         firstRender = false;
         dayBox = null;   // 이번 렌더에서 일간 보기를 그리면 renderDay 가 다시 채운다
         // 분리된 DOM 에 먼저 조립한 뒤 한 번에 교체 → 화면이 비는 프레임이 없다
         const box = document.createElement("div");
+        if (help) box.appendChild(helpBlock());
         const all = collect().filter(t => activeCats.has(t.cat));
         const tasks = all.filter(t => !t.done && !t.cancelled);   // 트레이/현황 = 미완료(취소[-] 제외)
         const calTasks = showDone ? all : tasks;   // 달력 = 토글에 따라 완료·취소 포함
@@ -876,7 +926,10 @@ class GcalCalendarSettingTab extends PluginSettingTab {
         const desc = containerEl.createEl("p", {
             text: "task 의 #gcal/<key> 태그로 분류된다. 색을 Google Calendar 의 커스텀 색과 맞추면 캘린더와 GCal 이 같은 색으로 보인다.",
         });
-        desc.style.cssText = "font-size:12px;opacity:.7;margin:0 0 8px;";
+        desc.style.cssText = "font-size:12px;opacity:.7;margin:0 0 4px;";
+        // 입력칸이 셋뿐이라 무엇을 넣는 칸인지 placeholder 만으로는 헷갈린다.
+        const cols = containerEl.createEl("p", { text: "key (#gcal/<key>)  ·  표시 이름  ·  색" });
+        cols.style.cssText = "font-size:11px;opacity:.5;margin:0 0 6px;";
 
         this.plugin.settings.categories.forEach((cat, i) => {
             const row = new Setting(containerEl);
@@ -993,10 +1046,11 @@ module.exports = class GcalCalendarViewPlugin extends Plugin {
             return;
         }
 
-        const source = resolveSource(parseOptions(src), ctx.sourcePath);
+        const opts = parseOptions(src);
+        const source = resolveSource(opts, ctx.sourcePath);
         let cal;
         try {
-            cal = createCalendar({ plugin: this, api, container: el, source });
+            cal = createCalendar({ plugin: this, api, container: el, source, help: isTruthy(opts.help) });
         } catch (e) {
             console.error("[gcal-calendar-view] 렌더 실패", e);
             el.createEl("div", { text: "캘린더 렌더 실패 — 콘솔을 확인하세요: " + e.message });
@@ -1016,4 +1070,4 @@ module.exports = class GcalCalendarViewPlugin extends Plugin {
 
 // 순수 함수만 테스트에서 꺼내 쓴다(스코프 결정은 노트 위치에 따라 갈리는 유일한 분기다).
 // Obsidian 은 module.exports 의 기본 export 만 보므로 이 속성은 무해하다.
-module.exports.__test = { parseOptions, resolveSource };
+module.exports.__test = { parseOptions, resolveSource, isTruthy };
