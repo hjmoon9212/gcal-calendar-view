@@ -32,16 +32,6 @@ const DEFAULT_SETTINGS = {
         { key: "non-core", label: "Non-core", color: "#a79b8e" },
     ],
     defaultCategory: "personal",
-    // 캘린더 위에 공통으로 뜨는 설명. 예전에는 노트마다 콜아웃으로 복붙해 두던 내용이라
-    // 조작법이 바뀌면 전부 손봐야 했다 — 한 곳에 두고 여기만 고친다.
-    // 마크다운으로 렌더된다. 블록에 note: 가 있으면 그 블록에서는 그쪽이 이긴다.
-    note: [
-        "- 태스크는 **기간 막대**(🛫 start ~ 📅 due)로 표시. start 없으면 due 하루짜리 막대.",
-        "- 막대(또는 트레이 카드)를 날짜로 **드래그 = 기간째 이동**(놓은 칸 = 🛫 시작일, 없으면 📅 마감일). **Shift + 드래그 = 📅 마감일만 조정**(🛫 없으면 생성).",
-        "- **일간 보기**에서 블록 **드래그 = 시각 이동**(15분 단위), **아래끝 드래그 = 종료 시각**, **종일 줄 ↔ 그리드 = 시각 부여/제거**.",
-        "- 막대/카드 · 트레이의 📄 파일명 **클릭** = 원본 열기(현재 탭), **Ctrl+클릭** = 새 탭, **Ctrl+Shift+클릭** = 분할 창, **우클릭** = Tasks 편집 모달.",
-        "- **📥 날짜 없음 / 🔴 지연** 카드의 빠른 버튼·날짜선택기로도 변경. 변경은 `tasks-gcal-sync` 가 자동 푸시.",
-    ].join("\n"),
 };
 
 /**
@@ -190,10 +180,8 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
      * 옮겨 담는 것이라, `**굵게**`·`` `코드` ``·`- 목록`·[[링크]] 가 글자 그대로
      * 보이면 옮길 수가 없다.
      */
-    // 블록의 note: 가 있으면 그것을, 없으면 설정의 공통 설명을 쓴다.
-    // 매 렌더마다 읽는다 — 설정을 고치면 껐다 켜지 않아도 반영돼야 한다(카테고리와 같은 이유).
-    const noteMarkdown = () =>
-        notes && notes.length ? notes.join("\n") : (plugin.settings.note || "").trim();
+    // 이 블록에 note: 가 적혀 있을 때만 그린다. 공통 사용법은 설정 화면에 붙박이로 있다.
+    const noteMarkdown = () => (notes && notes.length ? notes.join("\n") : "");
 
     function noteBlock(md) {
         const d = document.createElement("div");
@@ -990,25 +978,42 @@ class GcalCalendarSettingTab extends PluginSettingTab {
             })
         );
 
-        containerEl.createEl("h3", { text: "설명" });
-        new Setting(containerEl)
-            .setName("캘린더 위에 표시할 설명")
-            .setDesc(
-                "모든 캘린더 위에 공통으로 뜬다. 마크다운을 쓸 수 있다(굵게·코드·목록·[[링크]]). " +
-                "예전에 노트마다 콜아웃으로 복붙해 두던 조작법을 여기 한 곳에 두면, 바뀔 때 여기만 고치면 된다. " +
-                "블록에 note: 를 적으면 그 블록에서는 그쪽이 이긴다. 비우면 아무것도 그리지 않는다."
-            )
-            .addTextArea((t) => {
-                t.setPlaceholder("- **드래그** = 기간째 이동 …")
-                    .setValue(this.plugin.settings.note || "")
-                    .onChange(async (v) => {
-                        this.plugin.settings.note = v;
-                        await this.plugin.saveSettings();
-                    });
-                t.inputEl.rows = 8;
-                t.inputEl.style.width = "100%";
-            })
-            .settingEl.style.setProperty("display", "block");   // 넓은 입력이라 한 줄을 통째로 쓴다
+        // ── 사용법: 편집 대상이 아니라 붙박이 설명이다 ──
+        // 예전에는 이 내용을 노트마다 콜아웃으로 복붙해 뒀다. 노트에서 지우면 조작법을
+        // 어디서도 찾을 수 없게 되므로, 잊어버리지 않게 설정 화면에 박아 둔다.
+        containerEl.createEl("h3", { text: "사용법" });
+        const usage = containerEl.createEl("div");
+        usage.style.cssText = "font-size:12px;line-height:1.7;opacity:.85;";
+
+        usage.createEl("p", { text: "노트에 코드블록으로 넣는다:" }).style.margin = "0 0 4px";
+        const code = usage.createEl("pre");
+        code.style.cssText = "font-size:11px;padding:8px;border-radius:4px;background:var(--background-secondary);margin:0 0 10px;white-space:pre;";
+        code.setText(
+            "```gcal-calendar\n" +
+            "```                     ← 이 노트가 놓인 폴더 이하 (기본)\n\n" +
+            "```gcal-calendar\n" +
+            "scope: vault            ← 볼트 전체\n" +
+            "```\n\n" +
+            "```gcal-calendar\n" +
+            'source: "0. Note" and !"Template"   ← Dataview 소스 쿼리 직접 지정\n' +
+            "note: 이 블록에만 붙일 설명 (마크다운, 여러 줄 가능)\n" +
+            "```"
+        );
+
+        const ul = usage.createEl("ul");
+        ul.style.cssText = "margin:0;padding-left:18px;";
+        for (const t of [
+            "태스크는 기간 막대(🛫 start ~ 📅 due)로 표시. start 없으면 due 하루짜리 막대.",
+            "막대·트레이 카드를 날짜로 드래그 = 기간째 이동(놓은 칸 = 🛫 시작일, 없으면 📅 마감일).",
+            "Shift + 드래그 = 📅 마감일만 조정 (🛫 없으면 생성).",
+            "일간 보기: 블록 드래그 = 시각 이동(15분 단위) · 아래끝 드래그 = 종료 시각 · 종일 줄 ↔ 그리드 = 시각 부여/제거.",
+            "클릭 = 원본 열기(현재 탭) · Ctrl+클릭 = 새 탭 · Ctrl+Shift+클릭 = 분할 창 · 우클릭 = Tasks 편집 모달.",
+            "📥 날짜 없음 / 🔴 지연 카드의 빠른 버튼·날짜선택기로도 마감일 변경.",
+            "변경은 노트에 바로 쓰이고 tasks-gcal-sync 가 Google Calendar 로 올린다.",
+            "시각(⏰)은 일간 보기 드래그로만 넣는다 — 줄 끝에 적으면 Tasks 가 📅 까지 못 읽는다.",
+        ]) {
+            ul.createEl("li", { text: t });
+        }
 
         containerEl.createEl("h3", { text: "기타" });
         new Setting(containerEl)
