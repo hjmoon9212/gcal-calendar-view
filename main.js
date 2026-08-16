@@ -753,17 +753,37 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
         });
         grid.addEventListener("dragend", hideGhost);
 
-        // 겹치는 블록은 좌우로 나눠 놓는다 (시작 시각 순 그리디 레인 배치)
+        // 겹치는 블록은 좌우로 나눠 놓는다 (시작 시각 순 그리디 레인 배치).
+        // 레인 수는 반드시 "겹치는 무리(cluster)" 안에서만 센다 — 하루 전체로 세면
+        // 오전에 3중 겹침이 한 번 있었다는 이유로 저녁 단독 일정까지 1/3 폭이 된다.
+        // 무리 경계: 시작 시각이 지금 무리의 최대 종료 이상이면 끊는다(맞닿음은 겹침이 아니다).
         const laneEnd = [];
         const placed = [];
+        let cluster = [];          // 지금 무리에 담긴 항목 (레인 수가 확정되면 placed 로 넘어간다)
+        let clusterEnd = -1;
+        const closeCluster = () => {
+            const lanes = Math.max(laneEnd.length, 1);
+            for (const it of cluster) {
+                // 오른쪽 레인이 이 블록의 시간대 내내 비어 있으면 그만큼 넓힌다.
+                // first-fit 이 레인을 앞에서부터 채우므로 자주 발동하진 않는다.
+                let span = 1;
+                while (it.lane + span < lanes &&
+                    !cluster.some(o => o.lane === it.lane + span && o.t.tStart < it.t.tEnd && o.t.tEnd > it.t.tStart)) span++;
+                placed.push({ t: it.t, lane: it.lane, lanes, span });
+            }
+            cluster = [];
+            laneEnd.length = 0;
+        };
         for (const t of timed) {
+            if (t.tStart >= clusterEnd) { closeCluster(); clusterEnd = t.tEnd; }
+            else clusterEnd = Math.max(clusterEnd, t.tEnd);
             let lane = laneEnd.findIndex(e => e <= t.tStart);
             if (lane === -1) { lane = laneEnd.length; laneEnd.push(t.tEnd); }
             else laneEnd[lane] = t.tEnd;
-            placed.push({ t, lane });
+            cluster.push({ t, lane });
         }
-        const lanes = Math.max(laneEnd.length, 1);
-        for (const { t, lane } of placed) {
+        closeCluster();            // 마지막 무리 — 빠뜨리면 하루의 끝 일정이 그려지지 않는다
+        for (const { t, lane, lanes, span } of placed) {
             const c = CATCOLOR[t.cat] || CATCOLOR[CAT_DEFAULT];
             const dim = t.done || t.cancelled;
             const top = t.tStart / 60 * HOUR_H;
@@ -771,7 +791,7 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
             const blk = grid.createEl("div");
             blk.draggable = true;
             blk.title = `${t.title}\n⏰ ${timeText(t.tStart, t.tEnd)}\n드래그=시각 이동 · 아래끝 드래그=종료 시각 · 종일 줄로 드래그=시각 제거 · 클릭=열기`;
-            blk.style.cssText = `position:absolute;left:calc(${GUTTER}px + (100% - ${GUTTER}px) * ${lane / lanes});width:calc((100% - ${GUTTER}px) * ${1 / lanes} - 5px);top:${top}px;height:${h}px;z-index:2;box-sizing:border-box;background:${c}2b;border:1px solid ${c};border-left:4px solid ${c};border-radius:4px;padding:2px 6px;font-size:11px;line-height:1.3;overflow:hidden;cursor:grab;${dim ? "opacity:.55;text-decoration:line-through;" : ""}`;
+            blk.style.cssText = `position:absolute;left:calc(${GUTTER}px + (100% - ${GUTTER}px) * ${lane / lanes});width:calc((100% - ${GUTTER}px) * ${span / lanes} - 5px);top:${top}px;height:${h}px;z-index:2;box-sizing:border-box;background:${c}2b;border:1px solid ${c};border-left:4px solid ${c};border-radius:4px;padding:2px 6px;font-size:11px;line-height:1.3;overflow:hidden;cursor:grab;${dim ? "opacity:.55;text-decoration:line-through;" : ""}`;
             blk.appendChild(document.createTextNode(`${toHHMM(t.tStart)} ${(t.cancelled ? "✗ " : t.done ? "✓ " : "")}${t.title || "(제목 없음)"}`));
             blk.addEventListener("dragstart", (e) => { dragging = t; e.dataTransfer.effectAllowed = "move"; });
             blk.addEventListener("dragend", () => { dragging = null; });
@@ -814,10 +834,14 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
             });
         }
 
-        // 첫 표시 위치: 사용자가 보던 곳 → 없으면 가장 이른 일정 → 없으면 08:00.
-        // 계산한 값은 곧바로 S 에 고정한다. 안 그러면 드롭으로 "가장 이른 일정"이 바뀔 때마다
-        // 재렌더에서 스크롤이 다른 곳으로 튀어 화면이 새로고침된 것처럼 보인다.
-        if (S.dayScroll === undefined) S.dayScroll = Math.max(0, (timed.length ? timed[0].tStart : 8 * 60) / 60 * HOUR_H - HOUR_H);
+        // 첫 표시 위치: 사용자가 보던 곳 → 없으면 현재 시각(한 시간 위 여백).
+        // 일간 버튼을 누르면 S.dayScroll 이 undefined 로 초기화되므로 누를 때마다 지금 시각으로 돌아온다.
+        // 계산한 값은 곧바로 S 에 고정한다. 안 그러면 재렌더마다 스크롤이 다시 계산돼
+        // 사용자가 옮겨 둔 위치가 튀어 화면이 새로고침된 것처럼 보인다.
+        if (S.dayScroll === undefined) {
+            const n = L.now();
+            S.dayScroll = Math.max(0, (n.hour * 60 + n.minute) / 60 * HOUR_H - HOUR_H);
+        }
     }
 
     // 이 블록이 살아있는 동안 볼트 데이터는 우리가 쓸 때만 바뀐다
@@ -871,9 +895,11 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
         //  "일간 보기가 없다"고 느껴진다 — 현재 보기가 어디인지도 드러나지 않는다.)
         for (const [m, lab] of [["month", "월간"], ["week", "주간"], ["day", "일간"]]) {
             const b = bar.createEl("button", { text: lab });
+            if (m === "day") b.title = "일간 보기 — 누르면 현재 시각으로 맞춘다";
             b.style.cssText = `font-size:11px;padding:2px 9px;border-radius:10px;cursor:pointer;${m === mode ? "border:1px solid var(--interactive-accent);font-weight:700;" : "opacity:.6;"}`;
             b.onclick = () => {
-                if (m === mode) return;
+                // 이미 일간이면 다시 눌러 "지금 시각으로 되돌리기" 로 쓴다
+                if (m === mode) { if (m === "day") { S.dayScroll = undefined; render(); } return; }
                 mode = m;
                 // 주간·일간은 항상 "오늘" 기준으로 연다 (보던 달의 1일 기준이면 대개 지난 주가 열린다)
                 view = m === "month" ? view.startOf("month") : m === "week" ? sundayStart(L.now()) : L.now().startOf("day");
@@ -887,7 +913,11 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
         const step = (n) => (mode === "month" ? view.plus({ months: n }) : mode === "day" ? view.plus({ days: n }) : view.plus({ weeks: n }));
         prev.onclick = () => { view = step(-1); render(); };
         next.onclick = () => { view = step(1); render(); };
-        todayBtn.onclick = () => { view = mode === "month" ? L.now().startOf("month") : mode === "day" ? L.now().startOf("day") : sundayStart(L.now()); render(); };
+        todayBtn.onclick = () => {
+            view = mode === "month" ? L.now().startOf("month") : mode === "day" ? L.now().startOf("day") : sundayStart(L.now());
+            if (mode === "day") S.dayScroll = undefined;   // "오늘" 은 지금 시각까지 데려다 준다
+            render();
+        };
 
         // ── 카테고리 필터 토글 ──
         const filterBar = box.createEl("div");

@@ -1,7 +1,7 @@
 {
   "id": "gcal-calendar-view",
   "name": "Gcal Calendar View",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "minAppVersion": "1.4.0",
   "description": "#task 를 기간 막대와 타임블록으로 그리는 캘린더. 드래그로 날짜·시각을 바꾸고 tasks-gcal-sync 가 Google Calendar 로 올린다.",
   "author": "hjmoon9212",
