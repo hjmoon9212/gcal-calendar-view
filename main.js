@@ -244,13 +244,29 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
         return false;
     };
 
+    // 그 파일을 보여줄 leaf 를 고른다.
+    // 이미 어딘가 열려 있으면 새로 열지 않고 그 탭으로 이동한다 (중복 탭 방지).
+    // 단 Ctrl(Cmd)+클릭은 "새로 열라"는 뜻이므로 그때는 항상 새 탭/분할.
+    function leafForFile(path, mode) {
+        if (!mode) {
+            const open = app.workspace.getLeavesOfType("markdown")
+                .find(l => l.view && l.view.file && l.view.file.path === path);
+            if (open) {
+                app.workspace.setActiveLeaf(open, { focus: true });
+                app.workspace.revealLeaf(open);   // 사이드바/접힌 탭이면 꺼내 준다
+                return open;
+            }
+        }
+        return app.workspace.getLeaf(mode);   // false = 현재 탭(설정에 따라 새 탭) · "tab" = 새 탭 · "split" = 분할
+    }
+
     // 원본 노트의 해당 줄로 이동 (편집 모드면 커서/스크롤까지 보정)
     async function openAtLine(task, evt) {
         const f = app.vault.getAbstractFileByPath(task.path);
         if (!f) { new Notice("파일 없음: " + task.path); return; }
-        const leaf = app.workspace.getLeaf(openMode(evt));   // false = 현재 탭 · "tab" = 새 탭 · "split" = 분할
+        const leaf = leafForFile(task.path, openMode(evt));
         const line = typeof task.line === "number" ? task.line : 0;
-        await leaf.openFile(f, { eState: { line } });
+        await leaf.openFile(f, { eState: { line }, active: true });
         const ed = leaf.view && leaf.view.editor;
         if (ed) { ed.setCursor({ line, ch: 0 }); ed.scrollIntoView({ from: { line, ch: 0 }, to: { line, ch: 0 } }, true); }
     }
@@ -571,7 +587,7 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
             const name = path.split("/").pop().replace(/\.md$/, "");
             const hdr = grp.createEl("div", { text: `📄 ${name} (${byFile.get(path).length})` });
             hdr.style.cssText = "font-size:12px;font-weight:600;opacity:0.85;margin:2px 0 4px;cursor:pointer;border-bottom:1px solid var(--background-modifier-border);padding-bottom:2px;";
-            hdr.onclick = async (e) => { const f = app.vault.getAbstractFileByPath(path); if (f) await app.workspace.getLeaf(openMode(e)).openFile(f); };
+            hdr.onclick = async (e) => { const f = app.vault.getAbstractFileByPath(path); if (f) await leafForFile(path, openMode(e)).openFile(f, { active: true }); };
             const body = grp.createEl("div");
             body.style.cssText = "display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:6px;";
             for (const t of byFile.get(path)) body.appendChild(trayItem(t));
