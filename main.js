@@ -710,12 +710,48 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
             const r = grid.getBoundingClientRect();
             return snapMin((clientY - r.top) / HOUR_H * 60);
         };
-        grid.addEventListener("dragover", (e) => e.preventDefault());
+
+        // ── 드롭 예측 그림자 ──
+        // 드롭은 포인터 위치를 시작 시각으로 삼는데, 사람은 블록 한가운데를 잡으므로
+        // 브라우저의 드래그 고스트 윗변과 실제 착지 지점이 잡은 만큼 어긋난다.
+        // 계산을 건드리는 대신 착지 지점을 그려서, 고스트가 아니라 이걸 보고 조준하게 한다.
+        // 위치·라벨·배지를 모두 아래 startOf() 하나에서 뽑으므로 셋이 어긋날 수 없다.
+        const ghost = grid.createEl("div");
+        ghost.style.cssText = `position:absolute;left:${GUTTER}px;right:0;display:none;z-index:4;pointer-events:none;box-sizing:border-box;border:1px dashed var(--interactive-accent);border-radius:4px;`;
+        // 배경만 반투명하게 깐다. ghost 자체에 opacity 를 주면 라벨까지 흐려져 안 읽힌다
+        const ghostBg = ghost.createEl("div");
+        ghostBg.style.cssText = "position:absolute;inset:0;background:var(--interactive-accent);opacity:.22;border-radius:3px;";
+        const ghostLabel = ghost.createEl("div");
+        ghostLabel.style.cssText = "position:absolute;left:5px;top:1px;font-size:11px;font-weight:600;color:var(--text-accent);white-space:nowrap;";
+        const badge = grid.createEl("div");
+        badge.style.cssText = "position:absolute;left:2px;display:none;z-index:5;pointer-events:none;font-size:10px;font-weight:600;line-height:1.5;padding:0 4px;border-radius:6px;background:var(--interactive-accent);color:var(--text-on-accent);";
+        // dropOnTime 과 같은 클램프를 태운다 — 끝자락에서 그림자와 결과가 갈라지지 않게
+        const startOf = (clientY) => Math.max(0, Math.min(1440 - SNAP_MIN, minAt(clientY)));
+        const hideGhost = () => { ghost.style.display = "none"; badge.style.display = "none"; };
+        grid.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            const t = dragging;
+            if (!t) return;
+            const len = t.tStart !== null ? t.tEnd - t.tStart : DEFAULT_MIN;
+            const s = startOf(e.clientY);
+            const end = Math.min(1440, s + len);
+            const top = s / 60 * HOUR_H;
+            ghost.style.top = top + "px";
+            ghost.style.height = Math.max(16, (end - s) / 60 * HOUR_H - 2) + "px";
+            ghostLabel.textContent = timeText(s, end);
+            ghost.style.display = "";
+            badge.style.top = top + "px";
+            badge.textContent = toHHMM(s);
+            badge.style.display = "";
+        });
+        grid.addEventListener("dragleave", (e) => { if (!grid.contains(e.relatedTarget)) hideGhost(); });
         grid.addEventListener("drop", async (e) => {
             e.preventDefault();
+            hideGhost();
             const t = dragging; dragging = null;
             if (t) await dropOnTime(t, iso, minAt(e.clientY));
         });
+        grid.addEventListener("dragend", hideGhost);
 
         // 겹치는 블록은 좌우로 나눠 놓는다 (시작 시각 순 그리디 레인 배치)
         const laneEnd = [];
@@ -985,6 +1021,7 @@ class GcalCalendarSettingTab extends PluginSettingTab {
             "막대·트레이 카드를 날짜로 드래그 = 기간째 이동(놓은 칸 = 🛫 시작일, 없으면 📅 마감일).",
             "Shift + 드래그 = 📅 마감일만 조정 (🛫 없으면 생성).",
             "일간 보기: 블록 드래그 = 시각 이동(15분 단위) · 아래끝 드래그 = 종료 시각 · 종일 줄 ↔ 그리드 = 시각 부여/제거.",
+            "일간 보기에서 끌면 착지 지점에 그림자와 시각 배지가 뜬다 — 마우스 커서가 아니라 그 그림자에 맞춰 놓는다.",
             "클릭 = 원본 열기(현재 탭) · Ctrl+클릭 = 새 탭 · Ctrl+Shift+클릭 = 분할 창 · 우클릭 = Tasks 편집 모달.",
             "📥 날짜 없음 / 🔴 지연 카드의 빠른 버튼·날짜선택기로도 마감일 변경.",
             "변경은 노트에 바로 쓰이고 tasks-gcal-sync 가 Google Calendar 로 올린다.",
