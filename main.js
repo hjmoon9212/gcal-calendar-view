@@ -969,9 +969,14 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
         // ── 카테고리 필터 토글 ──
         const filterBar = box.createEl("div");
         filterBar.style.cssText = "display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:8px;";
-        const allBtn = filterBar.createEl("button", { text: "전체" });
+        // 한 카테고리만 보려고 나머지를 하나씩 끄는 게 번거로워 전체 버튼을 토글로 둔다.
+        // 다 켜져 있으면 "전체 해제" → 한 번 비우고 볼 것만 켠다. 아니면 "전체" → 다 켠다.
+        // 버튼 글자가 곧 눌렀을 때 일어날 일이다(현재 상태 표시가 아니다).
+        const allOn = CATS.length > 0 && CATS.every(c => activeCats.has(c));
+        const allBtn = filterBar.createEl("button", { text: allOn ? "전체 해제" : "전체" });
+        allBtn.title = allOn ? "카테고리를 모두 끈다 — 볼 것만 다시 켜면 된다" : "카테고리를 모두 켠다";
         allBtn.style.cssText = "font-size:11px;padding:2px 8px;border-radius:12px;cursor:pointer;";
-        allBtn.onclick = () => { CATS.forEach(c => activeCats.add(c)); render(); };
+        allBtn.onclick = () => { if (allOn) activeCats.clear(); else CATS.forEach(c => activeCats.add(c)); render(); };
         for (const cat of CATS) {
             const on = activeCats.has(cat);
             const b = filterBar.createEl("button");
@@ -1081,6 +1086,7 @@ class GcalCalendarSettingTab extends PluginSettingTab {
             "일간 보기에서 끌면 착지 지점에 그림자와 시각 배지가 뜬다 — 마우스 커서가 아니라 그 그림자에 맞춰 놓는다.",
             "클릭 = 원본 열기(현재 탭) · Ctrl+클릭 = 새 탭 · Ctrl+Shift+클릭 = 분할 창 · 우클릭 = Tasks 편집 모달.",
             "📥 날짜 없음 / 🔴 지연 카드의 빠른 버튼·날짜선택기로도 마감일 변경.",
+            "카테고리 필터의 «전체» 버튼은 토글이다 — 다 켜져 있으면 «전체 해제», 비우고 볼 것만 켜면 된다.",
             "변경은 노트에 바로 쓰이고 tasks-gcal-sync 가 Google Calendar 로 올린다.",
             "시각(⏰)은 일간 보기 드래그로만 넣는다 — 줄 끝에 적으면 Tasks 가 📅 까지 못 읽는다.",
         ]) {
