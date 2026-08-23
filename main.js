@@ -224,7 +224,7 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
     const FIELD_EMOJI = /[\u{1F4C5}\u{1F4C6}\u{1F5D3}\u{1F6EB}\u{23F3}\u{231B}\u{2705}\u{2795}\u{274C}\u{1F501}\u{1F194}\u{26D4}\u{1F3C1}\u{1F53A}\u{23EB}\u{1F53C}\u{1F53D}\u{23EC}]/u;
     const DEFAULT_MIN = 60;   // 종료 시각이 없을 때의 기본 길이
     const SNAP_MIN = 15;      // 드래그 스냅 단위(분)
-    const HOUR_H = 44;        // 일간 보기에서 1시간 높이(px)
+    const HOUR_H = 64;        // 일간 보기에서 1시간 높이(px). 15분 스냅 = 16px 라 15분 단위가 눈에 잡힌다
     const DAY_BOX_H = 560;    // 시간 그리드 스크롤 박스 높이(px)
     const GUTTER = 52;        // 시각 라벨이 차지하는 왼쪽 폭(px)
 
