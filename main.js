@@ -895,7 +895,29 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
         const tasks = all.filter(t => !t.done && !t.cancelled);   // 트레이/현황 = 미완료(취소[-] 제외)
         const calTasks = showDone ? all : tasks;   // 달력 = 토글에 따라 완료·취소 포함
 
-        // ── 툴바: 네비 + 뷰 전환 ──
+        // ── 날짜 없음 트레이 ──
+        const undated = tasks.filter(t => !t.due);
+        const tray = box.createEl("div");
+        tray.style.cssText = "border:1px dashed var(--background-modifier-border);border-radius:4px;padding:4px;margin-bottom:8px;";
+        tray.createEl("div", { text: `📥 날짜 없음 (${undated.length}) — 달력으로 드래그해 날짜 지정` }).style.cssText = "font-size:11px;opacity:0.7;margin-bottom:2px;";
+        const trayBody = tray.createEl("div");
+        trayBody.style.cssText = "max-height:280px;overflow:auto;";
+        trayBody.addEventListener("scroll", () => { S.trayScroll = trayBody.scrollTop; });
+        renderGrouped(trayBody, undated);
+
+        // ── 지연(Overdue) 트레이 ── (취소 [-] 제외)
+        const overdue = tasks.filter(t => t.due && t.due < todayISO).sort((a, b) => a.due < b.due ? -1 : 1);
+        const otray = box.createEl("div");
+        otray.style.cssText = "border:1px solid var(--background-modifier-border);border-left:3px solid #e05a7a;border-radius:4px;padding:4px;margin-bottom:8px;";
+        otray.createEl("div", { text: `🔴 지연 Overdue (${overdue.length}) — 드래그해서 다시 예약` }).style.cssText = "font-size:11px;opacity:0.85;margin-bottom:2px;color:#e05a7a;font-weight:600;";
+        const obody = otray.createEl("div");
+        obody.style.cssText = "max-height:280px;overflow:auto;";
+        obody.addEventListener("scroll", () => { S.overdueScroll = obody.scrollTop; });
+        renderGrouped(obody, overdue);
+
+        // ── 툴바: 네비 + 뷰 전환 ── (트레이 아래, 달력 바로 위)
+        // 이 줄은 아래 달력을 조작하는 손잡이다. 트레이 위에 두면 조작 대상과 멀어져서,
+        // 트레이가 길어질수록 "이 버튼이 뭘 바꾸는지" 가 화면에서 끊긴다.
         const bar = box.createEl("div");
         bar.style.cssText = "display:flex;align-items:center;gap:8px;margin-bottom:6px;";
         const prev = bar.createEl("button", { text: "◀" });
@@ -950,26 +972,6 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
             b.createEl("span", { text: CATLABEL[cat] });
             b.onclick = () => { if (activeCats.has(cat)) activeCats.delete(cat); else activeCats.add(cat); render(); };
         }
-
-        // ── 날짜 없음 트레이 ──
-        const undated = tasks.filter(t => !t.due);
-        const tray = box.createEl("div");
-        tray.style.cssText = "border:1px dashed var(--background-modifier-border);border-radius:4px;padding:4px;margin-bottom:8px;";
-        tray.createEl("div", { text: `📥 날짜 없음 (${undated.length}) — 달력으로 드래그해 날짜 지정` }).style.cssText = "font-size:11px;opacity:0.7;margin-bottom:2px;";
-        const trayBody = tray.createEl("div");
-        trayBody.style.cssText = "max-height:280px;overflow:auto;";
-        trayBody.addEventListener("scroll", () => { S.trayScroll = trayBody.scrollTop; });
-        renderGrouped(trayBody, undated);
-
-        // ── 지연(Overdue) 트레이 ── (취소 [-] 제외)
-        const overdue = tasks.filter(t => t.due && t.due < todayISO).sort((a, b) => a.due < b.due ? -1 : 1);
-        const otray = box.createEl("div");
-        otray.style.cssText = "border:1px solid var(--background-modifier-border);border-left:3px solid #e05a7a;border-radius:4px;padding:4px;margin-bottom:8px;";
-        otray.createEl("div", { text: `🔴 지연 Overdue (${overdue.length}) — 드래그해서 다시 예약` }).style.cssText = "font-size:11px;opacity:0.85;margin-bottom:2px;color:#e05a7a;font-weight:600;";
-        const obody = otray.createEl("div");
-        obody.style.cssText = "max-height:280px;overflow:auto;";
-        obody.addEventListener("scroll", () => { S.overdueScroll = obody.scrollTop; });
-        renderGrouped(obody, overdue);
 
         // ── 달력 (기간 막대) ──
         if (mode === "month") renderMonth(box, calTasks);
