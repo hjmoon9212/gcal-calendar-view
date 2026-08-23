@@ -164,11 +164,20 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
         // 색은 실제 Google Calendar 의 커스텀 색 HEX 를 그대로 쓴다.
         CATCOLOR = Object.fromEntries(cats.map((c) => [c.key, c.color]));
         CAT_DEFAULT = plugin.settings.defaultCategory || CATS[0] || "";
-        // 설정에서 사라진 카테고리는 필터에서도 뺀다. 저장된 필터에 없던 새 카테고리는
+        // 설정에서 사라진 카테고리는 필터에서도 뺀다. 설정에 "새로 생긴" 카테고리는
         // 켠 채로 시작한다 — 방금 만든 카테고리가 안 보이면 버그로 읽힌다.
+        //
+        // "새로 생겼는지" 는 반드시 지난번 카테고리 "목록"(S.knownCats)과 견줘야 한다.
+        // 활성 목록(S.cats)과 견주면 꺼 둔 카테고리와 처음 보는 카테고리를 구분하지 못해
+        // 꺼 둔 게 다음 렌더에 되살아난다. 클릭 한 번이 곧 렌더 한 번이라, 두 번째로 끄는
+        // 순간 첫 번째가 켜져서 "한 번에 하나만 꺼진다" 로 나타났다(0.1.12 에서 수정).
         const saved = Array.isArray(S.cats) ? S.cats : null;
+        // knownCats 가 없는 첫 실행: 이미 저장된 필터가 있으면 지금 목록을 다 아는 것으로 친다
+        // (안 그러면 업데이트 직후 꺼 둔 게 한 번 되살아난다). 저장분이 아예 없으면 전부 켠다.
+        const known = Array.isArray(S.knownCats) ? S.knownCats : (saved ? CATS : null);
         for (const c of [...activeCats]) if (!CATS.includes(c)) activeCats.delete(c);
-        for (const c of CATS) if (!saved || !saved.includes(c)) activeCats.add(c);
+        for (const c of CATS) if (!known || !known.includes(c)) activeCats.add(c);
+        S.knownCats = [...CATS];
     };
     syncCategories();
     // ═════════════════════════════════════════════════════════════════════════════
