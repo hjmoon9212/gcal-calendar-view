@@ -32,9 +32,15 @@ const DEFAULT_SETTINGS = {
         { key: "non-core", label: "Non-core", color: "#a79b8e" },
     ],
     defaultCategory: "personal",
-    // GCal 일정(읽기 전용) 중 **같은 이름의 카테고리가 없는** 캘린더의 색.
-    // 예: "Holidays in South Korea" 처럼 task 카테고리로 존재하지 않는 캘린더.
-    // 이름이 맞는 캘린더는 그 카테고리 색을 따르므로 여기까지 오지 않는다.
+    // ── GCal 일정(읽기 전용)의 색 ──
+    // **색은 전부 이 플러그인이 소유한다.** 그리는 쪽이 색을 갖는 게 맞고, 카테고리 색과
+    // 한 화면에 있어야 "task 막대와 회의 막대를 같은 색으로" 를 눈으로 맞출 수 있다.
+    // tasks-gcal-sync 는 "어느 캘린더를 가져올지" 만 정한다.
+    //
+    // eventColors: 캘린더 id → "#rrggbb". 여기 있으면 그 색을 쓴다(직접 지정).
+    //              없으면 같은 이름의 카테고리 색 → 그것도 없으면 eventColor.
+    eventColors: {},
+    // 같은 이름의 카테고리가 없는 캘린더의 색 (예: "Holidays in South Korea")
     eventColor: "#7f8c8d",
 };
 
@@ -75,6 +81,40 @@ function parseList(v) {
 
 /** 캘린더 이름 비교용 정규화. 사람이 손으로 적는 값이라 대소문자·공백을 무시한다. */
 const calKey = (s) => String(s || "").trim().toLowerCase();
+
+const HEX6_RE = /^#[0-9a-fA-F]{6}$/;
+const okHex = (v) => (HEX6_RE.test(String(v || "")) ? String(v).toLowerCase() : null);
+
+/**
+ * GCal 일정 하나의 색과 **그 색이 어디서 왔는지**. 설정 화면과 렌더가 같은 함수를 쓴다 —
+ * 설정에 보이는 색과 화면에 그려지는 색이 갈라지면 그것만으로 버그다.
+ *
+ * 우선순위:
+ *   1) eventColors[캘린더 id]        직접 지정
+ *   2) 같은 이름의 카테고리 색        기본 — task 막대와 저절로 맞는다
+ *   3) eventColor                    카테고리가 없는 캘린더(예: Holidays in South Korea)
+ */
+function resolveEventColorInfo(settings, catColor, calId, calName) {
+    const own = okHex((settings.eventColors || {})[calId]);
+    if (own) return { color: own, source: "직접 지정", cat: null };
+    const key = calKey(calName);
+    const byCat = okHex((catColor || {})[key]);
+    if (byCat) return { color: byCat, source: `카테고리 «${key}» 따름`, cat: key };
+    return {
+        color: okHex(settings.eventColor) || "#7f8c8d",
+        source: "기본 색 따름 (같은 이름의 카테고리 없음)",
+        cat: null,
+    };
+}
+const resolveEventColor = (settings, catColor, calId, calName) =>
+    resolveEventColorInfo(settings, catColor, calId, calName).color;
+
+/** 설정 화면에서 쓸 카테고리 색 맵 (key → color). createCalendar 밖에서도 필요하다. */
+function categoryColorMap(settings) {
+    const m = {};
+    for (const c of settings.categories || []) if (c && c.key) m[calKey(c.key)] = c.color;
+    return m;
+}
 
 /**
  * 블록별 GCal 일정 필터.
@@ -500,20 +540,12 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
      * 없으면), 캘린더 이름을 소문자로 내리면 카테고리 키와 맞는다. 그래서 같은 캘린더의
      * task 막대와 회의 막대가 **저절로 같은 색**이 된다. 카테고리 색을 바꾸면 둘 다 따라온다.
      */
-    /** 설정의 「GCal 일정 기본 색」. 매 호출마다 읽는다 — 설정 변경이 바로 반영되게. */
-    const eventDefaultColor = () => {
-        const v = plugin.settings.eventColor;
-        return HEX6.test(v || "") ? v : "#7f8c8d";
-    };
-    const eventColor = (e) => {
-        // 1) 동기화 플러그인 설정에서 **캘린더별로 고른 색**이 있으면 그게 이긴다
-        if (HEX6.test(e.color || "")) return e.color;
-        // 2) 같은 이름의 카테고리 색 — 같은 캘린더의 task 막대와 저절로 맞는다
-        const byCat = CATCOLOR[String(e.calendarName || "").trim().toLowerCase()];
-        if (HEX6.test(byCat || "")) return byCat;
-        // 3) 매칭되는 카테고리가 없는 캘린더(예: "Holidays in South Korea") → 설정의 기본 색
-        return eventDefaultColor();
-    };
+    /**
+     * 일정의 색. **색은 전부 이 플러그인 설정이 정한다** — tasks-gcal-sync 가 실어 보내는
+     * `e.color` 는 일부러 보지 않는다. 색이 두 군데 있으면 어느 쪽이 이기는지를 매번
+     * 되짚어야 하고, 실제로 그렇게 헷갈렸다.
+     */
+    const eventColor = (e) => resolveEventColor(plugin.settings, CATCOLOR, e.calendarId, e.calendarName);
 
     /**
      * 피드가 준 일정 → 캘린더가 그릴 수 있는 항목.
@@ -572,8 +604,10 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
         const f = feed();
         if (!f || !showEvents || CALF.off) return [];
         // 카테고리 색이 바뀌면 캐시된 항목의 color 도 다시 계산해야 한다(eventColor 참고)
+        // 색 설정이 바뀌면 캐시된 항목도 다시 칠해야 한다 → 서명을 키에 넣는다
         const key = fromISO + "|" + toISO + "|" + feedVersion + "|" +
-            CATS.map((c) => CATCOLOR[c]).join(",") + "|" + eventDefaultColor();
+            CATS.map((c) => CATCOLOR[c]).join(",") + "|" +
+            plugin.settings.eventColor + "|" + JSON.stringify(plugin.settings.eventColors || {});
         if (evCache && evCache.key === key) return evCache.items;
         let items = [];
         try {
@@ -1480,25 +1514,71 @@ class GcalCalendarSettingTab extends PluginSettingTab {
                 });
             });
 
-        // ── GCal 일정 ──
-        containerEl.createEl("h3", { text: "Google Calendar 일정 (읽기 전용)" });
+        // ── GCal 일정 캘린더 ──
+        // 색은 전부 여기 있다. 어느 캘린더를 가져올지는 tasks-gcal-sync 가 정하고,
+        // 어떻게 그릴지는 여기서 정한다 — 카테고리 색 바로 아래라 눈으로 맞출 수 있다.
+        containerEl.createEl("h3", { text: "GCal 일정 캘린더 (읽기 전용)" });
         containerEl.createEl("p", {
             text:
                 "tasks-gcal-sync 설정의 «캘린더 뷰에 표시할 일정» 에서 고른 캘린더의 회의·약속이 " +
-                "📆 로 그려집니다. 색은 같은 이름의 카테고리를 따르므로 (예: Growth 캘린더 → growth " +
-                "카테고리), 보통은 위에서 색을 맞추면 일정도 같이 맞습니다.",
+                "📆 로 그려집니다. 기본은 같은 이름의 카테고리 색을 따르므로 (예: Growth 캘린더 → " +
+                "위의 growth 카테고리), 보통은 손댈 게 없습니다.",
             cls: "setting-item-description",
         });
+
+        const feed = this.plugin.gcalFeed();
+        const sel = feed ? feed.listSelectedCalendars() : [];
+        if (!sel.length) {
+            containerEl.createEl("p", {
+                text: feed
+                    ? "고른 캘린더가 없습니다. tasks-gcal-sync 설정 → «캘린더 뷰에 표시할 일정» 에서 고르세요."
+                    : "tasks-gcal-sync 가 없거나(모바일·미설치) 아직 인증/선택 전입니다.",
+                cls: "setting-item-description",
+            });
+        }
+
+        const catColor = categoryColorMap(this.plugin.settings);
+        for (const c of sel) {
+            const info = resolveEventColorInfo(this.plugin.settings, catColor, c.id, c.name);
+            const own = okHex((this.plugin.settings.eventColors || {})[c.id]);
+            new Setting(containerEl)
+                .setName(c.name)
+                .setDesc(`${info.source} ${info.color}`)
+                .addColorPicker((p) =>
+                    // 따르는 중이어도 **실제로 그려질 색**을 보여준다. 여기 보이는 색과
+                    // 화면의 막대 색이 다르면 그것만으로 버그다.
+                    p.setValue(info.color).onChange(async (v) => {
+                        this.plugin.settings.eventColors = {
+                            ...(this.plugin.settings.eventColors || {}),
+                            [c.id]: v,
+                        };
+                        await this.plugin.saveSettings();
+                        this.display();
+                    })
+                )
+                .addExtraButton((b) =>
+                    b
+                        .setIcon("rotate-ccw")
+                        .setTooltip("카테고리 색으로 되돌리기")
+                        .setDisabled(!own)
+                        .onClick(async () => {
+                            const next = { ...(this.plugin.settings.eventColors || {}) };
+                            delete next[c.id];
+                            this.plugin.settings.eventColors = next;
+                            await this.plugin.saveSettings();
+                            this.display();
+                        })
+                );
+        }
+
         new Setting(containerEl)
             .setName("기본 색")
-            .setDesc(
-                "같은 이름의 카테고리가 없는 캘린더에 쓰입니다 (예: Holidays in South Korea). " +
-                "캘린더별로 다르게 하려면 tasks-gcal-sync 설정에서 그 캘린더의 색을 고르세요 — 그게 가장 먼저 적용됩니다."
-            )
+            .setDesc("같은 이름의 카테고리가 없는 캘린더에 쓰입니다 (예: Holidays in South Korea).")
             .addColorPicker((p) =>
-                p.setValue(this.plugin.settings.eventColor || "#7f8c8d").onChange(async (v) => {
+                p.setValue(okHex(this.plugin.settings.eventColor) || "#7f8c8d").onChange(async (v) => {
                     this.plugin.settings.eventColor = v;
                     await this.plugin.saveSettings();
+                    this.display();
                 })
             )
             .addExtraButton((b) =>
@@ -1539,6 +1619,20 @@ module.exports = class GcalCalendarViewPlugin extends Plugin {
 
     async saveSettings() {
         await this.saveData(this.settings);
+    }
+
+    /**
+     * tasks-gcal-sync 의 읽기 전용 API. 설정 화면에서 «표시할 일정» 목록을 읽는 데 쓴다.
+     * 없으면 null — 미설치·구버전·인증 전·고른 캘린더 0개 (전부 정상 상태다).
+     */
+    gcalFeed() {
+        try {
+            const a = this.app.plugins?.plugins?.["tasks-gcal-sync"]?.api;
+            if (!a || typeof a.listSelectedCalendars !== "function") return null;
+            return a.isReady() ? a : null;
+        } catch (e) {
+            return null;
+        }
     }
 
     /** 열려 있는 캘린더를 모두 다시 그린다 (설정 변경 후). */
@@ -1603,4 +1697,4 @@ module.exports = class GcalCalendarViewPlugin extends Plugin {
 
 // 순수 함수만 테스트에서 꺼내 쓴다(스코프 결정은 노트 위치에 따라 갈리는 유일한 분기다).
 // Obsidian 은 module.exports 의 기본 export 만 보므로 이 속성은 무해하다.
-module.exports.__test = { parseOptions, resolveSource, parseList, resolveCalFilter };
+module.exports.__test = { parseOptions, resolveSource, parseList, resolveCalFilter, resolveEventColorInfo, categoryColorMap, DEFAULT_SETTINGS };
