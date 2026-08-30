@@ -161,15 +161,21 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
     //
     // null 이 되는 경우: 모바일(그쪽은 isDesktopOnly 라 아예 로드 안 됨) · 미설치 ·
     // 구버전(api 없음) · 인증 전 · 고른 캘린더 0개. 전부 v0.1.13 과 동일한 화면이 된다.
-    const feed = () => {
+    // 플러그인이 깔려 있고 API 모양이 맞는가 (준비 여부는 안 본다)
+    const feedPlugin = () => {
         try {
             const p = app.plugins && app.plugins.plugins && app.plugins.plugins["tasks-gcal-sync"];
             const a = p && p.api;
             if (!a || typeof a.peekEvents !== "function" || typeof a.requestEvents !== "function") return null;
-            return a.isReady() ? a : null;
+            return a;
         } catch (e) {
             return null;   // 실패하면 없는 것으로 — 캘린더는 task 만 그린다(fail open)
         }
+    };
+    // 지금 일정을 줄 수 있는가 (인증됨 + 고른 캘린더 1개 이상)
+    const feed = () => {
+        const a = feedPlugin();
+        try { return a && a.isReady() ? a : null; } catch (e) { return null; }
     };
 
     // 읽기 전용 항목인가. 이 하나로 모든 쓰기·이동 경로를 막는다.
@@ -420,6 +426,24 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
         return out;
     }
 
+    const HEX6 = /^#[0-9a-fA-F]{6}$/;
+    /**
+     * 일정의 색. **카테고리 색을 먼저 본다** — 따로 맞춰 놓을 필요가 없게.
+     *
+     * `#gcal/<이름>` 라우팅이 태그 이름과 캘린더 이름을 그대로 맞추므로(보정 규칙이
+     * 없으면), 캘린더 이름을 소문자로 내리면 카테고리 키와 맞는다. 그래서 같은 캘린더의
+     * task 막대와 회의 막대가 **저절로 같은 색**이 된다. 카테고리 색을 바꾸면 둘 다 따라온다.
+     */
+    const eventColor = (e) => {
+        // 1) 동기화 플러그인 설정에서 **명시적으로 고른 색**이 있으면 그게 이긴다
+        if (HEX6.test(e.color || "")) return e.color;
+        // 2) 기본은 카테고리 색 — 따로 맞춰 둘 필요가 없다
+        const byCat = CATCOLOR[String(e.calendarName || "").trim().toLowerCase()];
+        if (HEX6.test(byCat || "")) return byCat;
+        // 3) 매칭되는 카테고리가 없는 캘린더(예: "Holidays in South Korea")
+        return "#7f8c8d";
+    };
+
     /**
      * 피드가 준 일정 → 캘린더가 그릴 수 있는 항목.
      *
@@ -438,8 +462,11 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
         start: e.startISO, due: e.endISO,
         tStart: e.tStart, tEnd: e.tEnd,
         cat: null,                       // 카테고리가 아니다 — 필터도 별도 토글로 건다
-        // 색은 "#rrggbb" 여야 한다 — 아래에서 ${c}14 로 알파를 붙이기 때문이다
-        color: /^#[0-9a-fA-F]{6}$/.test(e.color || "") ? e.color : "#7f8c8d",
+        // 기본은 **카테고리 색**이다. `#gcal/<이름>` 라우팅이 태그 이름과 캘린더 이름을
+        // 그대로 맞추므로(보정 규칙이 없으면), 캘린더 "Growth" 의 회의는 growth 카테고리
+        // 색이 되어 같은 캘린더의 task 막대와 저절로 같아진다. 동기화 플러그인 설정에서
+        // 색을 고르면 그게 이긴다 → eventColor()
+        color: eventColor(e),
         calendarName: e.calendarName || "",
         location: e.location || "", allDay: e.allDay,
         recurring: !!e.recurring,
@@ -470,10 +497,11 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
     };
 
     const eventsFor = (fromISO, toISO) => {
+        subscribe(feedPlugin());   // 준비 전에도 걸어 둔다 — 설정에서 캘린더를 고르면 알려 온다
         const f = feed();
-        subscribe(f);
         if (!f || !showEvents) return [];
-        const key = fromISO + "|" + toISO + "|" + feedVersion;
+        // 카테고리 색이 바뀌면 캐시된 항목의 color 도 다시 계산해야 한다(eventColor 참고)
+        const key = fromISO + "|" + toISO + "|" + feedVersion + "|" + CATS.map((c) => CATCOLOR[c]).join(",");
         if (evCache && evCache.key === key) return evCache.items;
         let items = [];
         try {
@@ -1158,6 +1186,24 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
         // 그래서 구분선 오른쪽에 별도 칩으로 둔다 — 「전체 해제」는 task 만 끈다.
         // 피드가 없으면(모바일·미설치·인증 전) 아예 그리지 않는다. 죽은 칩은 노이즈다.
         const evFeed = feed();
+        // 플러그인은 있는데 준비가 안 됐으면(인증 전 · 고른 캘린더 0개) **왜 안 보이는지 말한다.**
+        // 아무 말 없이 비어 있으면 "기능이 없는 건지 고장난 건지" 를 구분할 수가 없다.
+        // 모바일·미설치는 여기 안 걸린다(feedPlugin 이 null) — 죽은 칩을 그리지 않는다.
+        if (!evFeed && feedPlugin()) {
+            const div0 = filterBar.createEl("span");
+            div0.style.cssText = "width:1px;height:14px;background:var(--background-modifier-border);margin:0 2px;";
+            const hint = filterBar.createEl("button", { text: "📅 일정 — 설정 필요" });
+            hint.style.cssText = "font-size:11px;padding:2px 8px;border-radius:12px;cursor:pointer;border:1px dashed var(--background-modifier-border);opacity:.55;";
+            hint.title = "Google Calendar 일정을 그리려면\n① Google 인증  ② 「캘린더 뷰에 표시할 일정」에서 캘린더 선택\n설정 → 커뮤니티 플러그인 → Tasks GCal Sync (눌러서 열기)";
+            hint.onclick = () => {
+                try {
+                    app.setting.open();
+                    app.setting.openTabById("tasks-gcal-sync");
+                } catch (e) {
+                    new Notice("설정 → 커뮤니티 플러그인 → Tasks GCal Sync 에서 캘린더를 고르세요");
+                }
+            };
+        }
         if (evFeed) {
             const div = filterBar.createEl("span");
             div.style.cssText = "width:1px;height:14px;background:var(--background-modifier-border);margin:0 2px;";
@@ -1168,6 +1214,7 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
                 try { return evFeed.listSelectedCalendars().map(c => c.name).join(", "); } catch (e) { return ""; }
             })();
             eb.title = "Google Calendar 일정 표시 (읽기 전용)" + (names ? "\n" + names : "") +
+                `\n이 기간에 ${evItems.length}건` +
                 "\n「완료」 토글과 카테고리 필터는 task 에만 적용됩니다";
             eb.onclick = () => { showEvents = !showEvents; render(); };
         }
