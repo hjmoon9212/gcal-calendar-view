@@ -89,7 +89,7 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
     // → 유지해야 할 값은 window 에 두고 재실행 직후 복원한다. 캘린더(스코프)별로 분리.
     const G = plugin.store;   // 상태·대기표는 플러그인 인스턴스가 소유(구 window.__gcalCal)
     const S = (G.state[SOURCE] = G.state[SOURCE] || {});
-    const saveState = () => { S.mode = mode; S.view = view.toISODate(); S.showDone = showDone; S.cats = [...activeCats]; };
+    const saveState = () => { S.mode = mode; S.view = view.toISODate(); S.showDone = showDone; S.showEvents = showEvents; S.cats = [...activeCats]; };
 
     // ── 블록이 처음부터 다시 그려질 때의 안전망 ──────────────────────────
     // 인덱스 변경은 refresh() 로 root 안에서만 교체되지만, 노트를 다시 열거나
@@ -127,6 +127,10 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
     // 같은 파일에 제목이 똑같은 태스크(예: 매주 반복 로그)가 여러 개면 전부 같은 키가 되고,
     // 하나를 옮기면 나머지가 그 줄로 덮여 그려진 뒤 applyDates 가 엉뚱한 줄에 쓰게 된다.
     const pkey = (path, line, title) => path + "\u0000" + line + "\u0000" + title;
+    // 항목의 안정 식별자. task 는 파일+줄, GCal 일정은 피드가 준 uid 를 그대로 쓴다.
+    // placeBars 의 레인 메모가 이 값을 키로 삼는다 — 일정에는 path·line 이 없기 때문이다.
+    const SEP = String.fromCharCode(0);
+    const UID = (path, line) => path + SEP + line;
     // 날짜 선택기(webkit 캘린더 아이콘) 깨짐 → 깔끔한 SVG 아이콘으로 교체 (테마색 반영)
     (function fixDateIcon() {
         // 캘린더가 여러 개 열려 있어도 한 번만 주입하고, 테마는 선택자로 갈라 즉시 반영되게 한다.
@@ -145,6 +149,34 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
     let view = S.view ? L.fromISO(S.view) : L.now().startOf("month");
     let dragging = null;
     let showDone = S.showDone !== false;   // 달력에 완료 항목 표시 여부
+    let showEvents = S.showEvents !== false;   // GCal 일정(회의·약속) 표시 여부
+
+    // ══ GCal 일정 (읽기 전용) ═══════════════════════════════════════════════════
+    // 실제 Google Calendar 일정은 tasks-gcal-sync 가 받아온다 — 자격증명이 거기 있고,
+    // 여기에 OAuth 를 또 두면 refresh token 소비자가 둘이 되어 회전 때 경합한다.
+    //
+    // 매 렌더마다 다시 찾는다. 로드 순서는 보장되지 않고 사용자가 나중에 켤 수도 있다
+    // (editTask 가 obsidian-tasks-plugin 을 찾는 방식과 같다). 버전이 아니라 **덕 타이핑**
+    // 이라 구·신 버전이 섞여 있어도 깨지지 않고 그냥 없는 것처럼 동작한다.
+    //
+    // null 이 되는 경우: 모바일(그쪽은 isDesktopOnly 라 아예 로드 안 됨) · 미설치 ·
+    // 구버전(api 없음) · 인증 전 · 고른 캘린더 0개. 전부 v0.1.13 과 동일한 화면이 된다.
+    const feed = () => {
+        try {
+            const p = app.plugins && app.plugins.plugins && app.plugins.plugins["tasks-gcal-sync"];
+            const a = p && p.api;
+            if (!a || typeof a.peekEvents !== "function" || typeof a.requestEvents !== "function") return null;
+            return a.isReady() ? a : null;
+        } catch (e) {
+            return null;   // 실패하면 없는 것으로 — 캘린더는 task 만 그린다(fail open)
+        }
+    };
+
+    // 읽기 전용 항목인가. 이 하나로 모든 쓰기·이동 경로를 막는다.
+    const isRO = (t) => !!t && t.kind === "event";
+    // 드롭 타깃이 dragging 을 집어갈 때 쓴다. 일정에서는 dragging 을 세팅하지 않으므로
+    // 이중 안전장치지만, 나중에 어포던스 가드를 하나 잊어도 여기서 막힌다.
+    const takeDrag = () => { const t = dragging; dragging = null; return isRO(t) ? null : t; };
 
     // ══ 카테고리 (플러그인 설정에서 내려온다) ════════════════════════════════════
     // 볼트마다 다른 유일한 값이라 코드가 아니라 설정에 둔다 — 사본이 갈라지던 원인이었다.
@@ -271,6 +303,7 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
 
     // 원본 노트의 해당 줄로 이동 (편집 모드면 커서/스크롤까지 보정)
     async function openAtLine(task, evt) {
+        if (isRO(task)) return;   // GCal 일정은 노트에 원본이 없다
         const f = app.vault.getAbstractFileByPath(task.path);
         if (!f) { new Notice("파일 없음: " + task.path); return; }
         const leaf = leafForFile(task.path, openMode(evt));
@@ -291,6 +324,7 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
 
     // 우클릭 → Tasks 편집 모달(탭 이동 없이). apiV1.editTaskLineModal 로 줄을 수정 → 파일 반영 → 제자리 갱신.
     async function editTask(task) {
+        if (isRO(task)) return;   // GCal 일정은 읽기 전용
         rememberScroll();
         const tp = app.plugins.plugins["obsidian-tasks-plugin"];
         const api = tp && tp.apiV1;   // apiV1 은 getter(속성) — 괄호 없이 접근
@@ -334,7 +368,7 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
     function attachDrop(el, iso, baseBg) {
         el.addEventListener("dragover", (e) => { e.preventDefault(); e.stopPropagation(); el.style.background = "var(--background-modifier-active-hover)"; });
         el.addEventListener("dragleave", () => { el.style.background = baseBg; });
-        el.addEventListener("drop", async (e) => { e.preventDefault(); e.stopPropagation(); el.style.background = baseBg; if (dragging) { const t = dragging; dragging = null; await dropOnDate(t, iso, e.shiftKey); } });
+        el.addEventListener("drop", async (e) => { e.preventDefault(); e.stopPropagation(); el.style.background = baseBg; const t = takeDrag(); if (t) await dropOnDate(t, iso, e.shiftKey); });
     }
 
     function gather() {
@@ -378,15 +412,99 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
                     if (tEnd <= tStart) tEnd = tStart + DEFAULT_MIN;
                     tEnd = Math.min(1440, tEnd);
                 }
-                out.push({ path: p.file.path, line: t.line, text, title, due: dm ? dm[1] : null, start: sm ? sm[1] : null, tStart, tEnd, cat: gm ? gm[1].toLowerCase() : CAT_DEFAULT, done: !!t.completed, cancelled, bookmark });
+                // 🔁 반복 task. mkTitle 이 제목에서 지우므로 여기서 원문을 보고 잡아둔다.
+                const recurring = /🔁/u.test(text);
+                out.push({ kind: "task", uid: UID(p.file.path, t.line), path: p.file.path, line: t.line, text, title, due: dm ? dm[1] : null, start: sm ? sm[1] : null, tStart, tEnd, cat: gm ? gm[1].toLowerCase() : CAT_DEFAULT, done: !!t.completed, cancelled, bookmark, recurring });
             }
         }
         return out;
     }
 
+    /**
+     * 피드가 준 일정 → 캘린더가 그릴 수 있는 항목.
+     *
+     * **task 항목과 같은 오리 모양으로 만든다** — start/due/tStart/tEnd 를 그대로 쓰므로
+     * placeBars 의 레인 배치도, renderDay 의 종일/시간 분리도, 일간 클러스터 계산도
+     * 손댈 게 없다. 새 레이아웃 코드를 만들지 않는 것이 이 기능의 위험을 가장 크게 줄인다.
+     *
+     * path·line 은 **일부러 null** 이다. isRO 가드를 하나 빠뜨려도 파일 경로가 해석되지
+     * 않아 아무것도 못 고친다(이중 안전장치).
+     */
+    const toEventItem = (e) => ({
+        kind: "event",
+        uid: e.uid,
+        path: null, line: null, text: "",
+        title: e.title,
+        start: e.startISO, due: e.endISO,
+        tStart: e.tStart, tEnd: e.tEnd,
+        cat: null,                       // 카테고리가 아니다 — 필터도 별도 토글로 건다
+        // 색은 "#rrggbb" 여야 한다 — 아래에서 ${c}14 로 알파를 붙이기 때문이다
+        color: /^#[0-9a-fA-F]{6}$/.test(e.color || "") ? e.color : "#7f8c8d",
+        calendarName: e.calendarName || "",
+        location: e.location || "", allDay: e.allDay,
+        recurring: !!e.recurring,
+        done: false, cancelled: false, bookmark: false,
+    });
+
+    // 일정은 gather() 에 넣지 않는다. dataCache 는 볼트 쓰기 때 무효화되는 물건이라
+    // 거기 넣으면 일정이 영영 낡고, 대기표(pending) 스윕이 헛돈다. 별도 메모를 둔다.
+    let evCache = null;
+    let feedVersion = 0;   // 피드가 onChange 로 알릴 때마다 올린다
+    let subscribed = false;
+
+    // 일정이 도착하면 다시 그리도록 구독한다. **처음 피드를 본 시점에** 건다 —
+    // 캘린더를 만들 때 한 번만 시도하면, 나중에 인증하거나 캘린더를 고른 사용자는
+    // 다른 이유로 렌더가 일어날 때까지 아무 일도 안 일어난 것처럼 보인다.
+    // component(MarkdownRenderChild)에 걸어 두므로 노트를 닫으면 자동 해제된다.
+    const subscribe = (f) => {
+        if (subscribed || !f || typeof f.onChange !== "function") return;
+        subscribed = true;
+        try {
+            component.register(f.onChange(() => {
+                feedVersion++;
+                if (root.isConnected) render();
+            }));
+        } catch (e) {
+            console.debug("[gcal-calendar-view] 일정 구독 실패 — 갱신은 렌더 때만 일어난다", e);
+        }
+    };
+
+    const eventsFor = (fromISO, toISO) => {
+        const f = feed();
+        subscribe(f);
+        if (!f || !showEvents) return [];
+        const key = fromISO + "|" + toISO + "|" + feedVersion;
+        if (evCache && evCache.key === key) return evCache.items;
+        let items = [];
+        try {
+            items = f.peekEvents(fromISO, toISO).map(toEventItem);
+            // 던지고 잊는다 — 도착하면 onChange 가 온다.
+            // 계약상 reject 하지 않지만, 플러그인 경계 너머라 버전이 어긋날 수 있다.
+            // catch 를 붙여 두지 않으면 그때 unhandled rejection 이 콘솔을 채운다.
+            Promise.resolve(f.requestEvents(fromISO, toISO)).catch(() => { });
+        } catch (e) {
+            console.debug("[gcal-calendar-view] 일정 조회 실패 → task 만 그린다", e);
+            items = [];
+        }
+        evCache = { key, items };
+        return items;
+    };
+
+    // 지금 보기가 실제로 그리는 날짜 범위. 조회 창이자 peek 필터다.
+    const rangeForView = () => {
+        if (mode === "day") { const d = view.toISODate(); return [d, d]; }
+        if (mode === "week") { const s = view.toISODate(); return [s, addDays(s, 6)]; }
+        const first = sundayStart(view.startOf("month")).toISODate();
+        const last = sundayStart(view.endOf("month")).toISODate();
+        return [first, addDays(last, 6)];
+    };
+
     // 원본 줄의 🛫 start / 📅 due / ⏰ time 을 직접 변경 (changes: {start?, due?, time?}).
     // 없는 필드는 새로 추가하고, time 에 null 을 주면 시각을 제거한다.
     async function applyDates(task, changes) {
+        // ★ 쓰기의 유일한 길목이다. dropOnDate·dropOnTime·writeBack·리사이즈가 전부 여기로
+        //   흐르므로, 개별 어포던스 가드를 하나 빠뜨려도 GCal 일정이 노트를 고칠 수는 없다.
+        if (isRO(task)) return;
         rememberScroll();   // 쓰기 → Dataview 재실행 사이에 스크롤이 튀지 않게
         const file = app.vault.getAbstractFileByPath(task.path);
         if (!file) { new Notice("파일 없음: " + task.path); return; }
@@ -485,7 +603,7 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
 
         // 막대 위에 떨궈도 처리되도록 area 자체가 드롭 받음 (빈 칸은 각 셀이 처리)
         area.addEventListener("dragover", (e) => e.preventDefault());
-        area.addEventListener("drop", async (e) => { e.preventDefault(); if (dragging) { const t = dragging; dragging = null; await dropOnDate(t, addDays(weekStartISO, colAt(e.clientX)), e.shiftKey); } });
+        area.addEventListener("drop", async (e) => { e.preventDefault(); const t = takeDrag(); if (t) await dropOnDate(t, addDays(weekStartISO, colAt(e.clientX)), e.shiftKey); });
 
         const weekEndISO = addDays(weekStartISO, 6);
         const vis = tasks.filter(t => t.due && (t.start || t.due) <= weekEndISO && t.due >= weekStartISO);
@@ -503,7 +621,10 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
         const placed = [];
         // 주 경계를 넘는 막대는 지난주에 쓰던 레인을 그대로 이어받는다(비어 있을 때만).
         // 주마다 독립 배치하면 연속된 막대가 다음 줄에서 다른 높이로 그려져 끊겨 보인다.
-        const memoKey = (t) => t.path + "\u0000" + t.line;
+        // uid 를 쓴다. 일정은 path·line 이 null 이라 예전 키로는 전부 한 값으로 뭉쳐
+        // 여러 주에 걸친 일정 막대가 주마다 레인을 갈아탄다. task 의 uid 는 path+line 이므로
+        // 결과 문자열이 예전과 바이트 동일이다(동작 변화 없음).
+        const memoKey = (t) => t.uid;
         const occupy = (lane, eCol) => { while (laneEnd.length <= lane) laneEnd.push(-1); laneEnd[lane] = eCol; };
         for (const t of vis) {
             const sISO = t.start || t.due;
@@ -517,32 +638,54 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
             placed.push({ t, sCol, eCol, lane, clipL: rawS < 0, clipR: rawE > 6 });
         }
         for (const b of placed) {
-            const t = b.t, c = CATCOLOR[t.cat] || CATCOLOR[CAT_DEFAULT];
+            const t = b.t;
+            const ro = isRO(t);
+            const c = ro ? t.color : (CATCOLOR[t.cat] || CATCOLOR[CAT_DEFAULT]);
             const dim = t.done || t.cancelled;          // 취소[-] 도 완료처럼 흐리게
-            const overdue = !dim && t.due < todayISO;    // 취소된 건 지연으로 치지 않는다
+            const overdue = !ro && !dim && t.due < todayISO;   // 일정에는 "지연" 이 없다
             const bar = area.createEl("div");
-            bar.title = `${t.title}\n🛫 ${t.start || "-"}  📅 ${t.due}` + (t.tStart !== null ? `  ⏰ ${timeText(t.tStart, t.tEnd)}` : "") + (dim ? (t.cancelled ? "\n(취소됨)" : "\n(완료됨)") : "\n드래그=기간째 이동(놓은 칸=시작일) · Shift+드래그=마감일만 조정 · 클릭=열기 · Ctrl+클릭=새 탭");
-            bar.style.cssText = `position:absolute;left:calc(${b.sCol / 7 * 100}% + 2px);width:calc(${(b.eCol - b.sCol + 1) / 7 * 100}% - 4px);top:${topOffset + b.lane * laneH}px;height:${laneH - 3}px;z-index:1;box-sizing:border-box;background:${c}2b;border:1px solid ${overdue ? "#e05a7a" : c};border-left:4px solid ${c};border-radius:${b.clipL ? "0" : "4px"} ${b.clipR ? "0" : "4px"} ${b.clipR ? "0" : "4px"} ${b.clipL ? "0" : "4px"};display:flex;align-items:center;padding:0 7px;font-size:11px;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:grab;${dim ? "opacity:0.55;text-decoration:line-through;" : ""}`;
-            bar.appendChild(document.createTextNode((t.cancelled ? "✗ " : t.done ? "✓ " : "") + (t.bookmark ? "🔖 " : "") + (b.clipL ? "◀ " : "") + (t.tStart !== null && !b.clipL ? toHHMM(t.tStart) + " " : "") + (t.title || "(제목 없음)") + (b.clipR ? " ▶" : "")));
-            bar.draggable = true;
-            // dragend 로 반드시 비운다 — 캘린더 밖에 떨궈 취소하면 dragging 이 남고,
-            // 그 뒤 외부 드래그(파일 끌어오기 등)가 캘린더에 떨어지면 엉뚱한 태스크가 이동한다.
-            bar.addEventListener("dragstart", (e) => { dragging = t; e.dataTransfer.effectAllowed = "move"; });
-            bar.addEventListener("dragend", () => { dragging = null; });
-            bar.addEventListener("click", (e) => openAtLine(t, e));
-            bar.addEventListener("contextmenu", (e) => { e.preventDefault(); editTask(t); });   // 우클릭=편집 모달
+            bar.title = ro
+                ? `${t.title}\n📆 ${t.calendarName}` +
+                  (t.tStart !== null ? `\n⏰ ${timeText(t.tStart, t.tEnd)}` : `\n종일`) +
+                  (t.start !== t.due ? `\n${t.start} ~ ${t.due}` : `\n${t.due}`) +
+                  (t.recurring ? "\n🔁 반복 일정" : "") +
+                  (t.location ? `\n📍 ${t.location}` : "") +
+                  "\n(읽기 전용 — Google Calendar 일정)"
+                : `${t.title}\n🛫 ${t.start || "-"}  📅 ${t.due}` + (t.tStart !== null ? `  ⏰ ${timeText(t.tStart, t.tEnd)}` : "") + (t.recurring ? "\n🔁 반복" : "") + (dim ? (t.cancelled ? "\n(취소됨)" : "\n(완료됨)") : "\n드래그=기간째 이동(놓은 칸=시작일) · Shift+드래그=마감일만 조정 · 클릭=열기 · Ctrl+클릭=새 탭");
+            // 일정은 더 옅은 배경 · 점선 테두리 · 굵은 좌측 레일 없음 · 커서 default 로
+            // "잡을 수 없는 것" 임을 알린다. 레일은 task 막대의 서명이라 일정에는 주지 않는다.
+            bar.style.cssText = `position:absolute;left:calc(${b.sCol / 7 * 100}% + 2px);width:calc(${(b.eCol - b.sCol + 1) / 7 * 100}% - 4px);top:${topOffset + b.lane * laneH}px;height:${laneH - 3}px;z-index:1;box-sizing:border-box;background:${c}${ro ? "14" : "2b"};border:1px ${ro ? "dashed" : "solid"} ${overdue ? "#e05a7a" : c};${ro ? "" : `border-left:4px solid ${c};`}border-radius:${b.clipL ? "0" : "4px"} ${b.clipR ? "0" : "4px"} ${b.clipR ? "0" : "4px"} ${b.clipL ? "0" : "4px"};display:flex;align-items:center;padding:0 7px;font-size:11px;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:${ro ? "default" : "grab"};${dim ? "opacity:0.55;text-decoration:line-through;" : ""}`;
+            bar.appendChild(document.createTextNode(
+                (ro ? "◆ " : (t.cancelled ? "✗ " : t.done ? "✓ " : "")) +
+                (t.recurring ? "🔁 " : "") +
+                (t.bookmark ? "🔖 " : "") +
+                (b.clipL ? "◀ " : "") +
+                (t.tStart !== null && !b.clipL ? toHHMM(t.tStart) + " " : "") +
+                (t.title || "(제목 없음)") + (b.clipR ? " ▶" : "")));
+            if (!ro) {
+                bar.draggable = true;
+                // dragend 로 반드시 비운다 — 캘린더 밖에 떨궈 취소하면 dragging 이 남고,
+                // 그 뒤 외부 드래그(파일 끌어오기 등)가 캘린더에 떨어지면 엉뚱한 태스크가 이동한다.
+                bar.addEventListener("dragstart", (e) => { dragging = t; e.dataTransfer.effectAllowed = "move"; });
+                bar.addEventListener("dragend", () => { dragging = null; });
+                bar.addEventListener("click", (e) => openAtLine(t, e));
+                bar.addEventListener("contextmenu", (e) => { e.preventDefault(); editTask(t); });   // 우클릭=편집 모달
+            }
         }
         return Math.max(laneEnd.length, 1) * laneH;
     }
 
     // 날짜 없음 트레이용 — 잘리지 않는 카드
     function trayItem(task) {
+        // 도달 불가 — 트레이는 tasks(=task 전용 배열)에서만 그려진다. 일정은 calTasks 에만 합류한다.
+        // 그래도 막아 둔다: 뚫리면 지난 회의 수백 건이 🔴 지연 트레이를 덮는다.
+        if (isRO(task)) return document.createElement("span");
         const c = CATCOLOR[task.cat] || CATCOLOR[CAT_DEFAULT];
         const el = document.createElement("div");
         el.draggable = true;
         el.title = task.text;
         el.style.cssText = `background:var(--background-primary);border:1px solid var(--background-modifier-border);border-left:4px solid ${c};border-radius:5px;padding:5px 8px;cursor:grab;`;
-        const t1 = el.createEl("div", { text: (task.bookmark ? "🔖 " : "") + (task.title || "(제목 없음)") });
+        const t1 = el.createEl("div", { text: (task.recurring ? "🔁 " : "") + (task.bookmark ? "🔖 " : "") + (task.title || "(제목 없음)") });
         t1.style.cssText = "font-size:13px;line-height:1.35;font-weight:500;white-space:normal;word-break:break-word;";
         const meta = el.createEl("div");
         meta.style.cssText = "font-size:11px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;";
@@ -664,16 +807,24 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
 
     // 일간 보기용 칩 (종일 스트립에 놓이는, 시각 없는 태스크)
     function dayChip(task) {
-        const c = CATCOLOR[task.cat] || CATCOLOR[CAT_DEFAULT];
+        const ro = isRO(task);
+        const c = ro ? task.color : (CATCOLOR[task.cat] || CATCOLOR[CAT_DEFAULT]);
         const el = document.createElement("div");
-        el.draggable = true;
-        el.title = task.title + "\n시간 그리드로 드래그하면 시각이 지정됩니다";
-        el.style.cssText = `background:${c}2b;border:1px solid ${c};border-left:4px solid ${c};border-radius:4px;padding:2px 7px;font-size:11px;line-height:16px;cursor:grab;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;${task.done || task.cancelled ? "opacity:.55;text-decoration:line-through;" : ""}`;
-        el.appendChild(document.createTextNode((task.bookmark ? "🔖 " : "") + (task.title || "(제목 없음)")));
-        el.addEventListener("dragstart", (e) => { dragging = task; e.dataTransfer.effectAllowed = "move"; });
-        el.addEventListener("dragend", () => { dragging = null; });
-        el.addEventListener("click", (e) => openAtLine(task, e));
-        el.addEventListener("contextmenu", (e) => { e.preventDefault(); editTask(task); });
+        el.title = ro
+            ? `${task.title}\n📆 ${task.calendarName}\n종일` +
+              (task.recurring ? "\n🔁 반복 일정" : "") +
+              (task.location ? `\n📍 ${task.location}` : "") +
+              "\n(읽기 전용 — Google Calendar 일정)"
+            : task.title + (task.recurring ? "\n🔁 반복" : "") + "\n시간 그리드로 드래그하면 시각이 지정됩니다";
+        el.style.cssText = `background:${c}${ro ? "14" : "2b"};border:1px ${ro ? "dashed" : "solid"} ${c};${ro ? "" : `border-left:4px solid ${c};`}border-radius:4px;padding:2px 7px;font-size:11px;line-height:16px;cursor:${ro ? "default" : "grab"};max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;${task.done || task.cancelled ? "opacity:.55;text-decoration:line-through;" : ""}`;
+        el.appendChild(document.createTextNode((ro ? "◆ " : "") + (task.recurring ? "🔁 " : "") + (task.bookmark ? "🔖 " : "") + (task.title || "(제목 없음)")));
+        if (!ro) {
+            el.draggable = true;
+            el.addEventListener("dragstart", (e) => { dragging = task; e.dataTransfer.effectAllowed = "move"; });
+            el.addEventListener("dragend", () => { dragging = null; });
+            el.addEventListener("click", (e) => openAtLine(task, e));
+            el.addEventListener("contextmenu", (e) => { e.preventDefault(); editTask(task); });
+        }
         return el;
     }
 
@@ -697,7 +848,7 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
         ad.addEventListener("dragleave", () => { ad.style.background = ""; });
         ad.addEventListener("drop", async (e) => {
             e.preventDefault(); e.stopPropagation(); ad.style.background = "";
-            const t = dragging; dragging = null;
+            const t = takeDrag();
             if (!t) return;
             if (t.tStart === null) { if (t.due !== iso) { await applyDates(t, { due: iso }); new Notice("📅 " + iso); } return; }
             await applyDates(t, { time: null });
@@ -756,7 +907,7 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
         grid.addEventListener("dragover", (e) => {
             e.preventDefault();
             const t = dragging;
-            if (!t) return;
+            if (!t || isRO(t)) return;   // 일정은 착지 그림자도 그리지 않는다
             const len = t.tStart !== null ? t.tEnd - t.tStart : DEFAULT_MIN;
             const s = startOf(e.clientY);
             const end = Math.min(1440, s + len);
@@ -773,7 +924,7 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
         grid.addEventListener("drop", async (e) => {
             e.preventDefault();
             hideGhost();
-            const t = dragging; dragging = null;
+            const t = takeDrag();
             if (t) await dropOnTime(t, iso, minAt(e.clientY));
         });
         grid.addEventListener("dragend", hideGhost);
@@ -809,15 +960,23 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
         }
         closeCluster();            // 마지막 무리 — 빠뜨리면 하루의 끝 일정이 그려지지 않는다
         for (const { t, lane, lanes, span } of placed) {
-            const c = CATCOLOR[t.cat] || CATCOLOR[CAT_DEFAULT];
+            const ro = isRO(t);
+            const c = ro ? t.color : (CATCOLOR[t.cat] || CATCOLOR[CAT_DEFAULT]);
             const dim = t.done || t.cancelled;
             const top = t.tStart / 60 * HOUR_H;
             const h = Math.max(16, (t.tEnd - t.tStart) / 60 * HOUR_H - 2);
             const blk = grid.createEl("div");
+            blk.title = ro
+                ? `${t.title}\n📆 ${t.calendarName}\n⏰ ${timeText(t.tStart, t.tEnd)}` +
+                  (t.recurring ? "\n🔁 반복 일정" : "") +
+                  (t.location ? `\n📍 ${t.location}` : "") +
+                  "\n(읽기 전용 — Google Calendar 일정)"
+                : `${t.title}\n⏰ ${timeText(t.tStart, t.tEnd)}` + (t.recurring ? "\n🔁 반복" : "") + `\n드래그=시각 이동 · 아래끝 드래그=종료 시각 · 종일 줄로 드래그=시각 제거 · 클릭=열기`;
+            // 일정은 z-index 1 — 겹치면 task 가 클릭을 가져간다(조작할 수 있는 쪽이 이겨야 한다)
+            blk.style.cssText = `position:absolute;left:calc(${GUTTER}px + (100% - ${GUTTER}px) * ${lane / lanes});width:calc((100% - ${GUTTER}px) * ${span / lanes} - 5px);top:${top}px;height:${h}px;z-index:${ro ? 1 : 2};box-sizing:border-box;background:${c}${ro ? "14" : "2b"};border:1px ${ro ? "dashed" : "solid"} ${c};${ro ? "" : `border-left:4px solid ${c};`}border-radius:4px;padding:2px 6px;font-size:11px;line-height:1.3;overflow:hidden;cursor:${ro ? "default" : "grab"};${dim ? "opacity:.55;text-decoration:line-through;" : ""}`;
+            blk.appendChild(document.createTextNode(`${toHHMM(t.tStart)} ${ro ? "◆ " : (t.cancelled ? "✗ " : t.done ? "✓ " : "")}${t.recurring ? "🔁 " : ""}${t.title || "(제목 없음)"}`));
+            if (ro) continue;   // ↓ 아래는 전부 조작 경로 — 일정에는 리사이즈 레일조차 만들지 않는다
             blk.draggable = true;
-            blk.title = `${t.title}\n⏰ ${timeText(t.tStart, t.tEnd)}\n드래그=시각 이동 · 아래끝 드래그=종료 시각 · 종일 줄로 드래그=시각 제거 · 클릭=열기`;
-            blk.style.cssText = `position:absolute;left:calc(${GUTTER}px + (100% - ${GUTTER}px) * ${lane / lanes});width:calc((100% - ${GUTTER}px) * ${span / lanes} - 5px);top:${top}px;height:${h}px;z-index:2;box-sizing:border-box;background:${c}2b;border:1px solid ${c};border-left:4px solid ${c};border-radius:4px;padding:2px 6px;font-size:11px;line-height:1.3;overflow:hidden;cursor:grab;${dim ? "opacity:.55;text-decoration:line-through;" : ""}`;
-            blk.appendChild(document.createTextNode(`${toHHMM(t.tStart)} ${(t.cancelled ? "✗ " : t.done ? "✓ " : "")}${t.title || "(제목 없음)"}`));
             blk.addEventListener("dragstart", (e) => { dragging = t; e.dataTransfer.effectAllowed = "move"; });
             blk.addEventListener("dragend", () => { dragging = null; });
             // 리사이즈로 포인터를 놓으면 click 이 블록까지 버블링돼 원본 파일이 열려버린다
@@ -902,7 +1061,11 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
         if (noteMd) box.appendChild(noteBlock(noteMd));
         const all = collect().filter(t => activeCats.has(t.cat));
         const tasks = all.filter(t => !t.done && !t.cancelled);   // 트레이/현황 = 미완료(취소[-] 제외)
-        const calTasks = showDone ? all : tasks;   // 달력 = 토글에 따라 완료·취소 포함
+        // GCal 일정은 **달력에만** 합류한다. 트레이(날짜 없음·지연)는 tasks 에서 나오므로
+        // 지난 회의가 🔴 지연을 덮는 일이 구조적으로 없고, 「완료」 토글도 일정에 닿지 않는다.
+        const [rangeFrom, rangeTo] = rangeForView();
+        const evItems = eventsFor(rangeFrom, rangeTo);
+        const calTasks = (showDone ? all : tasks).concat(evItems);   // 달력 = 토글에 따라 완료·취소 포함
 
         // ── 날짜 없음 트레이 ──
         const undated = tasks.filter(t => !t.due);
@@ -985,6 +1148,26 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
             dot.style.cssText = `width:8px;height:8px;border-radius:50%;background:${CATCOLOR[cat]};display:inline-block;`;
             b.createEl("span", { text: CATLABEL[cat] });
             b.onclick = () => { if (activeCats.has(cat)) activeCats.delete(cat); else activeCats.add(cat); render(); };
+        }
+
+        // ── GCal 일정 토글 ──
+        // 카테고리 필터(activeCats)에 섞지 않는다. syncCategories() 가 CATS 에 없는 키를
+        // 지우므로 knownCats 재조정과 싸우고, 「전체 / 전체 해제」의 의미도 모호해진다.
+        // 그래서 구분선 오른쪽에 별도 칩으로 둔다 — 「전체 해제」는 task 만 끈다.
+        // 피드가 없으면(모바일·미설치·인증 전) 아예 그리지 않는다. 죽은 칩은 노이즈다.
+        const evFeed = feed();
+        if (evFeed) {
+            const div = filterBar.createEl("span");
+            div.style.cssText = "width:1px;height:14px;background:var(--background-modifier-border);margin:0 2px;";
+            const eb = filterBar.createEl("button");
+            eb.style.cssText = `display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:2px 8px;border-radius:12px;cursor:pointer;border:1px dashed var(--background-modifier-border);opacity:${showEvents ? 1 : 0.4};`;
+            eb.createEl("span", { text: "📅 일정" });
+            const names = (() => {
+                try { return evFeed.listSelectedCalendars().map(c => c.name).join(", "); } catch (e) { return ""; }
+            })();
+            eb.title = "Google Calendar 일정 표시 (읽기 전용)" + (names ? "\n" + names : "") +
+                "\n「완료」 토글과 카테고리 필터는 task 에만 적용됩니다";
+            eb.onclick = () => { showEvents = !showEvents; render(); };
         }
 
         // ── 달력 (기간 막대) ──
