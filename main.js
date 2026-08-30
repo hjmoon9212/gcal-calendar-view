@@ -59,6 +59,43 @@ function parseOptions(src) {
 }
 
 /**
+ * 쉼표로 나열한 값 → 배열. 빈 항목은 버린다.
+ * `calendars: Growth, Routine` 처럼 한 줄에 여러 개를 적는 옵션에 쓴다.
+ */
+function parseList(v) {
+    return String(v || "")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+}
+
+/** 캘린더 이름 비교용 정규화. 사람이 손으로 적는 값이라 대소문자·공백을 무시한다. */
+const calKey = (s) => String(s || "").trim().toLowerCase();
+
+/**
+ * 블록별 GCal 일정 필터.
+ *
+ *   calendars: Growth, Routine      ← 이 캘린더만 (화이트리스트)
+ *   exclude-calendars: Event        ← 이것만 빼기 (블랙리스트)
+ *   calendars: none                 ← 이 블록에서는 일정을 아예 안 그린다
+ *
+ * 둘 다 적으면 화이트리스트를 먼저 적용하고 거기서 블랙리스트를 뺀다.
+ * **동기화 플러그인 설정에서 고른 캘린더의 부분집합**이다 — 여기 적었다고 안 고른
+ * 캘린더를 가져오지는 않는다(가져올 자격증명·조회는 그쪽이 한다).
+ */
+function resolveCalFilter(opts) {
+    const rawInc = opts.calendars !== undefined ? opts.calendars : opts["include-calendars"];
+    const off = ["none", "off", "-"].includes(calKey(rawInc));
+    return {
+        off,
+        include: off ? [] : parseList(rawInc).map(calKey),
+        // `exclude:` 단독은 일부러 안 받는다 — 폴더/소스 제외로 읽히기 쉽다.
+        // 이 블록에서 빼는 건 캘린더이므로 이름에 그렇게 적는다.
+        exclude: parseList(opts["exclude-calendars"]).map(calKey),
+    };
+}
+
+/**
  * 수집 스코프를 정한다. Template 폴더는 항상 제외한다 — 템플릿의 예시 task 가
  * 캘린더에 섞이면 안 된다.
  */
@@ -73,8 +110,10 @@ function resolveSource(opts, sourcePath) {
  * 캘린더 한 개를 container 안에 그린다. 반환값의 refresh() 를 호출부가 인덱스 변경에 물린다.
  * 본문은 dataviewjs 시절 로직 그대로다(레인 배치·드래그·낙관적 갱신·스크롤 복원·⏰).
  */
-function createCalendar({ plugin, api, container, source, notes, sourcePath, component }) {
+function createCalendar({ plugin, api, container, source, notes, sourcePath, component, calFilter }) {
     const app = plugin.app;
+    // 블록별 일정 필터 (calendars: / exclude-calendars:). 없으면 전부 통과.
+    const CALF = calFilter || { off: false, include: [], exclude: [] };
     const L = api.luxon.DateTime;   // Dataview 가 들고 있는 luxon 재사용
     const root = container.createEl("div");
     root.style.width = "100%";
@@ -426,6 +465,19 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
         return out;
     }
 
+    /**
+     * 이 블록이 이 캘린더를 그리는가. 이름(대소문자·공백 무시)이나 id 로 맞춘다 —
+     * 사람이 손으로 적는 값이므로 이름이 주 경로이고, id 는 이름이 겹칠 때의 탈출구다.
+     */
+    const passesCalFilter = (e) => {
+        const name = calKey(e.calendarName);
+        const id = calKey(e.calendarId);
+        const hit = (list) => list.includes(name) || list.includes(id);
+        if (CALF.include.length && !hit(CALF.include)) return false;
+        if (CALF.exclude.length && hit(CALF.exclude)) return false;
+        return true;
+    };
+
     const HEX6 = /^#[0-9a-fA-F]{6}$/;
     /**
      * 일정의 색. **카테고리 색을 먼저 본다** — 따로 맞춰 놓을 필요가 없게.
@@ -499,13 +551,13 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
     const eventsFor = (fromISO, toISO) => {
         subscribe(feedPlugin());   // 준비 전에도 걸어 둔다 — 설정에서 캘린더를 고르면 알려 온다
         const f = feed();
-        if (!f || !showEvents) return [];
+        if (!f || !showEvents || CALF.off) return [];
         // 카테고리 색이 바뀌면 캐시된 항목의 color 도 다시 계산해야 한다(eventColor 참고)
         const key = fromISO + "|" + toISO + "|" + feedVersion + "|" + CATS.map((c) => CATCOLOR[c]).join(",");
         if (evCache && evCache.key === key) return evCache.items;
         let items = [];
         try {
-            items = f.peekEvents(fromISO, toISO).map(toEventItem);
+            items = f.peekEvents(fromISO, toISO).filter(passesCalFilter).map(toEventItem);
             // 던지고 잊는다 — 도착하면 onChange 가 온다.
             // 계약상 reject 하지 않지만, 플러그인 경계 너머라 버전이 어긋날 수 있다.
             // catch 를 붙여 두지 않으면 그때 unhandled rejection 이 콘솔을 채운다.
@@ -1185,11 +1237,11 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
         // 지우므로 knownCats 재조정과 싸우고, 「전체 / 전체 해제」의 의미도 모호해진다.
         // 그래서 구분선 오른쪽에 별도 칩으로 둔다 — 「전체 해제」는 task 만 끈다.
         // 피드가 없으면(모바일·미설치·인증 전) 아예 그리지 않는다. 죽은 칩은 노이즈다.
-        const evFeed = feed();
+        const evFeed = CALF.off ? null : feed();
         // 플러그인은 있는데 준비가 안 됐으면(인증 전 · 고른 캘린더 0개) **왜 안 보이는지 말한다.**
         // 아무 말 없이 비어 있으면 "기능이 없는 건지 고장난 건지" 를 구분할 수가 없다.
         // 모바일·미설치는 여기 안 걸린다(feedPlugin 이 null) — 죽은 칩을 그리지 않는다.
-        if (!evFeed && feedPlugin()) {
+        if (!evFeed && !CALF.off && feedPlugin()) {
             const div0 = filterBar.createEl("span");
             div0.style.cssText = "width:1px;height:14px;background:var(--background-modifier-border);margin:0 2px;";
             const hint = filterBar.createEl("button", { text: "📅 일정 — 설정 필요" });
@@ -1210,10 +1262,19 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
             const eb = filterBar.createEl("button");
             eb.style.cssText = `display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:2px 8px;border-radius:12px;cursor:pointer;border:1px dashed var(--background-modifier-border);opacity:${showEvents ? 1 : 0.4};`;
             eb.createEl("span", { text: "📅 일정" });
-            const names = (() => {
-                try { return evFeed.listSelectedCalendars().map(c => c.name).join(", "); } catch (e) { return ""; }
+            // 설정에서 고른 캘린더 중 **이 블록이 실제로 그리는 것**만 보여준다.
+            // 블록의 calendars:/exclude-calendars: 를 그대로 태워 본다.
+            const sel = (() => {
+                try { return evFeed.listSelectedCalendars(); } catch (e) { return []; }
             })();
-            eb.title = "Google Calendar 일정 표시 (읽기 전용)" + (names ? "\n" + names : "") +
+            const shown = sel.filter((c) => passesCalFilter({ calendarName: c.name, calendarId: c.id }));
+            // 블록에 적었지만 설정에서 안 고른 이름 — 이걸 안 알려주면 오타가 "그냥 안 나옴" 이 된다
+            const known = new Set(sel.flatMap((c) => [calKey(c.name), calKey(c.id)]));
+            const unknown = [...CALF.include, ...CALF.exclude].filter((n) => !known.has(n));
+            eb.title = "Google Calendar 일정 표시 (읽기 전용)" +
+                (shown.length ? "\n" + shown.map((c) => c.name).join(", ") : "") +
+                (CALF.include.length || CALF.exclude.length ? "\n(이 블록의 calendars/exclude-calendars 적용됨)" : "") +
+                (unknown.length ? `\n⚠️ 설정에 없는 이름: ${unknown.join(", ")}` : "") +
                 `\n이 기간에 ${evItems.length}건` +
                 "\n「완료」 토글과 카테고리 필터는 task 에만 적용됩니다";
             eb.onclick = () => { showEvents = !showEvents; render(); };
@@ -1307,6 +1368,17 @@ class GcalCalendarSettingTab extends PluginSettingTab {
                 "note: - 배경은 [[프로젝트 개요]] 참고.\n" +
                 "```"
         );
+        this.sample(
+            usage,
+            "이 블록에 그릴 Google Calendar 일정 고르기 (이름, 쉼표로 구분)",
+            "```gcal-calendar\ncalendars: Growth, Routine\n```"
+        );
+        this.sample(
+            usage,
+            "특정 캘린더만 빼기 · 이 블록에서는 일정을 아예 안 그리기",
+            "```gcal-calendar\nexclude-calendars: Event\n```\n\n" +
+                "```gcal-calendar\ncalendars: none\n```"
+        );
 
         const ul = usage.createEl("ul");
         ul.style.cssText = "margin:0 0 4px;padding-left:18px;";
@@ -1321,6 +1393,8 @@ class GcalCalendarSettingTab extends PluginSettingTab {
             "카테고리 필터의 «전체» 버튼은 토글이다 — 다 켜져 있으면 «전체 해제», 비우고 볼 것만 켜면 된다.",
             "변경은 노트에 바로 쓰이고 tasks-gcal-sync 가 Google Calendar 로 올린다.",
             "시각(⏰)은 일간 보기 드래그로만 넣는다 — 줄 끝에 적으면 Tasks 가 📅 까지 못 읽는다.",
+            "📆 는 Google Calendar 일정(읽기 전용)이다 — 드래그·클릭·편집이 되지 않는다. 색은 같은 이름의 카테고리를 따른다.",
+            "calendars: / exclude-calendars: 는 아래 «표시할 일정»에서 고른 캘린더의 부분집합이다 — 여기 적었다고 안 고른 캘린더를 가져오지는 않는다.",
         ]) {
             ul.createEl("li", { text: t });
         }
@@ -1456,6 +1530,7 @@ module.exports = class GcalCalendarViewPlugin extends Plugin {
             cal = createCalendar({
                 plugin: this, api, container: el, source,
                 notes: opts.note, sourcePath: ctx.sourcePath, component: child,
+                calFilter: resolveCalFilter(opts),
             });
         } catch (e) {
             console.error("[gcal-calendar-view] 렌더 실패", e);
@@ -1476,4 +1551,4 @@ module.exports = class GcalCalendarViewPlugin extends Plugin {
 
 // 순수 함수만 테스트에서 꺼내 쓴다(스코프 결정은 노트 위치에 따라 갈리는 유일한 분기다).
 // Obsidian 은 module.exports 의 기본 export 만 보므로 이 속성은 무해하다.
-module.exports.__test = { parseOptions, resolveSource };
+module.exports.__test = { parseOptions, resolveSource, parseList, resolveCalFilter };
