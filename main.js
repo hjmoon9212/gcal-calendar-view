@@ -75,23 +75,33 @@ const calKey = (s) => String(s || "").trim().toLowerCase();
 /**
  * 블록별 GCal 일정 필터.
  *
- *   calendars: Growth, Routine      ← 이 캘린더만 (화이트리스트)
- *   exclude-calendars: Event        ← 이것만 빼기 (블랙리스트)
- *   calendars: none                 ← 이 블록에서는 일정을 아예 안 그린다
+ *   gcal: Growth, Routine     ← 이 캘린더의 일정만 (화이트리스트)
+ *   gcal-exclude: Event       ← 이것만 빼기 (블랙리스트)
+ *   gcal: off                 ← 이 블록에서는 일정을 아예 안 그린다
+ *
+ * 이름을 `gcal` 로 잡은 이유: 값이 `#gcal/Growth` 라우팅 태그의 이름과 **글자 그대로
+ * 같다.** 노트에서 쓰던 말을 그대로 쓰므로 따로 외울 게 없고, `gcal` 은 구글 캘린더
+ * 쪽만 가리켜서 위젯 자체나 task 와 헷갈릴 여지가 없다.
+ * (`calendars:` 는 "이 캘린더 위젯" 으로 읽혀 무엇을 거르는지가 안 보였다 → 별칭으로만 남긴다)
  *
  * 둘 다 적으면 화이트리스트를 먼저 적용하고 거기서 블랙리스트를 뺀다.
  * **동기화 플러그인 설정에서 고른 캘린더의 부분집합**이다 — 여기 적었다고 안 고른
  * 캘린더를 가져오지는 않는다(가져올 자격증명·조회는 그쪽이 한다).
  */
 function resolveCalFilter(opts) {
-    const rawInc = opts.calendars !== undefined ? opts.calendars : opts["include-calendars"];
+    // 먼저 정의된 것이 이긴다. 뒤쪽 둘은 0.2.3 의 옛 이름(별칭).
+    const pick = (...keys) => {
+        for (const k of keys) if (opts[k] !== undefined) return opts[k];
+        return undefined;
+    };
+    const rawInc = pick("gcal", "calendars", "include-calendars");
     const off = ["none", "off", "-"].includes(calKey(rawInc));
     return {
         off,
         include: off ? [] : parseList(rawInc).map(calKey),
         // `exclude:` 단독은 일부러 안 받는다 — 폴더/소스 제외로 읽히기 쉽다.
-        // 이 블록에서 빼는 건 캘린더이므로 이름에 그렇게 적는다.
-        exclude: parseList(opts["exclude-calendars"]).map(calKey),
+        // 빼는 대상이 GCal 캘린더라는 걸 이름에 남긴다.
+        exclude: parseList(pick("gcal-exclude", "exclude-calendars")).map(calKey),
     };
 }
 
@@ -1273,7 +1283,7 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
             const unknown = [...CALF.include, ...CALF.exclude].filter((n) => !known.has(n));
             eb.title = "Google Calendar 일정 표시 (읽기 전용)" +
                 (shown.length ? "\n" + shown.map((c) => c.name).join(", ") : "") +
-                (CALF.include.length || CALF.exclude.length ? "\n(이 블록의 calendars/exclude-calendars 적용됨)" : "") +
+                (CALF.include.length || CALF.exclude.length ? "\n(이 블록의 gcal / gcal-exclude 적용됨)" : "") +
                 (unknown.length ? `\n⚠️ 설정에 없는 이름: ${unknown.join(", ")}` : "") +
                 `\n이 기간에 ${evItems.length}건` +
                 "\n「완료」 토글과 카테고리 필터는 task 에만 적용됩니다";
@@ -1370,14 +1380,14 @@ class GcalCalendarSettingTab extends PluginSettingTab {
         );
         this.sample(
             usage,
-            "이 블록에 그릴 Google Calendar 일정 고르기 (이름, 쉼표로 구분)",
-            "```gcal-calendar\ncalendars: Growth, Routine\n```"
+            "이 블록에 그릴 Google Calendar 일정 고르기 (#gcal/ 태그와 같은 이름, 쉼표로 구분)",
+            "```gcal-calendar\ngcal: Growth, Routine\n```"
         );
         this.sample(
             usage,
-            "특정 캘린더만 빼기 · 이 블록에서는 일정을 아예 안 그리기",
-            "```gcal-calendar\nexclude-calendars: Event\n```\n\n" +
-                "```gcal-calendar\ncalendars: none\n```"
+            "특정 캘린더만 빼기 · 이 블록에서는 일정을 아예 안 그리기(task 전용)",
+            "```gcal-calendar\ngcal-exclude: Event\n```\n\n" +
+                "```gcal-calendar\ngcal: off\n```"
         );
 
         const ul = usage.createEl("ul");
@@ -1394,7 +1404,7 @@ class GcalCalendarSettingTab extends PluginSettingTab {
             "변경은 노트에 바로 쓰이고 tasks-gcal-sync 가 Google Calendar 로 올린다.",
             "시각(⏰)은 일간 보기 드래그로만 넣는다 — 줄 끝에 적으면 Tasks 가 📅 까지 못 읽는다.",
             "📆 는 Google Calendar 일정(읽기 전용)이다 — 드래그·클릭·편집이 되지 않는다. 색은 같은 이름의 카테고리를 따른다.",
-            "calendars: / exclude-calendars: 는 아래 «표시할 일정»에서 고른 캘린더의 부분집합이다 — 여기 적었다고 안 고른 캘린더를 가져오지는 않는다.",
+            "gcal: / gcal-exclude: 의 값은 #gcal/ 태그와 같은 캘린더 이름이다. 동기화 플러그인 설정에서 고른 캘린더의 부분집합이라, 여기 적었다고 안 고른 캘린더를 가져오지는 않는다.",
         ]) {
             ul.createEl("li", { text: t });
         }
