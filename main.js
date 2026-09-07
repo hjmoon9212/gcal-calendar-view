@@ -608,14 +608,19 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
         const key = fromISO + "|" + toISO + "|" + feedVersion + "|" +
             CATS.map((c) => CATCOLOR[c]).join(",") + "|" +
             plugin.settings.eventColor + "|" + JSON.stringify(plugin.settings.eventColors || {});
+        // ★ 캐시가 맞아도 **먼저** 요청한다 (v0.2.7). 이 호출은 피드에게 "뷰가 이 구간을
+        //   보고 있다" 를 알리는 유일한 신호다. 캐시 적중일 때 건너뛰었더니 조용한 구간에서
+        //   피드가 이 창을 잊고 폴링을 멈췄고 — 폴링이 멈추면 달라질 일이 없으니 이 캐시도
+        //   영영 유효해서 — GCal 에서 지운 일정이 Obsidian 재시작 전까지 남았다(2026-09-07).
+        //   실제 네트워크 호출 여부는 피드가 TTL 로 판단하므로 매 렌더 불러도 싸다.
+        // 던지고 잊는다 — 도착하면 onChange 가 온다.
+        // 계약상 reject 하지 않지만, 플러그인 경계 너머라 버전이 어긋날 수 있다.
+        // catch 를 붙여 두지 않으면 그때 unhandled rejection 이 콘솔을 채운다.
+        try { Promise.resolve(f.requestEvents(fromISO, toISO)).catch(() => { }); } catch (_) { }
         if (evCache && evCache.key === key) return evCache.items;
         let items = [];
         try {
             items = f.peekEvents(fromISO, toISO).filter(passesCalFilter).map(toEventItem);
-            // 던지고 잊는다 — 도착하면 onChange 가 온다.
-            // 계약상 reject 하지 않지만, 플러그인 경계 너머라 버전이 어긋날 수 있다.
-            // catch 를 붙여 두지 않으면 그때 unhandled rejection 이 콘솔을 채운다.
-            Promise.resolve(f.requestEvents(fromISO, toISO)).catch(() => { });
         } catch (e) {
             console.debug("[gcal-calendar-view] 일정 조회 실패 → task 만 그린다", e);
             items = [];
