@@ -18,7 +18,7 @@
  *
  * Dataview 는 계속 필요하다 — 페이지 수집(api.pages)과 luxon 을 빌려 쓴다.
  */
-const { Plugin, PluginSettingTab, Setting, Notice, Keymap, MarkdownRenderChild, MarkdownRenderer } = require("obsidian");
+const { Plugin, PluginSettingTab, Setting, Notice, Keymap, Modal, Platform, MarkdownRenderChild, MarkdownRenderer } = require("obsidian");
 
 const DEFAULT_SETTINGS = {
     // 기본값은 개인 볼트 기준. 업무 볼트처럼 카테고리가 하나면 설정에서 지우면 된다.
@@ -42,6 +42,11 @@ const DEFAULT_SETTINGS = {
     eventColors: {},
     // 같은 이름의 카테고리가 없는 캘린더의 색 (예: "Holidays in South Korea")
     eventColor: "#7f8c8d",
+    // ── 모바일 화면 ──
+    // "auto" = 폰이면 모바일 화면(Platform.isPhone). "always"/"off" 로 강제할 수 있다.
+    // 강제가 필요한 이유가 둘: 태블릿은 isPhone 이 false 라 데스크탑 화면을 받고,
+    // 모바일 화면을 고칠 때 폰을 들지 않고 데스크탑에서 바로 볼 수 있어야 한다.
+    mobileUi: "auto",   // "auto" | "always" | "off"
 };
 
 /**
@@ -174,6 +179,24 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
     root.classList.add("gcal-cal");
     // 이 캘린더가 수집할 스코프 (코드블록 옵션에서 결정돼 주입된다)
     const SOURCE = source;
+
+    // ── 모바일 화면을 쓸 것인가 ───────────────────────────────────────────────
+    // 데스크탑 렌더러는 조작이 전부 HTML5 드래그와 우클릭이라 터치에서는 **이벤트가
+    // 아예 발생하지 않는다** — 폰에서는 열기 말고 아무것도 못 한다. 그래서 화면을
+    // 통째로 갈아 끼운다(renderNow 첫 줄에서 갈린다). 쓰기 경로(applyDates)는 공유한다.
+    //
+    // 설정으로 강제할 수 있어야 한다: 태블릿은 isPhone 이 false 고, 모바일 화면을
+    // 고칠 때 폰을 들지 않고 데스크탑에서 바로 확인할 수 있어야 한다.
+    //
+    // ⚠️ const 로 한 번만 계산하면 안 된다 — createCalendar() 는 한 번만 돌고 이후엔
+    //    renderNow() 만 다시 돈다. 값을 굳혀 두면 설정을 바꿔도 **이미 열려 있는 캘린더는
+    //    옛 렌더러를 계속 쓴다.** 카테고리(syncCategories)가 같은 이유로 매 렌더 다시 읽는다.
+    const isMobileUi = () => {
+        const m = plugin.settings.mobileUi;
+        if (m === "always") return true;
+        if (m === "off") return false;
+        try { return !!Platform.isPhone; } catch (e) { return false; }
+    };
 
     // ── 재실행 대비 전역 보관함 ────────────────────────────────────────────────
     // Dataview 는 볼트의 파일이 바뀔 때마다 이 dataviewjs 블록을 통째로 재실행한다
@@ -1179,6 +1202,254 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
 
     // 렌더 요청은 한 틱에 하나로 합친다 (드롭 1회에 여러 경로로 불려도 실제로는 1번만 그림)
     let renderQueued = false;
+    // ══════════════════════════ 모바일 화면 ════════════════════════════════════
+    // 데스크탑 렌더러와 **화면만** 갈라진다. 수집(collect)·쓰기(applyDates)·편집(editTask)은
+    // 위의 것을 그대로 쓴다 — 사본이 갈라지면 ⏰ 삽입 규칙 같은 것이 한쪽에서만 고쳐진다.
+    // (이 플러그인이 dataviewjs 스크립트에서 옮겨 온 이유가 바로 그 "사본이 갈라짐" 이다.)
+    //
+    // 규칙 셋:
+    //   · 드래그 없음      — 터치에서 HTML5 DnD 는 이벤트가 아예 발생하지 않는다
+    //   · 우클릭 없음      — 모든 수정은 행을 탭해서 여는 액션시트(TaskSheetModal)로
+    //   · 중첩 스크롤 없음 — 폰에서 안쪽 스크롤 박스는 노트 스크롤과 싸운다.
+    //                       데스크탑 트레이의 max-height:280px, 일간의 560px 박스를 쓰지 않는다.
+
+    /** 항목이 차지하는 날짜 구간 [from, to]. 둘 다 없으면 null (= 날짜 없음). */
+    const spanOf = (t) => {
+        const a = t.start || t.due;
+        const b = t.due || t.start;
+        if (!a || !b) return null;
+        return a <= b ? [a, b] : [b, a];
+    };
+    const coversDay = (t, iso) => { const s = spanOf(t); return !!s && s[0] <= iso && iso <= s[1]; };
+    const colorOf = (t) => (isRO(t) ? t.color : (CATCOLOR[t.cat] || CATCOLOR[CAT_DEFAULT] || "#7f8c8d"));
+    const fileName = (p) => (p ? p.split("/").pop().replace(/\.md$/, "") : "");
+    const metaLine = (t) => {
+        const bits = [CATLABEL[t.cat] || t.cat || "-"];
+        if (t.path) bits.push("📄 " + fileName(t.path));
+        return bits.join("  ·  ");
+    };
+    const mmdd = (iso) => iso.slice(5).replace("-", ".");
+    const dateBadge = (t) => {
+        if (t.start && t.due && t.start !== t.due) return "🛫 " + mmdd(t.start) + " ~ 📅 " + mmdd(t.due);
+        if (t.due) return "📅 " + mmdd(t.due);
+        if (t.start) return "🛫 " + mmdd(t.start);
+        return "";
+    };
+
+    /** 액션시트를 연다. 쓰기 함수를 그대로 넘긴다 — 모달은 노트를 직접 고치지 않는다. */
+    const openSheet = (t) => {
+        new TaskSheetModal(app, t, {
+            applyDates, dropOnDate, writeBack, editTask, openAtLine,
+            isRO, colorOf, metaLine, timeText, toMin, toHHMM, addDays, todayISO,
+            notice: (m) => new Notice(m),
+        }).open();
+    };
+
+    /**
+     * 목록의 한 줄. **task 와 GCal 일정을 같은 함수로 그린다** — 지금 모바일에는 일정이
+     * 오지 않지만(피드가 데스크탑 전용이다), 나중에 넣을 때 목록 코드를 다시 짜지 않으려고
+     * 처음부터 isRO 로 갈라 둔다.
+     */
+    function mobileRow(item) {
+        const ro = isRO(item);
+        const el = document.createElement("div");
+        el.style.cssText =
+            "display:flex;align-items:center;gap:10px;min-height:44px;padding:8px 10px;margin-bottom:6px;" +
+            "border:1px solid var(--background-modifier-border);border-left:4px solid " + colorOf(item) + ";" +
+            "border-radius:8px;cursor:pointer;";
+        const box = el.createEl("div");
+        box.style.cssText = "flex:1 1 auto;min-width:0;";
+        const ttl = box.createEl("div", { text: (ro ? "📆 " : "") + (item.title || "(제목 없음)") });
+        ttl.style.cssText = "font-size:14px;line-height:1.35;word-break:break-word;" +
+            (item.done || item.cancelled ? "opacity:.5;text-decoration:line-through;" : "");
+        const sub = box.createEl("div");
+        sub.style.cssText = "display:flex;flex-wrap:wrap;gap:8px;font-size:11px;opacity:.6;margin-top:3px;";
+        const badge = dateBadge(item);
+        if (badge) sub.createEl("span", { text: badge });
+        if (item.tStart !== null && item.tStart !== undefined) sub.createEl("span", { text: "⏰ " + timeText(item.tStart, item.tEnd) });
+        if (item.recurring) sub.createEl("span", { text: "🔁" });
+        if (!ro) sub.createEl("span", { text: "📄 " + fileName(item.path) });
+        // 지연은 색으로 말한다 — 목록에서 눈에 띄어야 하는 건 이것 하나다.
+        if (item.due && !item.done && !item.cancelled) {
+            const od = diffDays(todayISO, item.due);
+            if (od > 0) {
+                const w = sub.createEl("span", { text: od + "일 지남" });
+                w.style.cssText = "color:#eab308;font-weight:700;opacity:1;";
+            }
+        }
+        const chev = el.createEl("span", { text: "›" });
+        chev.style.cssText = "opacity:.35;font-size:18px;flex:0 0 auto;";
+        el.onclick = () => openSheet(item);
+        return el;
+    }
+
+    /** 제목 + 행들. 비어 있으면 빈 이유를 한 줄로 말한다 (빈 화면은 고장과 구분되지 않는다). */
+    function mobileSection(box, label, items, emptyText) {
+        const sec = box.createEl("div");
+        sec.style.cssText = "margin-bottom:14px;";
+        const h = sec.createEl("div", { text: label });
+        h.style.cssText = "font-size:12px;font-weight:600;opacity:.75;margin:0 0 6px;" +
+            "padding-bottom:3px;border-bottom:1px solid var(--background-modifier-border);";
+        if (!items.length) {
+            if (emptyText) {
+                const e = sec.createEl("div", { text: emptyText });
+                e.style.cssText = "font-size:12px;opacity:.45;padding:2px 0 4px;";
+            }
+            return sec;
+        }
+        for (const it of items) sec.appendChild(mobileRow(it));
+        return sec;
+    }
+
+    /**
+     * 월간 요약. 막대가 아니라 **카테고리 색 점**만 찍는다 — 폰 폭에서 7칸을 나누면 한 칸이
+     * 50px 라 막대에 글자가 들어가지 않고, 어차피 드래그도 못 한다.
+     * 칸을 탭하면 그 날에 걸친 항목만 아래 목록에 남는다 (다시 탭하면 해제).
+     */
+    function mobileMonthGrid(box, items) {
+        const first = view.startOf("month");
+        const gridStart = sundayStart(first);
+        const gridEnd = sundayStart(first.endOf("month")).plus({ days: 6 });
+        const wrap = box.createEl("div");
+        wrap.style.cssText = "margin-bottom:12px;";
+        const head = wrap.createEl("div");
+        head.style.cssText = "display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:2px;";
+        ["일", "월", "화", "수", "목", "금", "토"].forEach((d, i) => {
+            const c = head.createEl("div", { text: d });
+            c.style.cssText = "text-align:center;font-size:10px;opacity:.5;" + (i === 0 ? "color:#e05a7a;" : "");
+        });
+        const grid = wrap.createEl("div");
+        grid.style.cssText = "display:grid;grid-template-columns:repeat(7,1fr);gap:2px;";
+        for (let d = gridStart; d <= gridEnd; d = d.plus({ days: 1 })) {
+            const iso = d.toISODate();
+            const inMonth = d.month === first.month;
+            const sel = S.mDay === iso;
+            const cell = grid.createEl("div");
+            cell.style.cssText =
+                "min-height:44px;padding:3px 2px;border-radius:6px;cursor:pointer;text-align:center;" +
+                "border:1px solid " + (sel ? "var(--interactive-accent)" : "transparent") + ";" +
+                (sel ? "background:var(--background-modifier-active-hover);" : "") +
+                (inMonth ? "" : "opacity:.3;");
+            const n = cell.createEl("div", { text: String(d.day) });
+            n.style.cssText = "font-size:11px;" + (iso === todayISO ? "font-weight:800;color:var(--interactive-accent);" : "");
+            const dots = cell.createEl("div");
+            dots.style.cssText = "display:flex;justify-content:center;flex-wrap:wrap;gap:2px;margin-top:2px;min-height:6px;";
+            const cols = [];
+            for (const t of items) {
+                if (!coversDay(t, iso)) continue;
+                const cc = colorOf(t);
+                if (!cols.includes(cc)) cols.push(cc);
+            }
+            for (const cc of cols.slice(0, 3)) {
+                const dot = dots.createEl("span");
+                dot.style.cssText = "width:6px;height:6px;border-radius:50%;background:" + cc + ";display:inline-block;";
+            }
+            if (cols.length > 3) {
+                const more = dots.createEl("span", { text: "+" });
+                more.style.cssText = "font-size:9px;line-height:6px;opacity:.6;";
+            }
+            cell.onclick = () => { S.mDay = sel ? undefined : iso; render(); };
+        }
+        return wrap;
+    }
+
+    function renderMobileNow() {
+        syncCategories();
+        saveState();
+        const first = firstRender;
+        firstRender = false;
+        // 분리된 DOM 에 조립한 뒤 한 번에 교체 — 데스크탑 경로와 같은 이유(빈 프레임 방지).
+        const box = document.createElement("div");
+        const noteMd = noteMarkdown();
+        if (noteMd) box.appendChild(noteBlock(noteMd));
+
+        const all = collect().filter((t) => activeCats.has(t.cat));
+        const open = all.filter((t) => !t.done && !t.cancelled);
+        const shown = showDone ? all : open;
+
+        // ── 헤더: 달 이동 · 오늘 · 완료 토글 ──
+        const bar = box.createEl("div");
+        bar.style.cssText = "display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:8px;";
+        const navBtn = (label, fn) => {
+            const b = bar.createEl("button", { text: label });
+            b.style.cssText = "min-height:36px;padding:0 12px;border-radius:8px;font-size:13px;cursor:pointer;";
+            b.onclick = fn;
+            return b;
+        };
+        navBtn("◀", () => { view = view.startOf("month").minus({ months: 1 }); render(); });
+        const lab = bar.createEl("b", { text: view.toFormat("yyyy년 M월") });
+        lab.style.cssText = "font-size:15px;flex:1 1 auto;text-align:center;";
+        navBtn("▶", () => { view = view.startOf("month").plus({ months: 1 }); render(); });
+        navBtn("오늘", () => { view = L.now().startOf("month"); S.mDay = todayISO; render(); });
+        navBtn(showDone ? "완료 ✓" : "완료 ✗", () => { showDone = !showDone; render(); });
+        if (S.mDay) navBtn("선택 해제", () => { S.mDay = undefined; render(); });
+
+        // ── 카테고리 필터 ── 데스크탑과 같은 규칙, 손가락 크기로만 키운다.
+        const filterBar = box.createEl("div");
+        filterBar.style.cssText = "display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:10px;";
+        const allOn = CATS.length > 0 && CATS.every((c) => activeCats.has(c));
+        const allBtn = filterBar.createEl("button", { text: allOn ? "전체 해제" : "전체" });
+        allBtn.style.cssText = "min-height:32px;font-size:12px;padding:0 12px;border-radius:16px;cursor:pointer;";
+        allBtn.onclick = () => { if (allOn) activeCats.clear(); else CATS.forEach((c) => activeCats.add(c)); render(); };
+        for (const cat of CATS) {
+            const on = activeCats.has(cat);
+            const b = filterBar.createEl("button");
+            b.style.cssText = "display:inline-flex;align-items:center;gap:6px;min-height:32px;font-size:12px;" +
+                "padding:0 12px;border-radius:16px;cursor:pointer;border:1px solid var(--background-modifier-border);" +
+                "opacity:" + (on ? 1 : 0.4) + ";";
+            const dot = b.createEl("span");
+            dot.style.cssText = "width:8px;height:8px;border-radius:50%;background:" + CATCOLOR[cat] + ";display:inline-block;";
+            b.createEl("span", { text: CATLABEL[cat] });
+            b.onclick = () => { if (activeCats.has(cat)) activeCats.delete(cat); else activeCats.add(cat); render(); };
+        }
+
+        // ── 월간 요약 ──
+        mobileMonthGrid(box, shown);
+
+        // ── 목록 ──
+        if (S.mDay) {
+            // 날짜를 고른 동안에는 그 날에 걸친 것만 본다. 트레이는 잠시 접어 둔다 —
+            // 폰에서는 세로가 전부라, 고른 날 아래로 다른 섹션이 계속 이어지면 고른 의미가 없다.
+            const day = shown.filter((t) => coversDay(t, S.mDay));
+            mobileSection(box, "📌 " + S.mDay + " (" + day.length + ")", day, "이 날에 걸친 항목이 없습니다.");
+        } else {
+            const undated = open.filter((t) => !t.due && !t.start);
+            mobileSection(box, "📥 날짜 없음 (" + undated.length + ")", undated, "없음 🎉");
+
+            const overdue = open.filter((t) => t.due && t.due < todayISO).sort((a, b) => (a.due < b.due ? -1 : 1));
+            mobileSection(box, "🔴 지연 (" + overdue.length + ")", overdue, "없음 🎉");
+
+            // 이 달의 날짜별. 위 지연 섹션에 이미 나온 것은 빼서 한 화면에 두 번 나오지 않게 한다.
+            // (데스크탑은 트레이와 달력이 시각적으로 분리돼 있어 중복이 문제가 안 되지만,
+            //  평평한 목록에서는 그냥 버그로 보인다.)
+            const seen = new Set(overdue.map((t) => t.uid));
+            const ym = view.toFormat("yyyy-MM");
+            const byDay = new Map();
+            for (const t of shown) {
+                if (!t.due || seen.has(t.uid)) continue;
+                if (t.due.slice(0, 7) !== ym) continue;
+                if (!byDay.has(t.due)) byDay.set(t.due, []);
+                byDay.get(t.due).push(t);
+            }
+            const days = [...byDay.keys()].sort();
+            if (!days.length) {
+                mobileSection(box, view.toFormat("yyyy년 M월"), [], "이 달에 마감일이 있는 항목이 없습니다.");
+            } else {
+                for (const iso of days) {
+                    const wd = ["일", "월", "화", "수", "목", "금", "토"][L.fromISO(iso).weekday % 7];
+                    const mark = iso === todayISO ? "  ← 오늘" : "";
+                    mobileSection(box, mmdd(iso) + " (" + wd + ")" + mark, byDay.get(iso));
+                }
+            }
+        }
+
+        // ── 조립 끝 ──
+        root.replaceChildren(...box.childNodes);
+        const h = root.offsetHeight;
+        if (h > 0) { S.h = h; HOLD.style.minHeight = h + "px"; }
+        if (first) restorePageScroll();
+    }
+
     function render() {
         if (renderQueued) return;
         renderQueued = true;
@@ -1191,6 +1462,9 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
     let dayScrollRestoring = false;   // 복원 중 발생하는 scroll 이벤트가 저장값을 덮지 않게
 
     function renderNow() {
+        // 화면만 갈라진다. 아래 데스크탑 경로는 조작이 전부 HTML5 드래그와 우클릭이라
+        // 터치에서는 열기 말고 아무것도 못 한다 — 폰에서는 통째로 다른 화면을 그린다.
+        if (isMobileUi()) return renderMobileNow();
         syncCategories();   // 설정이 바뀌었을 수 있다 (플러그인 재시작 없이 반영하려면 매번 읽어야 한다)
         saveState();
         const first = firstRender;
@@ -1371,6 +1645,157 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
     return { refresh: () => { invalidate(); renderNow(); }, isAlive: () => root.isConnected };
 }
 
+/**
+ * 모바일 액션시트 — 목록의 항목을 탭하면 뜬다.
+ *
+ * 데스크탑에서 **드래그 · Shift+드래그 · 우클릭**이 하던 일을 전부 버튼으로 편 것이다.
+ * 터치에서는 그 셋이 이벤트조차 발생하지 않으므로(HTML5 DnD 는 터치에서 안 뜨고
+ * contextmenu 도 없다), 폰에서 task 를 고칠 수 있는 유일한 통로다.
+ *
+ * ⛔ 여기서 노트를 직접 고치지 않는다. 쓰기는 전부 createCalendar 가 넘겨준 함수로
+ *    흘려보낸다. 특히 ⏰ 는 반드시 applyDates 의 time 경로를 타야 한다 — 첫 Tasks 필드
+ *    이모지 **앞에** 넣는 규칙이 거기에만 있고, 줄 끝에 붙이면 Tasks 가 그 앞의 📅 까지
+ *    설명으로 흡수한다(마감일 쿼리가 그 task 를 놓친다).
+ */
+class TaskSheetModal extends Modal {
+    constructor(app, task, ctx) {
+        super(app);
+        this.task = task;
+        this.ctx = ctx;
+    }
+
+    /** 구역 제목 한 줄. */
+    section(text) {
+        const h = this.contentEl.createEl("div", { text });
+        h.style.cssText = "font-size:12px;opacity:.6;margin:16px 0 6px;";
+        return h;
+    }
+
+    /** 손가락에 맞는 컨트롤 한 줄. */
+    row() {
+        const r = this.contentEl.createEl("div");
+        r.style.cssText = "display:flex;flex-wrap:wrap;align-items:center;gap:8px;";
+        return r;
+    }
+
+    /** 누르면 실행하고 닫는 버튼. 실패해도 닫는다 — 실패는 Notice 가 말한다. */
+    btn(parent, label, run, extraCss) {
+        const b = parent.createEl("button", { text: label });
+        b.style.cssText = "min-height:40px;padding:0 14px;border-radius:8px;font-size:14px;cursor:pointer;" + (extraCss || "");
+        b.onclick = async () => {
+            try { await run(); } finally { this.close(); }
+        };
+        return b;
+    }
+
+    /** 날짜 선택기. 고르는 즉시 실행하고 닫는다(확인 버튼을 한 번 더 누르게 하지 않는다). */
+    datePicker(parent, value, run) {
+        const d = parent.createEl("input");
+        d.type = "date";
+        d.value = value || "";
+        d.style.cssText = "min-height:40px;font-size:14px;padding:0 8px;border-radius:8px;";
+        d.onchange = async () => {
+            if (!d.value) return;
+            try { await run(d.value); } finally { this.close(); }
+        };
+        return d;
+    }
+
+    onOpen() {
+        const t = this.task;
+        const c = this.ctx;
+        const { contentEl } = this;
+        contentEl.empty();
+
+        // ── 머리: 무엇을 고치고 있는지 ──
+        const head = contentEl.createEl("div");
+        head.style.cssText = "display:flex;gap:10px;align-items:flex-start;border-left:4px solid " +
+            c.colorOf(t) + ";padding-left:10px;margin-bottom:4px;";
+        const hbox = head.createEl("div");
+        const title = hbox.createEl("div", { text: t.title || "(제목 없음)" });
+        title.style.cssText = "font-size:16px;font-weight:600;line-height:1.4;word-break:break-word;";
+        const meta = hbox.createEl("div", { text: c.metaLine(t) });
+        meta.style.cssText = "font-size:12px;opacity:.6;margin-top:4px;word-break:break-all;";
+
+        // GCal 일정은 노트에 원본이 없다 — 고칠 것도, 열 곳도 없다.
+        if (c.isRO(t)) {
+            const p = contentEl.createEl("div", { text: "📆 Google Calendar 일정입니다 (읽기 전용)." });
+            p.style.cssText = "font-size:13px;opacity:.7;margin-top:14px;";
+            return;
+        }
+
+        // ── 📅 마감일 ── 가장 흔한 동작이라 맨 위에 둔다.
+        this.section("📅 마감일" + (t.due ? " — 지금 " + t.due : " — 없음"));
+        const due = this.row();
+        this.btn(due, "오늘", () => c.writeBack(t, c.todayISO));
+        this.btn(due, "내일", () => c.writeBack(t, c.addDays(c.todayISO, 1)));
+        this.btn(due, "+7일", () => c.writeBack(t, c.addDays(c.todayISO, 7)));
+        this.datePicker(due, t.due || c.todayISO, (iso) => c.writeBack(t, iso));
+
+        // ── 🛫 시작일 ── 마감일이 있어야 의미가 있다(기간의 왼쪽 끝이므로).
+        if (t.due) {
+            this.section("🛫 시작일" + (t.start ? " — 지금 " + t.start : " — 없음"));
+            const st = this.row();
+            this.datePicker(st, t.start || t.due, async (iso) => {
+                // applyDates 는 start 를 그대로 쓴다 — start > due 를 만들면 막대 폭이 음수가 된다.
+                // 데스크탑에서는 드롭 좌표가 이 조건을 막아 주지만 여기서는 날짜를 직접 고르므로 우리가 막는다.
+                if (t.due && iso > t.due) { c.notice("시작일은 마감일(📅 " + t.due + ")보다 뒤일 수 없어요"); return; }
+                await c.applyDates(t, { start: iso });
+                c.notice("🛫 " + iso);
+            });
+        }
+
+        // ── 기간째 이동 ── 데스크탑의 "그냥 드래그" 와 같은 동작.
+        //    🛫 가 없으면 마감일 지정과 결과가 같아지므로(dropOnDate 내부 분기), 그때는 숨긴다.
+        if (t.start && t.due && t.start !== t.due) {
+            this.section("↔ 기간째 이동 — 고른 날이 🛫 가 되고 기간 길이는 유지됩니다");
+            const mv = this.row();
+            this.datePicker(mv, t.start, (iso) => c.dropOnDate(t, iso, false));
+        }
+
+        // ── ⏰ 시각 ── 데스크탑에서는 일간 보기 드래그로만 넣던 값.
+        this.section("⏰ 시각" + (t.tStart !== null ? " — 지금 " + c.timeText(t.tStart, t.tEnd) : " — 없음"));
+        const tr = this.row();
+        const mkTime = (val) => {
+            const i = tr.createEl("input");
+            i.type = "time";
+            i.step = "900";   // 15분 — 데스크탑 드래그의 스냅 단위와 맞춘다
+            i.value = val;
+            i.style.cssText = "min-height:40px;font-size:14px;padding:0 8px;border-radius:8px;";
+            return i;
+        };
+        const s0 = t.tStart !== null ? t.tStart : 9 * 60;
+        const e0 = t.tStart !== null ? t.tEnd : s0 + 60;
+        const si = mkTime(c.toHHMM(s0));
+        tr.createEl("span", { text: "~" }).style.cssText = "opacity:.5;";
+        const ei = mkTime(c.toHHMM(e0));
+        this.btn(tr, "저장", async () => {
+            if (!si.value || !ei.value) { c.notice("시작·종료 시각을 모두 고르세요"); return; }
+            const s = c.toMin(si.value);
+            let e = c.toMin(ei.value);
+            if (e <= s) e = Math.min(1440, s + 60);   // 역전·0길이는 막대 높이가 0/음수가 된다
+            await c.applyDates(t, { time: c.timeText(s, e) });
+            c.notice("⏰ " + c.timeText(s, e));
+        }, "font-weight:600;");
+        if (t.tStart !== null) {
+            this.btn(tr, "시각 제거", async () => {
+                await c.applyDates(t, { time: null });
+                c.notice("⏰ 제거됨");
+            });
+        }
+
+        // ── 그 밖 ──
+        this.section("그 밖");
+        const etc = this.row();
+        this.btn(etc, "✏️ 편집", () => c.editTask(t));
+        this.btn(etc, "📄 원본 열기", () => c.openAtLine(t));
+    }
+
+    onClose() {
+        this.contentEl.empty();
+    }
+}
+
 class GcalCalendarSettingTab extends PluginSettingTab {
     constructor(app, plugin) {
         super(app, plugin);
@@ -1458,6 +1883,29 @@ class GcalCalendarSettingTab extends PluginSettingTab {
             ul.createEl("li", { text: t });
         }
 
+        // ── 모바일 화면 ──
+        // 사용법 바로 밑에 둔다. 폰에서 화면이 달라 보이는 이유를 여기서 처음 만나야 한다.
+        containerEl.createEl("h3", { text: "모바일" });
+        new Setting(containerEl)
+            .setName("모바일 화면")
+            .setDesc(
+                "폰에서는 드래그·우클릭이 터치에서 동작하지 않아 조작이 불가능합니다. " +
+                "모바일 화면은 월간 요약과 날짜별 목록으로 그리고, 항목을 탭하면 뜨는 " +
+                "액션시트에서 마감일·시작일·시각을 고칩니다. " +
+                "«자동» 은 폰에서만 켜집니다 — 태블릿은 폰으로 잡히지 않으니 «항상» 을 쓰세요."
+            )
+            .addDropdown((d) => {
+                d.addOption("auto", "자동 (폰에서만)");
+                d.addOption("always", "항상");
+                d.addOption("off", "끄기");
+                d.setValue(this.plugin.settings.mobileUi || "auto");
+                d.onChange(async (v) => {
+                    this.plugin.settings.mobileUi = v;
+                    await this.plugin.saveSettings();
+                    this.plugin.refreshAll();   // 설정 창을 닫기 전에 바로 보이게 (hide() 를 기다리지 않는다)
+                });
+            });
+
         containerEl.createEl("h3", { text: "카테고리" });
         const desc = containerEl.createEl("p", {
             text: "task 의 #gcal/<key> 태그로 분류된다. 색을 Google Calendar 의 커스텀 색과 맞추면 캘린더와 GCal 이 같은 색으로 보인다.",
@@ -1470,18 +1918,26 @@ class GcalCalendarSettingTab extends PluginSettingTab {
         this.plugin.settings.categories.forEach((cat, i) => {
             const row = new Setting(containerEl);
             row.infoEl.remove();   // 라벨 칸 없이 입력만 나열
-            row.addText((t) =>
+            // 폰에서는 [key][표시 이름][색][🗑] 넷이 한 줄에 들어가면 입력칸이 수십 px 로
+            // 찌그러져 타이핑이 안 된다. 폭이 좁을 때만 세로로 쌓는다(데스크탑은 그대로).
+            if (Platform.isPhone) {
+                row.settingEl.style.cssText = "display:block;padding:8px 0;";
+                row.controlEl.style.cssText = "display:flex;flex-wrap:wrap;align-items:center;gap:8px;width:100%;";
+            }
+            row.addText((t) => {
+                if (Platform.isPhone) t.inputEl.style.cssText = "flex:1 1 100%;min-width:0;";
                 t.setPlaceholder("key (예: work)").setValue(cat.key).onChange(async (v) => {
                     cat.key = v.trim();
                     await this.plugin.saveSettings();
-                })
-            );
-            row.addText((t) =>
+                });
+            });
+            row.addText((t) => {
+                if (Platform.isPhone) t.inputEl.style.cssText = "flex:1 1 100%;min-width:0;";
                 t.setPlaceholder("표시 이름").setValue(cat.label).onChange(async (v) => {
                     cat.label = v;
                     await this.plugin.saveSettings();
-                })
-            );
+                });
+            });
             row.addColorPicker((c) =>
                 c.setValue(cat.color).onChange(async (v) => {
                     cat.color = v;
@@ -1616,6 +2072,36 @@ module.exports = class GcalCalendarViewPlugin extends Plugin {
         this.registerMarkdownCodeBlockProcessor("gcal-calendar", (src, el, ctx) =>
             this.renderBlock(src, el, ctx)
         );
+
+        // ── 커맨드 ──
+        // 여태 하나도 없었다 — 폰에서는 커맨드 팔레트가 주된 진입로인데 이 플러그인은
+        // 코드블록이 적힌 노트를 찾아가는 것 말고는 부를 방법이 없었다.
+
+        // 폰에서 백틱 세 개와 블록 이름을 손으로 치는 게 가장 힘든 지점이다.
+        this.addCommand({
+            id: "insert-block",
+            name: "캘린더 블록 삽입",
+            editorCallback: (editor) => {
+                editor.replaceSelection("```gcal-calendar\n```\n");
+            },
+        });
+
+        // 태블릿은 isPhone 이 false 라 자동으로는 모바일 화면을 받지 못한다.
+        // 설정 앱까지 가지 않고 여기서 바꿀 수 있어야 한다.
+        this.addCommand({
+            id: "toggle-mobile-ui",
+            name: "모바일 화면 전환 (자동 → 항상 → 끄기)",
+            callback: async () => {
+                const order = ["auto", "always", "off"];
+                const label = { auto: "자동 (폰에서만)", always: "항상", off: "끄기" };
+                const cur = order.indexOf(this.settings.mobileUi || "auto");
+                const next = order[(cur + 1) % order.length];
+                this.settings.mobileUi = next;
+                await this.saveSettings();
+                this.refreshAll();
+                new Notice("모바일 화면: " + label[next]);
+            },
+        });
     }
 
     async loadSettings() {
