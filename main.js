@@ -50,6 +50,47 @@ const DEFAULT_SETTINGS = {
 };
 
 /**
+ * 겹치는 시간 블록을 좌우 레인으로 나눈다. 반환: `[{t, lane, lanes, span}]`.
+ *
+ * 레인 수는 반드시 **"겹치는 무리(cluster)" 안에서만** 센다 — 하루 전체로 세면 오전에
+ * 3중 겹침이 한 번 있었다는 이유로 저녁 단독 일정까지 1/3 폭이 된다.
+ * 무리 경계: 시작 시각이 지금 무리의 최대 종료 **이상**이면 끊는다(맞닿음은 겹침이 아니다).
+ *
+ * 데스크탑 일간 보기와 모바일 타임라인이 **같은 배치**를 쓰도록 여기 한 곳에 둔다.
+ * 순수 계산이라 DOM 도 설정도 보지 않는다 — 그래서 테스트할 수 있다(__test).
+ */
+function layoutTimeLanes(timed) {
+    const items = [...timed].sort((a, b) => a.tStart - b.tStart || a.tEnd - b.tEnd);
+    const laneEnd = [];
+    const placed = [];
+    let cluster = [];          // 지금 무리에 담긴 항목 (레인 수가 확정되면 placed 로 넘어간다)
+    let clusterEnd = -1;
+    const closeCluster = () => {
+        const lanes = Math.max(laneEnd.length, 1);
+        for (const it of cluster) {
+            // 오른쪽 레인이 이 블록의 시간대 내내 비어 있으면 그만큼 넓힌다.
+            // first-fit 이 레인을 앞에서부터 채우므로 자주 발동하진 않는다.
+            let span = 1;
+            while (it.lane + span < lanes &&
+                !cluster.some(o => o.lane === it.lane + span && o.t.tStart < it.t.tEnd && o.t.tEnd > it.t.tStart)) span++;
+            placed.push({ t: it.t, lane: it.lane, lanes, span });
+        }
+        cluster = [];
+        laneEnd.length = 0;
+    };
+    for (const t of items) {
+        if (t.tStart >= clusterEnd) { closeCluster(); clusterEnd = t.tEnd; }
+        else clusterEnd = Math.max(clusterEnd, t.tEnd);
+        let lane = laneEnd.findIndex((e) => e <= t.tStart);
+        if (lane === -1) { lane = laneEnd.length; laneEnd.push(t.tEnd); }
+        else laneEnd[lane] = t.tEnd;
+        cluster.push({ t, lane });
+    }
+    closeCluster();            // 마지막 무리 — 빠뜨리면 하루의 끝 일정이 그려지지 않는다
+    return placed;
+}
+
+/**
  * 코드블록 본문 파싱: `scope: vault` · `source: <쿼리>` · `note: <설명>`
  * (빈 블록이면 폴더 스코프)
  *
@@ -1093,36 +1134,7 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
         });
         grid.addEventListener("dragend", hideGhost);
 
-        // 겹치는 블록은 좌우로 나눠 놓는다 (시작 시각 순 그리디 레인 배치).
-        // 레인 수는 반드시 "겹치는 무리(cluster)" 안에서만 센다 — 하루 전체로 세면
-        // 오전에 3중 겹침이 한 번 있었다는 이유로 저녁 단독 일정까지 1/3 폭이 된다.
-        // 무리 경계: 시작 시각이 지금 무리의 최대 종료 이상이면 끊는다(맞닿음은 겹침이 아니다).
-        const laneEnd = [];
-        const placed = [];
-        let cluster = [];          // 지금 무리에 담긴 항목 (레인 수가 확정되면 placed 로 넘어간다)
-        let clusterEnd = -1;
-        const closeCluster = () => {
-            const lanes = Math.max(laneEnd.length, 1);
-            for (const it of cluster) {
-                // 오른쪽 레인이 이 블록의 시간대 내내 비어 있으면 그만큼 넓힌다.
-                // first-fit 이 레인을 앞에서부터 채우므로 자주 발동하진 않는다.
-                let span = 1;
-                while (it.lane + span < lanes &&
-                    !cluster.some(o => o.lane === it.lane + span && o.t.tStart < it.t.tEnd && o.t.tEnd > it.t.tStart)) span++;
-                placed.push({ t: it.t, lane: it.lane, lanes, span });
-            }
-            cluster = [];
-            laneEnd.length = 0;
-        };
-        for (const t of timed) {
-            if (t.tStart >= clusterEnd) { closeCluster(); clusterEnd = t.tEnd; }
-            else clusterEnd = Math.max(clusterEnd, t.tEnd);
-            let lane = laneEnd.findIndex(e => e <= t.tStart);
-            if (lane === -1) { lane = laneEnd.length; laneEnd.push(t.tEnd); }
-            else laneEnd[lane] = t.tEnd;
-            cluster.push({ t, lane });
-        }
-        closeCluster();            // 마지막 무리 — 빠뜨리면 하루의 끝 일정이 그려지지 않는다
+        const placed = layoutTimeLanes(timed);
         for (const { t, lane, lanes, span } of placed) {
             const ro = isRO(t);
             const c = ro ? t.color : (CATCOLOR[t.cat] || CATCOLOR[CAT_DEFAULT]);
@@ -1242,6 +1254,13 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
             applyDates, dropOnDate, writeBack, editTask, openAtLine,
             isRO, colorOf, metaLine, timeText, toMin, toHHMM, addDays, todayISO,
             notice: (m) => new Notice(m),
+            // 배치 모드로 넘어간다: 그 task 의 날(없으면 오늘)로 일간을 열고 대기 상태로 둔다.
+            placeOnTimeline: (task) => {
+                S.placing = task.uid;
+                view = L.fromISO(task.due || todayISO).startOf("day");
+                mode = "day";
+                render();
+            },
         }).open();
     };
 
@@ -1304,7 +1323,7 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
     /**
      * 월간 요약. 막대가 아니라 **카테고리 색 점**만 찍는다 — 폰 폭에서 7칸을 나누면 한 칸이
      * 50px 라 막대에 글자가 들어가지 않고, 어차피 드래그도 못 한다.
-     * 칸을 탭하면 그 날에 걸친 항목만 아래 목록에 남는다 (다시 탭하면 해제).
+     * 칸을 탭하면 그 날의 일간 타임라인으로 넘어간다.
      */
     function mobileMonthGrid(box, items) {
         const first = view.startOf("month");
@@ -1323,15 +1342,14 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
         for (let d = gridStart; d <= gridEnd; d = d.plus({ days: 1 })) {
             const iso = d.toISODate();
             const inMonth = d.month === first.month;
-            const sel = S.mDay === iso;
+            const isToday = iso === todayISO;
             const cell = grid.createEl("div");
             cell.style.cssText =
                 "min-height:44px;padding:3px 2px;border-radius:6px;cursor:pointer;text-align:center;" +
-                "border:1px solid " + (sel ? "var(--interactive-accent)" : "transparent") + ";" +
-                (sel ? "background:var(--background-modifier-active-hover);" : "") +
+                "border:1px solid " + (isToday ? "var(--interactive-accent)" : "transparent") + ";" +
                 (inMonth ? "" : "opacity:.3;");
             const n = cell.createEl("div", { text: String(d.day) });
-            n.style.cssText = "font-size:11px;" + (iso === todayISO ? "font-weight:800;color:var(--interactive-accent);" : "");
+            n.style.cssText = "font-size:11px;" + (isToday ? "font-weight:800;color:var(--interactive-accent);" : "");
             const dots = cell.createEl("div");
             dots.style.cssText = "display:flex;justify-content:center;flex-wrap:wrap;gap:2px;margin-top:2px;min-height:6px;";
             const cols = [];
@@ -1348,9 +1366,154 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
                 const more = dots.createEl("span", { text: "+" });
                 more.style.cssText = "font-size:9px;line-height:6px;opacity:.6;";
             }
-            cell.onclick = () => { S.mDay = sel ? undefined : iso; render(); };
+            // 칸을 탭하면 그 날의 일간 타임라인으로 간다 — 종일/시각이 갈려 보이고 시각도 줄 수 있다.
+            cell.onclick = () => { view = d.startOf("day"); mode = "day"; render(); };
         }
         return wrap;
+    }
+
+    // ── 일간 타임라인 ──────────────────────────────────────────────────────
+    // 데스크탑 일간 보기와 같은 그림이지만 조작이 다르다. 데스크탑은 드래그로 시각을
+    // 주고 옮기는데 터치에서는 그게 안 되므로, **배치 모드**로 편다:
+    //   항목 탭 → 액션시트 → 「시간대 골라 놓기」 → 빈 시간대 탭 → 그 시각으로.
+    // 겹침 레인은 layoutTimeLanes 로 데스크탑과 같은 배치를 쓴다.
+    const M_HOUR_H = 48;   // 모바일 1시간 높이(px). 15분 = 12px — 손가락으로 15분이 구분된다
+    const M_GUTTER = 44;   // 시각 라벨이 차지하는 왼쪽 폭(px)
+    const WD = ["일", "월", "화", "수", "목", "금", "토"];
+
+    /** 배치 모드에서 기다리는 항목. 재렌더를 넘겨야 하므로 S 에 둔다. */
+    const placingTask = (items) => (S.placing ? items.find((t) => t.uid === S.placing) || null : null);
+
+    function renderMobileDay(box, items, allItems) {
+        const iso = view.toISODate();
+        // 데스크탑 renderDay 와 같은 기준: 이 날에 걸친 것(기간의 어느 하루라도 이 날이면)
+        const onDay = items.filter((t) => t.due && (t.start || t.due) <= iso && t.due >= iso);
+        const timed = onDay.filter((t) => t.tStart !== null);
+        const allday = onDay.filter((t) => t.tStart === null);
+        const placing = placingTask(allItems);
+
+        // ── 배치 모드 안내 ── 무엇을 기다리는지 화면이 말해야 한다.
+        if (placing) {
+            const hint = box.createEl("div");
+            hint.style.cssText = "display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:8px;padding:8px 10px;" +
+                "border:1px solid var(--interactive-accent);border-radius:8px;background:var(--background-modifier-active-hover);";
+            const t = hint.createEl("span", { text: "⏰ 「" + (placing.title || "(제목 없음)") + "」 — 놓을 시간대를 탭하세요" });
+            t.style.cssText = "font-size:13px;flex:1 1 auto;min-width:0;word-break:break-word;";
+            const cancel = hint.createEl("button", { text: "취소" });
+            cancel.style.cssText = "min-height:34px;padding:0 12px;border-radius:8px;font-size:13px;cursor:pointer;flex:0 0 auto;";
+            cancel.onclick = () => { S.placing = null; render(); };
+        }
+
+        // ── 종일 줄 ──
+        const ad = box.createEl("div");
+        ad.style.cssText = "display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px;min-height:44px;" +
+            "border:1px solid var(--background-modifier-border);border-radius:8px 8px 0 0;";
+        const adLabel = ad.createEl("span", { text: "종일 (" + allday.length + ")" });
+        adLabel.style.cssText = "font-size:11px;opacity:.55;flex:0 0 auto;";
+        if (!allday.length) {
+            const e = ad.createEl("span", { text: "없음" });
+            e.style.cssText = "font-size:11px;opacity:.35;";
+        }
+        for (const t of allday) {
+            const chip = ad.createEl("div");
+            const c = colorOf(t);
+            const dim = t.done || t.cancelled;
+            chip.style.cssText = "display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:0 10px;font-size:12px;" +
+                "border-radius:8px;cursor:pointer;max-width:100%;" +
+                "background:" + c + "2b;border:1px solid " + c + ";border-left:4px solid " + c + ";" +
+                (dim ? "opacity:.55;text-decoration:line-through;" : "") +
+                (S.placing === t.uid ? "outline:2px solid var(--interactive-accent);" : "");
+            const lbl = chip.createEl("span", { text: (isRO(t) ? "📆 " : "") + (t.title || "(제목 없음)") });
+            lbl.style.cssText = "overflow:hidden;text-overflow:ellipsis;white-space:nowrap;";
+            chip.onclick = (e) => { e.stopPropagation(); openSheet(t); };
+        }
+
+        // ── 시간 그리드 ──
+        // **안쪽 스크롤 박스를 만들지 않는다.** 폰에서 중첩 스크롤은 노트 스크롤과 싸운다.
+        // 대신 그릴 시간대를 좁힌다 — 기본 08~20시, 항목이나 현재 시각이 벗어나면 그만큼 넓힌다.
+        const fullDay = !!S.mFull || !!placing;   // 배치 중에는 24시간 전부 — 새벽에도 놓을 수 있어야 한다
+        let h0 = 24, h1 = 0;
+        for (const t of timed) {
+            h0 = Math.min(h0, Math.floor(t.tStart / 60));
+            h1 = Math.max(h1, Math.ceil(t.tEnd / 60));
+        }
+        if (iso === todayISO) { const nh = L.now().hour; h0 = Math.min(h0, nh); h1 = Math.max(h1, nh + 1); }
+        if (h0 > h1) { h0 = 8; h1 = 20; }                      // 이 날에 아무것도 없을 때
+        h0 = fullDay ? 0 : Math.max(0, Math.min(h0, 8));
+        h1 = fullDay ? 24 : Math.min(24, Math.max(h1, 20));
+
+        const grid = box.createEl("div");
+        grid.style.cssText = "position:relative;height:" + (h1 - h0) * M_HOUR_H + "px;" +
+            "border:1px solid var(--background-modifier-border);border-top:0;border-radius:0 0 8px 8px;overflow:hidden;" +
+            (placing ? "background:var(--background-modifier-active-hover);" : "");
+        for (let h = h0; h < h1; h++) {
+            const row = grid.createEl("div");
+            row.style.cssText = "position:absolute;left:0;right:0;top:" + (h - h0) * M_HOUR_H + "px;height:" + M_HOUR_H + "px;" +
+                "border-top:1px solid var(--background-modifier-border);";
+            const lab = row.createEl("span", { text: String(h).padStart(2, "0") + ":00" });
+            lab.style.cssText = "position:absolute;left:5px;top:1px;font-size:10px;opacity:.45;";
+            const half = row.createEl("div");
+            half.style.cssText = "position:absolute;left:" + M_GUTTER + "px;right:0;top:" + M_HOUR_H / 2 + "px;" +
+                "border-top:1px dashed var(--background-modifier-border);opacity:.5;";
+        }
+        if (iso === todayISO) {
+            const now = L.now();
+            const m = now.hour * 60 + now.minute;
+            if (m >= h0 * 60 && m <= h1 * 60) {
+                const nl = grid.createEl("div");
+                nl.style.cssText = "position:absolute;left:" + M_GUTTER + "px;right:0;top:" +
+                    ((m - h0 * 60) / 60 * M_HOUR_H) + "px;border-top:2px solid #e05a7a;z-index:3;pointer-events:none;";
+            }
+        }
+
+        // 빈 시간대 탭 = 배치. 배치 모드가 아닐 때는 아무 일도 하지 않는다 —
+        // 그냥 스크롤하려다 스친 탭으로 시각이 붙으면 되돌릴 방법이 없다.
+        grid.onclick = async (e) => {
+            const t = placingTask(allItems);
+            if (!t) return;
+            const r = grid.getBoundingClientRect();
+            const min = snapMin(h0 * 60 + (e.clientY - r.top) / M_HOUR_H * 60);
+            S.placing = null;
+            // applyDates 는 파일이 없거나 줄을 못 찾으면 Notice 만 남기고 조기 반환한다 —
+            // 그러면 재렌더가 안 돌아 **안내 바가 화면에 남고**, 탭해도 아무 일이 없다.
+            // (배치 대기는 이미 풀렸으니 화면만 거짓말을 하는 상태다.) 그래서 성패와 무관하게 다시 그린다.
+            try { await dropOnTime(t, iso, min); } finally { render(); }
+        };
+
+        for (const { t, lane, lanes, span } of layoutTimeLanes(timed)) {
+            const ro = isRO(t);
+            const c = colorOf(t);
+            const dim = t.done || t.cancelled;
+            const top = (t.tStart - h0 * 60) / 60 * M_HOUR_H;
+            const h = Math.max(20, (t.tEnd - t.tStart) / 60 * M_HOUR_H - 2);
+            const blk = grid.createEl("div");
+            blk.style.cssText =
+                "position:absolute;left:calc(" + M_GUTTER + "px + (100% - " + M_GUTTER + "px) * " + lane / lanes + ");" +
+                "width:calc((100% - " + M_GUTTER + "px) * " + span / lanes + " - 5px);" +
+                "top:" + top + "px;height:" + h + "px;z-index:" + (ro ? 1 : 2) + ";box-sizing:border-box;" +
+                "background:" + c + (ro ? "14" : "2b") + ";border:1px " + (ro ? "dashed" : "solid") + " " + c + ";" +
+                (ro ? "" : "border-left:4px solid " + c + ";") +
+                "border-radius:6px;padding:2px 6px;font-size:11px;line-height:1.3;overflow:hidden;cursor:pointer;" +
+                (dim ? "opacity:.55;text-decoration:line-through;" : "") +
+                (S.placing === t.uid ? "outline:2px solid var(--interactive-accent);" : "");
+            blk.appendChild(document.createTextNode(
+                toHHMM(t.tStart) + " " + (ro ? "📆 " : (t.cancelled ? "✗ " : t.done ? "✓ " : "")) +
+                (t.recurring ? "🔁 " : "") + (t.title || "(제목 없음)")
+            ));
+            // 블록 탭은 그리드까지 내려가면 안 된다 — 배치 중이라면 제 위에 자기를 놓게 된다.
+            blk.onclick = (e) => { e.stopPropagation(); openSheet(t); };
+        }
+
+        // ── 그리드 아래 ──
+        const foot = box.createEl("div");
+        foot.style.cssText = "display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:8px;";
+        const fullBtn = foot.createEl("button", { text: S.mFull ? "표시 시간 줄이기" : "0~24시 전부 보기" });
+        fullBtn.style.cssText = "min-height:32px;font-size:12px;padding:0 12px;border-radius:8px;cursor:pointer;";
+        fullBtn.onclick = () => { S.mFull = !S.mFull; render(); };
+        if (!fullDay && (h0 > 0 || h1 < 24)) {
+            const note = foot.createEl("span", { text: String(h0).padStart(2, "0") + ":00~" + String(h1).padStart(2, "0") + ":00 만 표시 중" });
+            note.style.cssText = "font-size:11px;opacity:.45;";
+        }
     }
 
     function renderMobileNow() {
@@ -1367,22 +1530,45 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
         const open = all.filter((t) => !t.done && !t.cancelled);
         const shown = showDone ? all : open;
 
-        // ── 헤더: 달 이동 · 오늘 · 완료 토글 ──
+        // 모드는 데스크탑과 같은 S.mode 를 쓴다(기기를 옮겨도 보던 단위가 유지된다).
+        // 다만 모바일에는 주간이 없다 — 폰 폭에서 7칸 막대는 글자가 안 들어간다.
+        const dayMode = mode === "day";
+
+        // ── 헤더: 이동 · 오늘 · 월간/일간 · 완료 토글 ──
         const bar = box.createEl("div");
         bar.style.cssText = "display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:8px;";
-        const navBtn = (label, fn) => {
+        const navBtn = (label, fn, extra) => {
             const b = bar.createEl("button", { text: label });
-            b.style.cssText = "min-height:36px;padding:0 12px;border-radius:8px;font-size:13px;cursor:pointer;";
+            b.style.cssText = "min-height:36px;padding:0 12px;border-radius:8px;font-size:13px;cursor:pointer;" + (extra || "");
             b.onclick = fn;
             return b;
         };
-        navBtn("◀", () => { view = view.startOf("month").minus({ months: 1 }); render(); });
-        const lab = bar.createEl("b", { text: view.toFormat("yyyy년 M월") });
+        navBtn("◀", () => {
+            view = dayMode ? view.minus({ days: 1 }) : view.startOf("month").minus({ months: 1 });
+            render();
+        });
+        const lab = bar.createEl("b", {
+            text: dayMode ? view.toFormat("M월 d일") + " (" + WD[view.weekday % 7] + ")" : view.toFormat("yyyy년 M월"),
+        });
         lab.style.cssText = "font-size:15px;flex:1 1 auto;text-align:center;";
-        navBtn("▶", () => { view = view.startOf("month").plus({ months: 1 }); render(); });
-        navBtn("오늘", () => { view = L.now().startOf("month"); S.mDay = todayISO; render(); });
+        navBtn("▶", () => {
+            view = dayMode ? view.plus({ days: 1 }) : view.startOf("month").plus({ months: 1 });
+            render();
+        });
+        navBtn("오늘", () => {
+            view = dayMode ? L.now().startOf("day") : L.now().startOf("month");
+            render();
+        });
+        for (const [m, text] of [["month", "월간"], ["day", "일간"]]) {
+            navBtn(text, () => {
+                if (mode === m) return;
+                // 월간 → 일간은 오늘로 연다. 보던 달의 1일로 열면 대개 지난 날이 나온다.
+                view = m === "day" ? L.now().startOf("day") : view.startOf("month");
+                mode = m;
+                render();
+            }, mode === m ? "border:1px solid var(--interactive-accent);font-weight:700;" : "opacity:.6;");
+        }
         navBtn(showDone ? "완료 ✓" : "완료 ✗", () => { showDone = !showDone; render(); });
-        if (S.mDay) navBtn("선택 해제", () => { S.mDay = undefined; render(); });
 
         // ── 카테고리 필터 ── 데스크탑과 같은 규칙, 손가락 크기로만 키운다.
         const filterBar = box.createEl("div");
@@ -1403,16 +1589,18 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
             b.onclick = () => { if (activeCats.has(cat)) activeCats.delete(cat); else activeCats.add(cat); render(); };
         }
 
-        // ── 월간 요약 ──
-        mobileMonthGrid(box, shown);
-
-        // ── 목록 ──
-        if (S.mDay) {
-            // 날짜를 고른 동안에는 그 날에 걸친 것만 본다. 트레이는 잠시 접어 둔다 —
-            // 폰에서는 세로가 전부라, 고른 날 아래로 다른 섹션이 계속 이어지면 고른 의미가 없다.
-            const day = shown.filter((t) => coversDay(t, S.mDay));
-            mobileSection(box, "📌 " + S.mDay + " (" + day.length + ")", day, "이 날에 걸친 항목이 없습니다.");
+        // ── 본문 ──
+        if (dayMode) {
+            // 트레이(날짜 없음·지연)는 월간에만 둔다. 폰에서는 세로가 전부라, 24시간
+            // 그리드 위에 트레이가 얹히면 타임라인에 닿기까지 한참을 스크롤해야 한다.
+            renderMobileDay(box, shown, all);
+            const back = box.createEl("div");
+            back.style.cssText = "font-size:11px;opacity:.5;margin-top:10px;";
+            back.setText("📥 날짜 없음 " + open.filter((t) => !t.due && !t.start).length +
+                " · 🔴 지연 " + open.filter((t) => t.due && t.due < todayISO).length + " — 「월간」에서 볼 수 있습니다");
         } else {
+            mobileMonthGrid(box, shown);
+
             const undated = open.filter((t) => !t.due && !t.start);
             mobileSection(box, "📥 날짜 없음 (" + undated.length + ")", undated, "없음 🎉");
 
@@ -1783,6 +1971,12 @@ class TaskSheetModal extends Modal {
                 c.notice("⏰ 제거됨");
             });
         }
+        // 시각을 **숫자로 고르는 것**과 **눈으로 고르는 것**은 다른 일이다. 그 날 무엇이
+        // 이미 차 있는지를 보고 빈 곳에 놓고 싶을 때가 있고, 그건 타임라인에서만 된다.
+        const place = this.row();
+        this.btn(place, "🗓 시간대 골라 놓기", () => c.placeOnTimeline(t));
+        const ph = place.createEl("span", { text: "일간 타임라인에서 빈 시간대를 탭해 놓습니다" });
+        ph.style.cssText = "font-size:11px;opacity:.5;";
 
         // ── 그 밖 ──
         this.section("그 밖");
@@ -2188,4 +2382,4 @@ module.exports = class GcalCalendarViewPlugin extends Plugin {
 
 // 순수 함수만 테스트에서 꺼내 쓴다(스코프 결정은 노트 위치에 따라 갈리는 유일한 분기다).
 // Obsidian 은 module.exports 의 기본 export 만 보므로 이 속성은 무해하다.
-module.exports.__test = { parseOptions, resolveSource, parseList, resolveCalFilter, resolveEventColorInfo, categoryColorMap, DEFAULT_SETTINGS };
+module.exports.__test = { parseOptions, resolveSource, parseList, resolveCalFilter, resolveEventColorInfo, categoryColorMap, layoutTimeLanes, DEFAULT_SETTINGS };
