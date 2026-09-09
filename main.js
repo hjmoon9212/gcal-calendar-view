@@ -1527,23 +1527,29 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
             view = dayMode ? view.plus({ days: 1 }) : view.startOf("month").plus({ months: 1 });
             render();
         });
-        // 「월간」·「일간」은 보기 전환이자 **「오늘로」 버튼**이다 — 어느 쪽을 누르든 항상
-        // 오늘 현황으로 간다. 일간은 오늘, 월간은 이번 달을 열고 **오늘을 고른 상태**로
-        // 둬서 아래 목록이 곧바로 오늘 카드가 된다.
-        //
-        // 이미 그 보기에 있어도 되돌린다(early return 없음). 그래서 별도의 「오늘」 버튼이
-        // 필요 없다 — 예전에는 그 버튼이 이미 이번 달일 때 아무것도 안 해서 반응이 없었다.
+        // 「오늘로」는 한 곳에 모은다 — 「오늘」 버튼과 보기 전환 버튼이 같은 자리로 간다.
+        // 월간은 이번 달을 열면서 **오늘을 고른 상태**로 둬서 아래 목록이 곧바로 오늘
+        // 카드가 된다. 달만 맞추면 그리드에서 오늘을 한 번 더 찾아 탭해야 하고,
+        // 그 사이에 이 달 전체 목록이 한 번 펼쳐진다.
+        const goToday = (m) => {
+            if (m === "day") {
+                view = L.now().startOf("day");
+            } else {
+                view = L.now().startOf("month");
+                S.mDay = todayISO;
+            }
+            mode = m;
+            render();
+        };
+
+        // 「오늘」은 **보고 있는 쪽을 그대로 두고** 오늘로만 돌아온다.
+        navBtn("오늘", () => goToday(mode === "day" ? "day" : "month"));
+
+        // 보기 전환도 오늘 기준으로 연다. 이미 그 보기에 있어도 되돌린다(early return 없음) —
+        // 예전 「오늘」 버튼이 이미 이번 달일 때 아무것도 안 해서 반응이 없던 것과 같은 함정이다.
         for (const [m, text] of [["month", "월간"], ["day", "일간"]]) {
-            navBtn(text, () => {
-                if (m === "day") {
-                    view = L.now().startOf("day");
-                } else {
-                    view = L.now().startOf("month");
-                    S.mDay = todayISO;
-                }
-                mode = m;
-                render();
-            }, mode === m ? "border:1px solid var(--interactive-accent);font-weight:700;" : "opacity:.6;");
+            navBtn(text, () => goToday(m),
+                mode === m ? "border:1px solid var(--interactive-accent);font-weight:700;" : "opacity:.6;");
         }
         navBtn(showDone ? "완료 ✓" : "완료 ✗", () => { showDone = !showDone; render(); });
         if (selDay) navBtn("선택 해제", () => { S.mDay = undefined; render(); });
