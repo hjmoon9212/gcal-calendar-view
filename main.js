@@ -1527,21 +1527,20 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
             view = dayMode ? view.plus({ days: 1 }) : view.startOf("month").plus({ months: 1 });
             render();
         });
-        // 「오늘」은 언제 눌러도 **오늘의 일간**으로 데려다 준다.
-        // 예전에는 월간에서 이번 달로 맞추기만 해서, 이미 이번 달을 보고 있으면
-        // 아무것도 안 바뀌었다 — 눌러도 반응이 없는 버튼이었다.
-        navBtn("오늘", () => {
-            view = L.now().startOf("day");
-            mode = "day";
-            render();
-        });
+        // 「월간」·「일간」은 보기 전환이자 **「오늘로」 버튼**이다 — 어느 쪽을 누르든 항상
+        // 오늘 현황으로 간다. 일간은 오늘, 월간은 이번 달을 열고 **오늘을 고른 상태**로
+        // 둬서 아래 목록이 곧바로 오늘 카드가 된다.
+        //
+        // 이미 그 보기에 있어도 되돌린다(early return 없음). 그래서 별도의 「오늘」 버튼이
+        // 필요 없다 — 예전에는 그 버튼이 이미 이번 달일 때 아무것도 안 해서 반응이 없었다.
         for (const [m, text] of [["month", "월간"], ["day", "일간"]]) {
             navBtn(text, () => {
-                if (mode === m) return;
-                // 둘 다 **오늘 기준**으로 연다 — 「월간」은 오늘이 있는 달, 「일간」은 오늘.
-                // 보던 달을 그대로 쓰면 일간에 들어갔다 나올 때 어느 달로 돌아가는지가
-                // 애매해지고, 월간에서 일간으로 갈 때는 대개 지난 날이 열린다.
-                view = m === "day" ? L.now().startOf("day") : L.now().startOf("month");
+                if (m === "day") {
+                    view = L.now().startOf("day");
+                } else {
+                    view = L.now().startOf("month");
+                    S.mDay = todayISO;
+                }
                 mode = m;
                 render();
             }, mode === m ? "border:1px solid var(--interactive-accent);font-weight:700;" : "opacity:.6;");
