@@ -1254,13 +1254,6 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
             applyDates, dropOnDate, writeBack, editTask, openAtLine,
             isRO, colorOf, metaLine, timeText, toMin, toHHMM, addDays, todayISO,
             notice: (m) => new Notice(m),
-            // 배치 모드로 넘어간다: 그 task 의 날(없으면 오늘)로 일간을 열고 대기 상태로 둔다.
-            placeOnTimeline: (task) => {
-                S.placing = task.uid;
-                view = L.fromISO(task.due || todayISO).startOf("day");
-                mode = "day";
-                render();
-            },
         }).open();
     };
 
@@ -1373,36 +1366,21 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
     }
 
     // ── 일간 타임라인 ──────────────────────────────────────────────────────
-    // 데스크탑 일간 보기와 같은 그림이지만 조작이 다르다. 데스크탑은 드래그로 시각을
-    // 주고 옮기는데 터치에서는 그게 안 되므로, **배치 모드**로 편다:
-    //   항목 탭 → 액션시트 → 「시간대 골라 놓기」 → 빈 시간대 탭 → 그 시각으로.
+    // 데스크탑 일간 보기와 같은 그림이지만 **보기 전용**이다. 데스크탑은 드래그로 시각을
+    // 주고 옮기는데 터치에서는 그게 안 되고, 빈 곳 탭을 쓰기 동작으로 삼으면 스크롤하려다
+    // 스친 탭에 시각이 붙는다 — 되돌릴 방법이 없다. 시각은 항목을 탭해 여는 액션시트의
+    // 「시작 시각 + 길이 버튼」으로 준다.
     // 겹침 레인은 layoutTimeLanes 로 데스크탑과 같은 배치를 쓴다.
     const M_HOUR_H = 48;   // 모바일 1시간 높이(px). 15분 = 12px — 손가락으로 15분이 구분된다
     const M_GUTTER = 44;   // 시각 라벨이 차지하는 왼쪽 폭(px)
     const WD = ["일", "월", "화", "수", "목", "금", "토"];
 
-    /** 배치 모드에서 기다리는 항목. 재렌더를 넘겨야 하므로 S 에 둔다. */
-    const placingTask = (items) => (S.placing ? items.find((t) => t.uid === S.placing) || null : null);
-
-    function renderMobileDay(box, items, allItems) {
+    function renderMobileDay(box, items) {
         const iso = view.toISODate();
         // 데스크탑 renderDay 와 같은 기준: 이 날에 걸친 것(기간의 어느 하루라도 이 날이면)
         const onDay = items.filter((t) => t.due && (t.start || t.due) <= iso && t.due >= iso);
         const timed = onDay.filter((t) => t.tStart !== null);
         const allday = onDay.filter((t) => t.tStart === null);
-        const placing = placingTask(allItems);
-
-        // ── 배치 모드 안내 ── 무엇을 기다리는지 화면이 말해야 한다.
-        if (placing) {
-            const hint = box.createEl("div");
-            hint.style.cssText = "display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:8px;padding:8px 10px;" +
-                "border:1px solid var(--interactive-accent);border-radius:8px;background:var(--background-modifier-active-hover);";
-            const t = hint.createEl("span", { text: "⏰ 「" + (placing.title || "(제목 없음)") + "」 — 놓을 시간대를 탭하세요" });
-            t.style.cssText = "font-size:13px;flex:1 1 auto;min-width:0;word-break:break-word;";
-            const cancel = hint.createEl("button", { text: "취소" });
-            cancel.style.cssText = "min-height:34px;padding:0 12px;border-radius:8px;font-size:13px;cursor:pointer;flex:0 0 auto;";
-            cancel.onclick = () => { S.placing = null; render(); };
-        }
 
         // ── 종일 줄 ──
         const ad = box.createEl("div");
@@ -1421,8 +1399,7 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
             chip.style.cssText = "display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:0 10px;font-size:12px;" +
                 "border-radius:8px;cursor:pointer;max-width:100%;" +
                 "background:" + c + "2b;border:1px solid " + c + ";border-left:4px solid " + c + ";" +
-                (dim ? "opacity:.55;text-decoration:line-through;" : "") +
-                (S.placing === t.uid ? "outline:2px solid var(--interactive-accent);" : "");
+                (dim ? "opacity:.55;text-decoration:line-through;" : "");
             const lbl = chip.createEl("span", { text: (isRO(t) ? "📆 " : "") + (t.title || "(제목 없음)") });
             lbl.style.cssText = "overflow:hidden;text-overflow:ellipsis;white-space:nowrap;";
             chip.onclick = (e) => { e.stopPropagation(); openSheet(t); };
@@ -1431,7 +1408,7 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
         // ── 시간 그리드 ──
         // **안쪽 스크롤 박스를 만들지 않는다.** 폰에서 중첩 스크롤은 노트 스크롤과 싸운다.
         // 대신 그릴 시간대를 좁힌다 — 기본 08~20시, 항목이나 현재 시각이 벗어나면 그만큼 넓힌다.
-        const fullDay = !!S.mFull || !!placing;   // 배치 중에는 24시간 전부 — 새벽에도 놓을 수 있어야 한다
+        const fullDay = !!S.mFull;
         let h0 = 24, h1 = 0;
         for (const t of timed) {
             h0 = Math.min(h0, Math.floor(t.tStart / 60));
@@ -1444,8 +1421,7 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
 
         const grid = box.createEl("div");
         grid.style.cssText = "position:relative;height:" + (h1 - h0) * M_HOUR_H + "px;" +
-            "border:1px solid var(--background-modifier-border);border-top:0;border-radius:0 0 8px 8px;overflow:hidden;" +
-            (placing ? "background:var(--background-modifier-active-hover);" : "");
+            "border:1px solid var(--background-modifier-border);border-top:0;border-radius:0 0 8px 8px;overflow:hidden;";
         for (let h = h0; h < h1; h++) {
             const row = grid.createEl("div");
             row.style.cssText = "position:absolute;left:0;right:0;top:" + (h - h0) * M_HOUR_H + "px;height:" + M_HOUR_H + "px;" +
@@ -1466,19 +1442,9 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
             }
         }
 
-        // 빈 시간대 탭 = 배치. 배치 모드가 아닐 때는 아무 일도 하지 않는다 —
-        // 그냥 스크롤하려다 스친 탭으로 시각이 붙으면 되돌릴 방법이 없다.
-        grid.onclick = async (e) => {
-            const t = placingTask(allItems);
-            if (!t) return;
-            const r = grid.getBoundingClientRect();
-            const min = snapMin(h0 * 60 + (e.clientY - r.top) / M_HOUR_H * 60);
-            S.placing = null;
-            // applyDates 는 파일이 없거나 줄을 못 찾으면 Notice 만 남기고 조기 반환한다 —
-            // 그러면 재렌더가 안 돌아 **안내 바가 화면에 남고**, 탭해도 아무 일이 없다.
-            // (배치 대기는 이미 풀렸으니 화면만 거짓말을 하는 상태다.) 그래서 성패와 무관하게 다시 그린다.
-            try { await dropOnTime(t, iso, min); } finally { render(); }
-        };
+        // 타임라인은 **보기 전용**이다. 빈 시간대 탭에 아무것도 걸지 않는다 —
+        // 스크롤하려다 스친 탭으로 시각이 붙으면 되돌릴 방법이 없다.
+        // 시각은 액션시트의 「시작 시각 + 길이 버튼」으로 준다.
 
         for (const { t, lane, lanes, span } of layoutTimeLanes(timed)) {
             const ro = isRO(t);
@@ -1494,8 +1460,7 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
                 "background:" + c + (ro ? "14" : "2b") + ";border:1px " + (ro ? "dashed" : "solid") + " " + c + ";" +
                 (ro ? "" : "border-left:4px solid " + c + ";") +
                 "border-radius:6px;padding:2px 6px;font-size:11px;line-height:1.3;overflow:hidden;cursor:pointer;" +
-                (dim ? "opacity:.55;text-decoration:line-through;" : "") +
-                (S.placing === t.uid ? "outline:2px solid var(--interactive-accent);" : "");
+                (dim ? "opacity:.55;text-decoration:line-through;" : "");
             blk.appendChild(document.createTextNode(
                 toHHMM(t.tStart) + " " + (ro ? "📆 " : (t.cancelled ? "✗ " : t.done ? "✓ " : "")) +
                 (t.recurring ? "🔁 " : "") + (t.title || "(제목 없음)")
@@ -1593,7 +1558,7 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
         if (dayMode) {
             // 트레이(날짜 없음·지연)는 월간에만 둔다. 폰에서는 세로가 전부라, 24시간
             // 그리드 위에 트레이가 얹히면 타임라인에 닿기까지 한참을 스크롤해야 한다.
-            renderMobileDay(box, shown, all);
+            renderMobileDay(box, shown);
             const back = box.createEl("div");
             back.style.cssText = "font-size:11px;opacity:.5;margin-top:10px;";
             back.setText("📥 날짜 없음 " + open.filter((t) => !t.due && !t.start).length +
@@ -1942,41 +1907,64 @@ class TaskSheetModal extends Modal {
         }
 
         // ── ⏰ 시각 ── 데스크탑에서는 일간 보기 드래그로만 넣던 값.
+        //
+        // **시작 하나 + 길이 버튼**이다. 종료 시각 선택기를 나란히 두면 폰에서 시각 롤러를
+        // 두 번 씨름해야 하는데, 실제로 하는 일은 대개 "이 시각부터 30분" 하나다.
+        // 길이 버튼은 누르는 즉시 저장한다 — 탭 두 번이면 끝난다.
         this.section("⏰ 시각" + (t.tStart !== null ? " — 지금 " + c.timeText(t.tStart, t.tEnd) : " — 없음"));
-        const tr = this.row();
-        const mkTime = (val) => {
-            const i = tr.createEl("input");
+        const mkTime = (parent, val) => {
+            const i = parent.createEl("input");
             i.type = "time";
             i.step = "900";   // 15분 — 데스크탑 드래그의 스냅 단위와 맞춘다
             i.value = val;
             i.style.cssText = "min-height:40px;font-size:14px;padding:0 8px;border-radius:8px;";
             return i;
         };
-        const s0 = t.tStart !== null ? t.tStart : 9 * 60;
-        const e0 = t.tStart !== null ? t.tEnd : s0 + 60;
-        const si = mkTime(c.toHHMM(s0));
-        tr.createEl("span", { text: "~" }).style.cssText = "opacity:.5;";
-        const ei = mkTime(c.toHHMM(e0));
-        this.btn(tr, "저장", async () => {
+        // 기본 시작: 이미 있으면 그 값, 없으면 지금을 15분 위로 올린 값
+        // (폰에서 시각을 주는 상황은 대개 "지금부터" 다).
+        const nowUp = Math.min(1440 - 15, Math.ceil((new Date().getHours() * 60 + new Date().getMinutes()) / 15) * 15);
+        const s0 = t.tStart !== null ? t.tStart : nowUp;
+
+        const tr = this.row();
+        const si = mkTime(tr, c.toHHMM(s0));
+        // 길이 버튼. 시각이 이미 있는 task 면 **시작은 그대로, 길이만** 바뀐다
+        // (데스크탑의 「블록 아랫끝 드래그 = 종료 시각」에 해당).
+        const setLen = async (len) => {
+            if (!si.value) { c.notice("시작 시각을 고르세요"); return; }
+            const st = c.toMin(si.value);
+            await c.applyDates(t, { time: c.timeText(st, Math.min(1440, st + len)) });
+            c.notice("⏰ " + c.timeText(st, Math.min(1440, st + len)));
+        };
+        for (const [label, len] of [["15분", 15], ["30분", 30], ["1시간", 60]]) {
+            this.btn(tr, label, () => setLen(len), "font-weight:600;");
+        }
+
+        // 임의 길이(2시간·90분)는 접어 둔다 — 흔하지 않은데 자리를 많이 먹는다.
+        // 시작 선택기는 위의 것을 그대로 쓴다(값이 갈리지 않게).
+        const det = this.contentEl.createEl("details");
+        det.style.cssText = "margin-top:8px;";
+        const sum = det.createEl("summary", { text: "직접 입력" });
+        sum.style.cssText = "font-size:12px;opacity:.6;cursor:pointer;";
+        const dr = det.createEl("div");
+        dr.style.cssText = "display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:8px;";
+        dr.createEl("span", { text: "종료" }).style.cssText = "font-size:12px;opacity:.6;";
+        const ei = mkTime(dr, c.toHHMM(t.tStart !== null ? t.tEnd : s0 + 60));
+        this.btn(dr, "저장", async () => {
             if (!si.value || !ei.value) { c.notice("시작·종료 시각을 모두 고르세요"); return; }
-            const s = c.toMin(si.value);
+            const st = c.toMin(si.value);
             let e = c.toMin(ei.value);
-            if (e <= s) e = Math.min(1440, s + 60);   // 역전·0길이는 막대 높이가 0/음수가 된다
-            await c.applyDates(t, { time: c.timeText(s, e) });
-            c.notice("⏰ " + c.timeText(s, e));
+            if (e <= st) e = Math.min(1440, st + 60);   // 역전·0길이는 막대 높이가 0/음수가 된다
+            await c.applyDates(t, { time: c.timeText(st, e) });
+            c.notice("⏰ " + c.timeText(st, e));
         }, "font-weight:600;");
+
         if (t.tStart !== null) {
-            this.btn(tr, "시각 제거", async () => {
+            const rm = this.row();
+            this.btn(rm, "시각 제거", async () => {
                 await c.applyDates(t, { time: null });
                 c.notice("⏰ 제거됨");
             });
         }
-        // 시각을 **숫자로 고르는 것**과 **눈으로 고르는 것**은 다른 일이다. 그 날 무엇이
-        // 이미 차 있는지를 보고 빈 곳에 놓고 싶을 때가 있고, 그건 타임라인에서만 된다.
-        const place = this.row();
-        this.btn(place, "🗓 시간대 골라 놓기", () => c.placeOnTimeline(t));
-        const ph = place.createEl("span", { text: "일간 타임라인에서 빈 시간대를 탭해 놓습니다" });
-        ph.style.cssText = "font-size:11px;opacity:.5;";
 
         // ── 그 밖 ──
         this.section("그 밖");
