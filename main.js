@@ -1316,7 +1316,7 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
     /**
      * 월간 요약. 막대가 아니라 **카테고리 색 점**만 찍는다 — 폰 폭에서 7칸을 나누면 한 칸이
      * 50px 라 막대에 글자가 들어가지 않고, 어차피 드래그도 못 한다.
-     * 칸을 탭하면 그 날의 일간 타임라인으로 넘어간다.
+     * 칸을 탭하면 아래 목록이 그 날 카드만 남는다 (다시 탭하면 해제).
      */
     function mobileMonthGrid(box, items) {
         const first = view.startOf("month");
@@ -1336,10 +1336,13 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
             const iso = d.toISODate();
             const inMonth = d.month === first.month;
             const isToday = iso === todayISO;
+            const sel = S.mDay === iso;
             const cell = grid.createEl("div");
+            // 테두리 = 고른 날, 굵은 강조색 숫자 = 오늘. 둘을 다른 신호로 나눠야
+            // "오늘을 고른 것"과 "오늘이 그냥 오늘인 것"이 구분된다.
             cell.style.cssText =
                 "min-height:44px;padding:3px 2px;border-radius:6px;cursor:pointer;text-align:center;" +
-                "border:1px solid " + (isToday ? "var(--interactive-accent)" : "transparent") + ";" +
+                "border:1px solid " + (sel ? "var(--interactive-accent)" : "transparent") + ";" +
                 (inMonth ? "" : "opacity:.3;");
             const n = cell.createEl("div", { text: String(d.day) });
             n.style.cssText = "font-size:11px;" + (isToday ? "font-weight:800;color:var(--interactive-accent);" : "");
@@ -1359,8 +1362,9 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
                 const more = dots.createEl("span", { text: "+" });
                 more.style.cssText = "font-size:9px;line-height:6px;opacity:.6;";
             }
-            // 칸을 탭하면 그 날의 일간 타임라인으로 간다 — 종일/시각이 갈려 보이고 시각도 줄 수 있다.
-            cell.onclick = () => { view = d.startOf("day"); mode = "day"; render(); };
+            // 칸을 탭하면 **월간 화면을 유지한 채** 그 날 카드만 아래에 남는다.
+            // 다시 탭하면 해제. 시간축으로 보려면 헤더의 「일간」·「오늘」을 쓴다.
+            cell.onclick = () => { S.mDay = sel ? undefined : iso; render(); };
         }
         return wrap;
     }
@@ -1462,7 +1466,7 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
                 "border-radius:6px;padding:2px 6px;font-size:11px;line-height:1.3;overflow:hidden;cursor:pointer;" +
                 (dim ? "opacity:.55;text-decoration:line-through;" : "");
             blk.appendChild(document.createTextNode(
-                toHHMM(t.tStart) + " " + (ro ? "📆 " : (t.cancelled ? "✗ " : t.done ? "✓ " : "")) +
+                timeText(t.tStart, t.tEnd) + " " + (ro ? "📆 " : (t.cancelled ? "✗ " : t.done ? "✓ " : "")) +
                 (t.recurring ? "🔁 " : "") + (t.title || "(제목 없음)")
             ));
             // 블록 탭은 그리드까지 내려가면 안 된다 — 배치 중이라면 제 위에 자기를 놓게 된다.
@@ -1498,6 +1502,9 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
         // 모드는 데스크탑과 같은 S.mode 를 쓴다(기기를 옮겨도 보던 단위가 유지된다).
         // 다만 모바일에는 주간이 없다 — 폰 폭에서 7칸 막대는 글자가 안 들어간다.
         const dayMode = mode === "day";
+        // 고른 날은 **보고 있는 달 안에 있을 때만** 유효하다. ◀▶ 로 달을 넘기면
+        // 그리드에 없는 날의 카드만 떠 있는 상태가 되므로 그때는 없는 것으로 친다.
+        const selDay = !dayMode && S.mDay && S.mDay.slice(0, 7) === view.toFormat("yyyy-MM") ? S.mDay : null;
 
         // ── 헤더: 이동 · 오늘 · 월간/일간 · 완료 토글 ──
         const bar = box.createEl("div");
@@ -1520,20 +1527,27 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
             view = dayMode ? view.plus({ days: 1 }) : view.startOf("month").plus({ months: 1 });
             render();
         });
+        // 「오늘」은 언제 눌러도 **오늘의 일간**으로 데려다 준다.
+        // 예전에는 월간에서 이번 달로 맞추기만 해서, 이미 이번 달을 보고 있으면
+        // 아무것도 안 바뀌었다 — 눌러도 반응이 없는 버튼이었다.
         navBtn("오늘", () => {
-            view = dayMode ? L.now().startOf("day") : L.now().startOf("month");
+            view = L.now().startOf("day");
+            mode = "day";
             render();
         });
         for (const [m, text] of [["month", "월간"], ["day", "일간"]]) {
             navBtn(text, () => {
                 if (mode === m) return;
-                // 월간 → 일간은 오늘로 연다. 보던 달의 1일로 열면 대개 지난 날이 나온다.
-                view = m === "day" ? L.now().startOf("day") : view.startOf("month");
+                // 둘 다 **오늘 기준**으로 연다 — 「월간」은 오늘이 있는 달, 「일간」은 오늘.
+                // 보던 달을 그대로 쓰면 일간에 들어갔다 나올 때 어느 달로 돌아가는지가
+                // 애매해지고, 월간에서 일간으로 갈 때는 대개 지난 날이 열린다.
+                view = m === "day" ? L.now().startOf("day") : L.now().startOf("month");
                 mode = m;
                 render();
             }, mode === m ? "border:1px solid var(--interactive-accent);font-weight:700;" : "opacity:.6;");
         }
         navBtn(showDone ? "완료 ✓" : "완료 ✗", () => { showDone = !showDone; render(); });
+        if (selDay) navBtn("선택 해제", () => { S.mDay = undefined; render(); });
 
         // ── 카테고리 필터 ── 데스크탑과 같은 규칙, 손가락 크기로만 키운다.
         const filterBar = box.createEl("div");
@@ -1563,6 +1577,15 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
             back.style.cssText = "font-size:11px;opacity:.5;margin-top:10px;";
             back.setText("📥 날짜 없음 " + open.filter((t) => !t.due && !t.start).length +
                 " · 🔴 지연 " + open.filter((t) => t.due && t.due < todayISO).length + " — 「월간」에서 볼 수 있습니다");
+        } else if (selDay) {
+            // 월간 레이아웃(그리드)은 그대로 두고 아래만 그 날 카드로 바꾼다.
+            // 아래에 기존 목록까지 이어 붙이면 같은 task 가 두 번 보인다(📌 와 날짜별 섹션).
+            // 정렬은 손대지 않는다 — 평소 목록과 같은 순서여야 눈이 헤매지 않는다.
+            mobileMonthGrid(box, shown);
+            const day = shown.filter((t) => coversDay(t, selDay));
+            const wd = WD[L.fromISO(selDay).weekday % 7];
+            mobileSection(box, "📌 " + selDay + " (" + wd + ") — " + day.length + "건", day,
+                "이 날에 걸친 항목이 없습니다.");
         } else {
             mobileMonthGrid(box, shown);
 
@@ -1925,42 +1948,43 @@ class TaskSheetModal extends Modal {
         const nowUp = Math.min(1440 - 15, Math.ceil((new Date().getHours() * 60 + new Date().getMinutes()) / 15) * 15);
         const s0 = t.tStart !== null ? t.tStart : nowUp;
 
+        const e0 = t.tStart !== null ? t.tEnd : Math.min(1440, s0 + 60);
+
+        // 시작 ~ 종료를 나란히 **보여준다.** 지금 몇 시까지인지가 안 보이면 길이 버튼을
+        // 누른 결과도, 손으로 고칠 값도 눈으로 확인할 수가 없다.
         const tr = this.row();
         const si = mkTime(tr, c.toHHMM(s0));
-        // 길이 버튼. 시각이 이미 있는 task 면 **시작은 그대로, 길이만** 바뀐다
-        // (데스크탑의 「블록 아랫끝 드래그 = 종료 시각」에 해당).
-        const setLen = async (len) => {
-            if (!si.value) { c.notice("시작 시각을 고르세요"); return; }
-            const st = c.toMin(si.value);
-            await c.applyDates(t, { time: c.timeText(st, Math.min(1440, st + len)) });
-            c.notice("⏰ " + c.timeText(st, Math.min(1440, st + len)));
-        };
-        for (const [label, len] of [["15분", 15], ["30분", 30], ["1시간", 60]]) {
-            this.btn(tr, label, () => setLen(len), "font-weight:600;");
-        }
+        tr.createEl("span", { text: "~" }).style.cssText = "opacity:.5;";
+        const ei = mkTime(tr, c.toHHMM(e0));
 
-        // 임의 길이(2시간·90분)는 접어 둔다 — 흔하지 않은데 자리를 많이 먹는다.
-        // 시작 선택기는 위의 것을 그대로 쓴다(값이 갈리지 않게).
-        const det = this.contentEl.createEl("details");
-        det.style.cssText = "margin-top:8px;";
-        const sum = det.createEl("summary", { text: "직접 입력" });
-        sum.style.cssText = "font-size:12px;opacity:.6;cursor:pointer;";
-        const dr = det.createEl("div");
-        dr.style.cssText = "display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:8px;";
-        dr.createEl("span", { text: "종료" }).style.cssText = "font-size:12px;opacity:.6;";
-        const ei = mkTime(dr, c.toHHMM(t.tStart !== null ? t.tEnd : s0 + 60));
-        this.btn(dr, "저장", async () => {
-            if (!si.value || !ei.value) { c.notice("시작·종료 시각을 모두 고르세요"); return; }
-            const st = c.toMin(si.value);
-            let e = c.toMin(ei.value);
+        // 저장은 한 곳으로 모은다 — 길이 버튼도 「저장」도 여기로 흐른다.
+        const saveTime = async (st, e) => {
             if (e <= st) e = Math.min(1440, st + 60);   // 역전·0길이는 막대 높이가 0/음수가 된다
             await c.applyDates(t, { time: c.timeText(st, e) });
             c.notice("⏰ " + c.timeText(st, e));
-        }, "font-weight:600;");
+        };
 
+        // 길이 버튼 = **종료 시각 퀵 세팅**. 종료를 시작+N 으로 맞추고 그 자리에서 저장한다.
+        // 시각이 이미 있는 task 면 시작은 그대로 — 데스크탑의 「블록 아랫끝 드래그」에 해당.
+        const lens = this.row();
+        for (const [label, len] of [["15분", 15], ["30분", 30], ["1시간", 60]]) {
+            this.btn(lens, label, async () => {
+                if (!si.value) { c.notice("시작 시각을 고르세요"); return; }
+                const st = c.toMin(si.value);
+                const e = Math.min(1440, st + len);
+                ei.value = c.toHHMM(e);
+                await saveTime(st, e);
+            }, "font-weight:600;");
+        }
+
+        // 종료를 손으로 고쳤을 때. 2시간·90분처럼 버튼에 없는 길이가 여기로 온다.
+        const act = this.row();
+        this.btn(act, "저장", async () => {
+            if (!si.value || !ei.value) { c.notice("시작·종료 시각을 모두 고르세요"); return; }
+            await saveTime(c.toMin(si.value), c.toMin(ei.value));
+        }, "font-weight:600;");
         if (t.tStart !== null) {
-            const rm = this.row();
-            this.btn(rm, "시각 제거", async () => {
+            this.btn(act, "시각 제거", async () => {
                 await c.applyDates(t, { time: null });
                 c.notice("⏰ 제거됨");
             });
