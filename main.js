@@ -1580,7 +1580,7 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
             renderMobileDay(box, shown);
             const back = box.createEl("div");
             back.style.cssText = "font-size:11px;opacity:.5;margin-top:10px;";
-            back.setText("📥 날짜 없음 " + open.filter((t) => !t.due && !t.start).length +
+            back.setText("📥 날짜 없음 " + open.filter((t) => !t.due).length +
                 " · 🔴 지연 " + open.filter((t) => t.due && t.due < todayISO).length + " — 「월간」에서 볼 수 있습니다");
         } else if (selDay) {
             // 월간 레이아웃(그리드)은 그대로 두고 아래만 그 날 카드로 바꾼다.
@@ -1594,7 +1594,12 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
         } else {
             mobileMonthGrid(box, shown);
 
-            const undated = open.filter((t) => !t.due && !t.start);
+            // 기준은 **📅 하나뿐**이다(데스크탑 트레이와 같다). 🛫 만 있고 📅 가 없는 줄을
+            // 여기서 빼면 그 task 는 어디에도 안 나타난다 — 막대·일간·날짜별 섹션이 전부
+            // `t.due` 를 요구하므로, 남는 건 월간 그리드의 점 하나뿐이라 그 날짜 칸을 정확히
+            // 탭해야만 닿는다. 「처리 안 된 게 있다」를 알려 주는 면에서 빠지는 게 문제다.
+            // (tasks-gcal-sync 0.9.0 의 미일정화가 📅·🆔 만 떼고 🛫 는 남기므로 더 자주 생긴다)
+            const undated = open.filter((t) => !t.due);
             mobileSection(box, "📥 날짜 없음 (" + undated.length + ")", undated, "없음 🎉");
 
             const overdue = open.filter((t) => t.due && t.due < todayISO).sort((a, b) => (a.due < b.due ? -1 : 1));
