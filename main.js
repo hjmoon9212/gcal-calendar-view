@@ -1434,6 +1434,47 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
     const M_GUTTER = 44;   // 시각 라벨이 차지하는 왼쪽 폭(px)
     const WD = ["일", "월", "화", "수", "목", "금", "토"];
 
+    /**
+     * 📥 날짜 없음 · 🔴 지연 트레이. **데스크탑과 같이 화면 맨 위**에 둔다.
+     *
+     * 둘 다 **오늘 기준**이라 보고 있는 달·고른 날짜와 무관하게 늘 같은 목록이다 —
+     * 그래서 위치도 고정이다. 「처리 안 된 게 있다」를 알려 주는 면이라 안 보이면
+     * 그대로 묻힌다(0.6.0 이 오늘을 자동 선택하면서 이 둘이 화면에서 사라졌다).
+     *
+     * 카드마다 **안쪽 스크롤**을 둔다(데스크탑 280px → 폰 200px). 지연이 수십 건이어도
+     * 달력까지 한참 스크롤하지 않게. 행은 `mobileRow` 라 **탭하면 액션시트**가 열린다.
+     */
+    function mobileTrays(box, open) {
+        const card = (title, items, empty, accent) => {
+            const wrap = box.createEl("div");
+            wrap.style.cssText = "border:1px " + (accent ? "solid" : "dashed") +
+                " var(--background-modifier-border);" +
+                (accent ? "border-left:3px solid " + accent + ";" : "") +
+                "border-radius:8px;padding:8px;margin-bottom:8px;";
+            const h = wrap.createEl("div", { text: title });
+            h.style.cssText = "font-size:12px;font-weight:600;opacity:.8;margin-bottom:6px;" +
+                (accent ? "color:" + accent + ";" : "");
+            if (!items.length) {
+                const e = wrap.createEl("div", { text: empty });
+                e.style.cssText = "font-size:12px;opacity:.45;";
+                return;
+            }
+            const body = wrap.createEl("div");
+            body.style.cssText = "max-height:200px;overflow:auto;";
+            for (const it of items) body.appendChild(mobileRow(it));
+        };
+        // 기준은 **📅 하나뿐**이다(데스크탑 트레이와 같다). 🛫 만 있고 📅 가 없는 줄을
+        // 여기서 빼면 그 task 는 어디에도 안 나타난다 — 막대·일간·날짜별 섹션이 전부
+        // `t.due` 를 요구하므로, 남는 건 월간 그리드의 점 하나뿐이라 그 날짜 칸을 정확히
+        // 탭해야만 닿는다.
+        card("📥 날짜 없음 (" + open.filter((t) => !t.due).length + ")",
+            open.filter((t) => !t.due), "없음 🎉", "");
+        const overdue = open
+            .filter((t) => t.due && t.due < todayISO)
+            .sort((a, b) => (a.due < b.due ? -1 : 1));
+        card("🔴 지연 (" + overdue.length + ")", overdue, "없음 🎉", "#e05a7a");
+    }
+
     function renderMobileDay(box, items) {
         const iso = view.toISODate();
         // 데스크탑 renderDay 와 같은 기준: 이 날에 걸친 것(기간의 어느 하루라도 이 날이면)
@@ -1560,6 +1601,14 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
         const open = all.filter((t) => !t.done && !t.cancelled);
         const shown = showDone ? all : open;
 
+        // ── 트레이를 **맨 위에, 모드와 무관하게** — 데스크탑 세로 순서와 같다.
+        //
+        // 📥 날짜 없음·🔴 지연은 **오늘 기준**이라 달력이 무엇을 보여주든 같은 목록이다.
+        // 월간에만 두면 "일간에서는 왜 안 보이지" 가 되고, 실제로 0.6.0 까지 일간에는
+        // 한 줄 힌트(「월간에서 볼 수 있습니다」)만 있었다 — **볼 수 있는 곳으로 가라는
+        // 안내는 그 자리에 두는 것보다 나을 게 없다.**
+        mobileTrays(box, open);
+
         // ── 📆 GCal 일정 (읽기 전용, 0.4.0~) ──
         //
         // 0.3.0 의 모바일 화면은 **"폰엔 일정이 없다"를 전제로** 만들어졌다 —
@@ -1678,13 +1727,7 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
 
         // ── 본문 ──
         if (dayMode) {
-            // 트레이(날짜 없음·지연)는 월간에만 둔다. 폰에서는 세로가 전부라, 24시간
-            // 그리드 위에 트레이가 얹히면 타임라인에 닿기까지 한참을 스크롤해야 한다.
             renderMobileDay(box, calItems);
-            const back = box.createEl("div");
-            back.style.cssText = "font-size:11px;opacity:.5;margin-top:10px;";
-            back.setText("📥 날짜 없음 " + open.filter((t) => !t.due).length +
-                " · 🔴 지연 " + open.filter((t) => t.due && t.due < todayISO).length + " — 「월간」에서 볼 수 있습니다");
         } else if (selDay) {
             // 월간 레이아웃(그리드)은 그대로 두고 아래만 그 날 카드로 바꾼다.
             // 아래에 기존 목록까지 이어 붙이면 같은 task 가 두 번 보인다(📌 와 날짜별 섹션).
@@ -1697,25 +1740,18 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
         } else {
             mobileMonthGrid(box, calItems);
 
-            // 기준은 **📅 하나뿐**이다(데스크탑 트레이와 같다). 🛫 만 있고 📅 가 없는 줄을
-            // 여기서 빼면 그 task 는 어디에도 안 나타난다 — 막대·일간·날짜별 섹션이 전부
-            // `t.due` 를 요구하므로, 남는 건 월간 그리드의 점 하나뿐이라 그 날짜 칸을 정확히
-            // 탭해야만 닿는다. 「처리 안 된 게 있다」를 알려 주는 면에서 빠지는 게 문제다.
-            // (tasks-gcal-sync 0.9.0 의 미일정화가 📅·🆔 만 떼고 🛫 는 남기므로 더 자주 생긴다)
-            const undated = open.filter((t) => !t.due);
-            mobileSection(box, "📥 날짜 없음 (" + undated.length + ")", undated, "없음 🎉");
-
-            const overdue = open.filter((t) => t.due && t.due < todayISO).sort((a, b) => (a.due < b.due ? -1 : 1));
-            mobileSection(box, "🔴 지연 (" + overdue.length + ")", overdue, "없음 🎉");
-
-            // 이 달의 날짜별. 위 지연 섹션에 이미 나온 것은 빼서 한 화면에 두 번 나오지 않게 한다.
-            // (데스크탑은 트레이와 달력이 시각적으로 분리돼 있어 중복이 문제가 안 되지만,
-            //  평평한 목록에서는 그냥 버그로 보인다.)
-            const seen = new Set(overdue.map((t) => t.uid));
+            // 이 달의 날짜별 — **지연 항목을 빼지 않는다.**
+            //
+            // 예전에는 위 지연 목록에 나온 것을 뺐다(*"평평한 목록에서 같은 게 두 번
+            // 보이면 그냥 버그로 보인다"*). 그때는 트레이가 이 목록과 같은 흐름에
+            // 섞여 있었기 때문이다. 이제 트레이는 **맨 위의 별도 카드**라 데스크탑과
+            // 같은 관계가 된다 — 트레이는 *"오늘 기준으로 밀린 것"*, 이 목록은
+            // *"이 달의 달력"* 이고, 데스크탑도 둘 다 그린다. 같은 일이 두 면에 나오는
+            // 것은 중복이 아니라 **다른 질문에 대한 답**이다.
             const ym = view.toFormat("yyyy-MM");
             const byDay = new Map();
             for (const t of calItems) {
-                if (!t.due || seen.has(t.uid)) continue;
+                if (!t.due) continue;
                 if (t.due.slice(0, 7) !== ym) continue;
                 if (!byDay.has(t.due)) byDay.set(t.due, []);
                 byDay.get(t.due).push(t);
