@@ -1499,6 +1499,21 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
         const open = all.filter((t) => !t.done && !t.cancelled);
         const shown = showDone ? all : open;
 
+        // ── 📆 GCal 일정 (읽기 전용, 0.4.0~) ──
+        //
+        // 0.3.0 의 모바일 화면은 **"폰엔 일정이 없다"를 전제로** 만들어졌다 —
+        // 받아오는 tasks-gcal-sync 가 `isDesktopOnly` 였기 때문이다. 그 전제가 sync
+        // 0.10.0(모바일 읽기 전용)에서 깨졌으므로 여기도 데이터를 받는다.
+        //
+        // 그리는 쪽은 이미 준비돼 있었다 — `mobileRow`·`renderMobileDay`·`colorOf`·
+        // `TaskSheetModal` 이 전부 `isRO()` 를 본다. **데이터만 안 가고 있었다.**
+        const [rangeFrom, rangeTo] = rangeForView();
+        const evItems = eventsFor(rangeFrom, rangeTo);
+        // ⚠️ **일정은 달력 쪽에만 합류하고 트레이에는 안 간다**(데스크탑과 같은 규칙).
+        //    `📥 날짜 없음`·`🔴 지연` 은 아래에서 `open`(task 전용)으로만 만든다 —
+        //    안 그러면 지난 회의 수백 건이 🔴 지연을 덮는다.
+        const calItems = shown.concat(evItems);
+
         // 모드는 데스크탑과 같은 S.mode 를 쓴다(기기를 옮겨도 보던 단위가 유지된다).
         // 다만 모바일에는 주간이 없다 — 폰 폭에서 7칸 막대는 글자가 안 들어간다.
         const dayMode = mode === "day";
@@ -1573,11 +1588,38 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
             b.onclick = () => { if (activeCats.has(cat)) activeCats.delete(cat); else activeCats.add(cat); render(); };
         }
 
+        // ── 📆 일정 칩 ── 데스크탑과 같은 규칙: 카테고리 필터에 섞지 않는다(「전체 해제」는
+        //    task 만 끈다). 피드가 없으면 **칩 자체를 안 그린다** — 죽은 칩은 노이즈다.
+        const evFeedM = CALF.off ? null : feed();
+        if (!evFeedM && !CALF.off && feedPlugin()) {
+            // 플러그인은 있는데 준비가 안 됐다(인증 전 · 고른 캘린더 0개) → **왜 안 보이는지 말한다.**
+            // 폰에서는 설정까지 가는 길이 멀어서 이 안내가 데스크탑보다 더 중요하다.
+            const hintM = filterBar.createEl("button", { text: "📅 일정 — 설정 필요" });
+            hintM.style.cssText = "min-height:32px;font-size:12px;padding:0 12px;border-radius:16px;cursor:pointer;" +
+                "border:1px dashed var(--background-modifier-border);opacity:.55;";
+            hintM.onclick = () => {
+                try { app.setting.open(); app.setting.openTabById("tasks-gcal-sync"); }
+                catch (e) { new Notice("설정 → 커뮤니티 플러그인 → Tasks GCal Sync 에서 인증·캘린더를 설정하세요"); }
+            };
+        }
+        if (evFeedM) {
+            const eb = filterBar.createEl("button");
+            eb.style.cssText = "display:inline-flex;align-items:center;gap:6px;min-height:32px;font-size:12px;" +
+                "padding:0 12px;border-radius:16px;cursor:pointer;border:1px dashed var(--background-modifier-border);" +
+                "opacity:" + (showEvents ? 1 : 0.4) + ";";
+            // ⚠️ 꺼져 있으면 `eventsFor` 가 []를 돌려준다 — 그때 건수를 적으면 "0건" 으로
+            //    오해된다. 켜져 있을 때만 숫자를 붙인다.
+            eb.createEl("span", {
+                text: showEvents ? "📅 일정 " + evItems.length : "📅 일정",
+            });
+            eb.onclick = () => { showEvents = !showEvents; render(); };
+        }
+
         // ── 본문 ──
         if (dayMode) {
             // 트레이(날짜 없음·지연)는 월간에만 둔다. 폰에서는 세로가 전부라, 24시간
             // 그리드 위에 트레이가 얹히면 타임라인에 닿기까지 한참을 스크롤해야 한다.
-            renderMobileDay(box, shown);
+            renderMobileDay(box, calItems);
             const back = box.createEl("div");
             back.style.cssText = "font-size:11px;opacity:.5;margin-top:10px;";
             back.setText("📥 날짜 없음 " + open.filter((t) => !t.due).length +
@@ -1586,13 +1628,13 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
             // 월간 레이아웃(그리드)은 그대로 두고 아래만 그 날 카드로 바꾼다.
             // 아래에 기존 목록까지 이어 붙이면 같은 task 가 두 번 보인다(📌 와 날짜별 섹션).
             // 정렬은 손대지 않는다 — 평소 목록과 같은 순서여야 눈이 헤매지 않는다.
-            mobileMonthGrid(box, shown);
-            const day = shown.filter((t) => coversDay(t, selDay));
+            mobileMonthGrid(box, calItems);
+            const day = calItems.filter((t) => coversDay(t, selDay));
             const wd = WD[L.fromISO(selDay).weekday % 7];
             mobileSection(box, "📌 " + selDay + " (" + wd + ") — " + day.length + "건", day,
                 "이 날에 걸친 항목이 없습니다.");
         } else {
-            mobileMonthGrid(box, shown);
+            mobileMonthGrid(box, calItems);
 
             // 기준은 **📅 하나뿐**이다(데스크탑 트레이와 같다). 🛫 만 있고 📅 가 없는 줄을
             // 여기서 빼면 그 task 는 어디에도 안 나타난다 — 막대·일간·날짜별 섹션이 전부
@@ -1611,7 +1653,7 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
             const seen = new Set(overdue.map((t) => t.uid));
             const ym = view.toFormat("yyyy-MM");
             const byDay = new Map();
-            for (const t of shown) {
+            for (const t of calItems) {
                 if (!t.due || seen.has(t.uid)) continue;
                 if (t.due.slice(0, 7) !== ym) continue;
                 if (!byDay.has(t.due)) byDay.set(t.due, []);
