@@ -49,6 +49,43 @@ const DEFAULT_SETTINGS = {
     mobileUi: "auto",   // "auto" | "always" | "off"
 };
 
+/** 읽기 전용 항목인가(📆 GCal 일정). 이 하나로 모든 쓰기·이동 경로를 막는다. */
+function isRO(t) {
+    return !!t && t.kind === "event";
+}
+
+/**
+ * **하루 안에서의 정렬 순위.** 낮을수록 먼저.
+ *
+ *   0 — 📆 GCal **종일** 일정. 회의·당일 주요 약속이 대부분이라 **그날의 뼈대**다.
+ *       시각이 없으니 시간순으로는 자리를 못 잡는데, 정작 먼저 봐야 하는 것들이다
+ *   1 — 시각이 있는 항목(task·일정 공통). 그 안에서는 **시각순**(예전 규칙 그대로)
+ *   2 — 그 밖 = 종일 task
+ *
+ * ⚠️ **날짜 비교보다 뒤에 온다.** 여러 날에 걸친 막대는 시작일이 먼저 정렬을 잡아야
+ *    레인이 주 경계를 넘어 이어진다 — 이 순위는 **같은 날 안에서만** 쓴다.
+ */
+function dayRank(t) {
+    return isRO(t) && t.tStart === null ? 0 : t.tStart !== null ? 1 : 2;
+}
+
+/**
+ * 같은 날 안의 비교자. 순위 → 시각 → 마감일.
+ *
+ * **정렬하는 모든 표면이 이걸 쓴다** — 데스크탑 막대·일간 종일 스트립, 모바일 일간·
+ * 날짜별 목록·고른 날 카드. 표면마다 따로 적으면 같은 하루가 화면마다 다른 순서로 보인다.
+ * 순수 계산이라 테스트할 수 있다(__test).
+ */
+function byDayOrder(a, b) {
+    const ra = dayRank(a), rb = dayRank(b);
+    if (ra !== rb) return ra - rb;
+    if (a.tStart !== null && b.tStart !== null) {
+        if (a.tStart !== b.tStart) return a.tStart - b.tStart;
+        if (a.tEnd !== b.tEnd) return a.tEnd - b.tEnd;
+    }
+    return (a.due || "") < (b.due || "") ? -1 : (a.due || "") > (b.due || "") ? 1 : 0;
+}
+
 /**
  * 겹치는 시간 블록을 좌우 레인으로 나눈다. 반환: `[{t, lane, lanes, span}]`.
  *
@@ -335,11 +372,10 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
         try { return a && a.isReady() ? a : null; } catch (e) { return null; }
     };
 
-    // 읽기 전용 항목인가. 이 하나로 모든 쓰기·이동 경로를 막는다.
-    const isRO = (t) => !!t && t.kind === "event";
     // 드롭 타깃이 dragging 을 집어갈 때 쓴다. 일정에서는 dragging 을 세팅하지 않으므로
     // 이중 안전장치지만, 나중에 어포던스 가드를 하나 잊어도 여기서 막힌다.
     const takeDrag = () => { const t = dragging; dragging = null; return isRO(t) ? null : t; };
+
 
     // ══ 카테고리 (플러그인 설정에서 내려온다) ════════════════════════════════════
     // 볼트마다 다른 유일한 값이라 코드가 아니라 설정에 둔다 — 사본이 갈라지던 원인이었다.
@@ -810,15 +846,12 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
 
         const weekEndISO = addDays(weekStartISO, 6);
         const vis = tasks.filter(t => t.due && (t.start || t.due) <= weekEndISO && t.due >= weekStartISO);
-        // 시작일 → 시각 → 마감일 순. 같은 날이면 시각이 있는 것을 먼저(시각순), 없는 것은 뒤로.
+        // **시작일이 먼저다** — 주 경계를 넘는 막대가 레인을 이어받으려면 그래야 한다.
+        // 같은 날 안에서는 공통 규칙(📆 종일 → 시각순 → 종일 task) → byDayOrder
         vis.sort((a, b) => {
             const sa = a.start || a.due, sb = b.start || b.due;
             if (sa !== sb) return sa < sb ? -1 : 1;
-            const ta = a.tStart, tb = b.tStart;
-            if (ta !== null && tb !== null && ta !== tb) return ta - tb;
-            if (ta !== null && tb === null) return -1;
-            if (ta === null && tb !== null) return 1;
-            return a.due < b.due ? -1 : 1;
+            return byDayOrder(a, b);
         });
         const laneEnd = [];
         const placed = [];
@@ -1041,7 +1074,8 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
         const iso = view.toISODate();
         const onDay = tasks.filter(t => t.due && (t.start || t.due) <= iso && t.due >= iso);
         const timed = onDay.filter(t => t.tStart !== null).sort((a, b) => a.tStart - b.tStart || a.tEnd - b.tEnd);
-        const allday = onDay.filter(t => t.tStart === null);
+        // 종일 스트립 안에서도 📆 일정이 먼저다 — 그날 뼈대를 왼쪽에서 바로 읽게.
+        const allday = onDay.filter(t => t.tStart === null).sort(byDayOrder);
 
         // ── 종일 스트립 ──
         const ad = container.createEl("div");
@@ -1389,7 +1423,8 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
         // 데스크탑 renderDay 와 같은 기준: 이 날에 걸친 것(기간의 어느 하루라도 이 날이면)
         const onDay = items.filter((t) => t.due && (t.start || t.due) <= iso && t.due >= iso);
         const timed = onDay.filter((t) => t.tStart !== null);
-        const allday = onDay.filter((t) => t.tStart === null);
+        // 종일 줄 안에서도 📆 일정이 먼저 — 데스크탑 renderDay 와 같은 규칙
+        const allday = onDay.filter((t) => t.tStart === null).sort(byDayOrder);
 
         // ── 종일 줄 ──
         const ad = box.createEl("div");
@@ -1639,7 +1674,7 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
             // 아래에 기존 목록까지 이어 붙이면 같은 task 가 두 번 보인다(📌 와 날짜별 섹션).
             // 정렬은 손대지 않는다 — 평소 목록과 같은 순서여야 눈이 헤매지 않는다.
             mobileMonthGrid(box, calItems);
-            const day = calItems.filter((t) => coversDay(t, selDay));
+            const day = calItems.filter((t) => coversDay(t, selDay)).sort(byDayOrder);
             const wd = WD[L.fromISO(selDay).weekday % 7];
             mobileSection(box, "📌 " + selDay + " (" + wd + ") — " + day.length + "건", day,
                 "이 날에 걸친 항목이 없습니다.");
@@ -1669,6 +1704,8 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
                 if (!byDay.has(t.due)) byDay.set(t.due, []);
                 byDay.get(t.due).push(t);
             }
+            // 날짜별 목록도 같은 규칙으로 — 섹션을 열었을 때 회의가 맨 위에 온다.
+            for (const list of byDay.values()) list.sort(byDayOrder);
             const days = [...byDay.keys()].sort();
             if (!days.length) {
                 mobileSection(box, view.toFormat("yyyy년 M월"), [], "이 달에 마감일이 있는 항목이 없습니다.");
@@ -2456,4 +2493,4 @@ module.exports = class GcalCalendarViewPlugin extends Plugin {
 
 // 순수 함수만 테스트에서 꺼내 쓴다(스코프 결정은 노트 위치에 따라 갈리는 유일한 분기다).
 // Obsidian 은 module.exports 의 기본 export 만 보므로 이 속성은 무해하다.
-module.exports.__test = { parseOptions, resolveSource, parseList, resolveCalFilter, resolveEventColorInfo, categoryColorMap, layoutTimeLanes, DEFAULT_SETTINGS };
+module.exports.__test = { parseOptions, resolveSource, parseList, resolveCalFilter, resolveEventColorInfo, categoryColorMap, layoutTimeLanes, byDayOrder, dayRank, DEFAULT_SETTINGS };
