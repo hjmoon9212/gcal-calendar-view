@@ -1265,9 +1265,14 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
     function mobileRow(item) {
         const ro = isRO(item);
         const el = document.createElement("div");
+        // 📆 읽기 전용은 **데스크탑과 같은 서명**으로 그린다 — 점선 테두리 · 옅은 배경 ·
+        // **좌측 레일 없음**(굵은 레일은 task 막대의 서명이다). 0.4.0 은 데이터만 연결하고
+        // 이 구분을 빠뜨려서, 탭해 보기 전에는 고칠 수 있는 항목인지 알 수 없었다.
+        const c = colorOf(item);
         el.style.cssText =
             "display:flex;align-items:center;gap:10px;min-height:44px;padding:8px 10px;margin-bottom:6px;" +
-            "border:1px solid var(--background-modifier-border);border-left:4px solid " + colorOf(item) + ";" +
+            "border:1px " + (ro ? "dashed " + c : "solid var(--background-modifier-border)") + ";" +
+            (ro ? "background:" + c + "14;" : "border-left:4px solid " + c + ";") +
             "border-radius:8px;cursor:pointer;";
         const box = el.createEl("div");
         box.style.cssText = "flex:1 1 auto;min-width:0;";
@@ -1400,11 +1405,16 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
             const chip = ad.createEl("div");
             const c = colorOf(t);
             const dim = t.done || t.cancelled;
+            // 시간 그리드 블록과 같은 규칙(아래) — 종일 칩만 실선이면 같은 일정이 종일이냐
+            // 시간지정이냐에 따라 다르게 보인다.
+            const ro = isRO(t);
             chip.style.cssText = "display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:0 10px;font-size:12px;" +
                 "border-radius:8px;cursor:pointer;max-width:100%;" +
-                "background:" + c + "2b;border:1px solid " + c + ";border-left:4px solid " + c + ";" +
+                "background:" + c + (ro ? "14" : "2b") + ";" +
+                "border:1px " + (ro ? "dashed" : "solid") + " " + c + ";" +
+                (ro ? "" : "border-left:4px solid " + c + ";") +
                 (dim ? "opacity:.55;text-decoration:line-through;" : "");
-            const lbl = chip.createEl("span", { text: (isRO(t) ? "📆 " : "") + (t.title || "(제목 없음)") });
+            const lbl = chip.createEl("span", { text: (ro ? "📆 " : "") + (t.title || "(제목 없음)") });
             lbl.style.cssText = "overflow:hidden;text-overflow:ellipsis;white-space:nowrap;";
             chip.onclick = (e) => { e.stopPropagation(); openSheet(t); };
         }
