@@ -283,7 +283,10 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
     // → 유지해야 할 값은 window 에 두고 재실행 직후 복원한다. 캘린더(스코프)별로 분리.
     const G = plugin.store;   // 상태·대기표는 플러그인 인스턴스가 소유(구 window.__gcalCal)
     const S = (G.state[SOURCE] = G.state[SOURCE] || {});
-    const saveState = () => { S.mode = mode; S.view = view.toISODate(); S.showDone = showDone; S.showEvents = showEvents; S.cats = [...activeCats]; };
+    // 다시 열 때 이어 갈 것만 저장한다. **`mode`/`view` 는 일부러 뺐다**(0.6.0~) —
+    // 열 때마다 이번 달·오늘로 시작하므로 저장해도 아무도 안 읽는다. 안 읽는 값을
+    // 계속 쓰면 다음에 보는 사람이 "어디서 복원되나" 를 헛짚는다.
+    const saveState = () => { S.showDone = showDone; S.showEvents = showEvents; S.cats = [...activeCats]; };
 
     // ── 블록이 처음부터 다시 그려질 때의 안전망 ──────────────────────────
     // 인덱스 변경은 refresh() 로 root 안에서만 교체되지만, 노트를 다시 열거나
@@ -339,8 +342,21 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
         st.textContent = rule("body.theme-dark", "%23cccccc", "dark") + rule("body:not(.theme-dark)", "%23444444", "light");
         document.head.appendChild(st);
     })();
-    let mode = S.mode || "month";                 // "month" | "week" (재실행 후에도 유지)
-    let view = S.view ? L.fromISO(S.view) : L.now().startOf("month");
+    // ★ **열 때마다 이번 달 · 오늘 선택으로 시작한다**(0.6.0~).
+    //
+    // 예전에는 보던 달/보기를 `S` 에 기억했다. 그런데 캘린더를 여는 이유는 대개
+    // **"오늘 뭐 있지"** 라서, 지난달이나 일간에 떨어져 있으면 매번 오늘로 돌아오는 데
+    // 탭을 두세 번 쓰게 된다. 기억해서 얻는 것보다 잃는 게 컸다.
+    //
+    // ⚠️ **"열 때" 는 `createCalendar` 가 도는 순간뿐이다.** 그 뒤의 재렌더(`renderNow`)는
+    //    지역 변수 `mode`/`view` 를 그대로 쓰므로, 달을 넘기거나 일간에 들어간 상태에서
+    //    노트를 편집해도 화면이 튀지 않는다 — 되돌리는 건 노트를 다시 열었을 때다.
+    //
+    // 필터(완료 표시 · 📆 일정 · 카테고리)는 **그대로 유지한다.** 그건 "어디를 보는가" 가
+    // 아니라 "무엇을 보는가" 라서, 매번 다시 맞추게 하면 성가시다.
+    let mode = "month";
+    let view = L.now().startOf("month");
+    S.mDay = L.now().toISODate();   // 모바일 월간의 「오늘 카드」가 바로 펼쳐지게
     let dragging = null;
     let showDone = S.showDone !== false;   // 달력에 완료 항목 표시 여부
     let showEvents = S.showEvents !== false;   // GCal 일정(회의·약속) 표시 여부
@@ -1559,7 +1575,7 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
         //    안 그러면 지난 회의 수백 건이 🔴 지연을 덮는다.
         const calItems = shown.concat(evItems);
 
-        // 모드는 데스크탑과 같은 S.mode 를 쓴다(기기를 옮겨도 보던 단위가 유지된다).
+        // 모드는 데스크탑과 같은 지역 변수를 쓴다(한 세션 안에서는 보던 단위가 유지된다).
         // 다만 모바일에는 주간이 없다 — 폰 폭에서 7칸 막대는 글자가 안 들어간다.
         const dayMode = mode === "day";
         // 고른 날은 **보고 있는 달 안에 있을 때만** 유효하다. ◀▶ 로 달을 넘기면
