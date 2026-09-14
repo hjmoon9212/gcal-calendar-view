@@ -852,6 +852,15 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
 
     // 한 주(weekStartISO~+6)에 걸치는 태스크를 기간 막대로 area 위에 배치.
     // 막대 본체 드래그=기간째 이동, Shift+드래그=마감일 조정, 클릭=원본 열기. 반환=막대영역 높이(px).
+    /**
+     * 기간 막대 한 줄의 높이(px). 막대 자체는 `laneH - 3`.
+     *
+     * **월간·주간이 같은 값을 쓴다**(0.6.3~). 예전에는 월간 20 · 주간 26 으로 갈려 있어
+     * 보기를 바꿀 때마다 같은 막대가 다른 두께로 보였다. 20 은 빽빽해서 제목이 잘리고
+     * 드롭 타깃(막대를 다른 날로 끄는 자리)도 좁았다.
+     */
+    const LANE_H = 25;
+
     function placeBars(area, tasks, weekStartISO, laneH, topOffset, laneMemo) {
         const clampCol = (c) => Math.max(0, Math.min(6, c));
         const colAt = (clientX) => { const r = area.getBoundingClientRect(); return clampCol(Math.floor((clientX - r.left) / r.width * 7)); };
@@ -1021,7 +1030,7 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
             cc.style.cssText = `border-left:${i === 0 ? "0" : "1px solid var(--background-modifier-border)"};background:${bg};`;
             attachDrop(cc, iso, bg);
         }
-        const barsH = placeBars(area, tasks, weekStart, 26, 6);
+        const barsH = placeBars(area, tasks, weekStart, LANE_H, 6);
         area.style.minHeight = (barsH + 12) + "px";
     }
 
@@ -1054,9 +1063,7 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
                 dn.style.cssText = `font-size:10px;font-weight:600;opacity:${inMonth ? 0.7 : 0.3};text-align:right;padding:1px 4px;`;
                 attachDrop(cc, iso, bg);
             }
-            // 레인 높이 20 → 30(1.5배). 막대가 빽빽하면 제목이 안 읽히고 드롭 타깃도 좁다.
-            // 막대 자체는 `laneH - 3` 이라 두께도 17 → 27 로 함께 는다.
-            const barsH = placeBars(row, tasks, weekStartISO, 30, 17, laneMemo);
+            const barsH = placeBars(row, tasks, weekStartISO, LANE_H, 17, laneMemo);
             row.style.minHeight = (17 + barsH + 4) + "px";
         }
     }
