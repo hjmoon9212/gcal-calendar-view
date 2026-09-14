@@ -1054,7 +1054,9 @@ function createCalendar({ plugin, api, container, source, notes, sourcePath, com
                 dn.style.cssText = `font-size:10px;font-weight:600;opacity:${inMonth ? 0.7 : 0.3};text-align:right;padding:1px 4px;`;
                 attachDrop(cc, iso, bg);
             }
-            const barsH = placeBars(row, tasks, weekStartISO, 20, 17, laneMemo);
+            // 레인 높이 20 → 30(1.5배). 막대가 빽빽하면 제목이 안 읽히고 드롭 타깃도 좁다.
+            // 막대 자체는 `laneH - 3` 이라 두께도 17 → 27 로 함께 는다.
+            const barsH = placeBars(row, tasks, weekStartISO, 30, 17, laneMemo);
             row.style.minHeight = (17 + barsH + 4) + "px";
         }
     }
