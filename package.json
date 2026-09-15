@@ -1,0 +1,29 @@
+{
+  "name": "gcal-calendar-view",
+  "version": "0.7.0",
+  "description": "#task 를 기간 막대와 타임블록으로 그리는 캘린더. 드래그로 날짜·시각을 바꾸고 tasks-gcal-sync 가 Google Calendar 로 올린다.",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+    "smoke": "node scripts/smoke-bundle.mjs",
+    "test": "tsc -p tsconfig.test.json && node esbuild.test.mjs",
+    "test:one": "node scripts/test-one.mjs",
+    "version-bump": "node version-bump.mjs"
+  },
+  "keywords": [
+    "obsidian",
+    "tasks",
+    "calendar"
+  ],
+  "author": "hjmoon9212",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "builtin-modules": "^3.3.0",
+    "esbuild": "0.20.2",
+    "obsidian": "latest",
+    "tslib": "2.6.2",
+    "typescript": "5.4.5"
+  }
+}

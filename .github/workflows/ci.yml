@@ -1,0 +1,27 @@
+name: CI
+
+# 태그를 밀기 전에 깨진 걸 알기 위한 검사. release.yml 도 같은 명령을 다시 돌린다
+# (릴리스는 테스트와 스모크를 통과해야만 만들어진다).
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Build & test
+        run: |
+          npm ci
+          npm test
+          npm run build
+          # 빌드한 main.js 가 원본(src/main.js)과 같은 물건인지
+          npm run smoke

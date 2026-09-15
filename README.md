@@ -160,14 +160,25 @@ note: - 변경은 `tasks-gcal-sync` 가 자동 푸시
 2. `Add beta plugin` → `hjmoon9212/gcal-calendar-view`
 3. 설정 탭에서 카테고리(`#gcal/<key>`)와 색을 볼트에 맞게 조정
 
-## 배포
+## 개발 · 배포
 
-빌드 단계가 없다(순수 JS).
+**0.7.0 부터 빌드 단계가 있다.** 원본은 `src/` 이고 `main.js` 는 esbuild 가 만든다 — 저장소에 없다(gitignore). 볼트의 `.obsidian/plugins/` 는 BRAT 이 관리하므로 직접 고치지 않는다.
 
 ```bash
-node version-bump.mjs 0.2.0    # manifest.json + versions.json
-git commit -am "v0.2.0"
-git tag 0.2.0 && git push origin main 0.2.0
+npm ci
+npm test          # 테스트 코드 타입체크 + tests/*.test.ts
+npm run build     # main.js
+npm run smoke     # 빌드한 main.js 가 src/main.js 와 같은 물건인지(기본 export · luxon 미포함 · 순수 함수 결과)
+npm run test:one -- tests/pure.test.ts   # 파일 하나만
+
+# 스크래치 볼트로 바로 뽑아 보기(실제 볼트 말고)
+GCAL_OUT="<스크래치 볼트>/.obsidian/plugins/gcal-calendar-view/main.js" npm run dev
 ```
 
-태그를 push 하면 `.github/workflows/release.yml` 이 `main.js`·`manifest.json`·`styles.css`·`versions.json` 을 첨부한 Release 를 만들고 BRAT 이 받아간다. 태그와 `manifest.json` 의 version 이 다르면 워크플로가 실패한다.
+```bash
+node version-bump.mjs 0.7.1    # manifest.json + package.json + versions.json(한 줄형)
+git commit -am "v0.7.1" && git push origin main
+git tag 0.7.1 && git push origin 0.7.1
+```
+
+태그를 push 하면 `.github/workflows/release.yml` 이 **테스트 · 빌드 · 스모크를 통과한 뒤** `main.js`·`manifest.json`·`styles.css`·`versions.json` 을 첨부한 Release 를 만들고 BRAT 이 받아간다. 태그와 `manifest.json` 의 version 이 다르면 워크플로가 실패한다.
