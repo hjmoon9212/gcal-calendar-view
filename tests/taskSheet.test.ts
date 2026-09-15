@@ -13,7 +13,7 @@ import { golden } from "./helpers/golden";
 import { FakeEl, findAll, serializeEl } from "./helpers/fakeDom";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const T = require("../src/main.js").__test;
+const T = require("../src/main").__test;
 
 const pad = (n: number) => String(n).padStart(2, "0");
 function makeCtx() {

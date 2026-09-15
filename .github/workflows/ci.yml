@@ -23,5 +23,5 @@ jobs:
           npm ci
           npm test
           npm run build
-          # 빌드한 main.js 가 원본(src/main.js)과 같은 물건인지
+          # 빌드한 main.js 가 원본(src/main.ts)과 같은 물건인지
           npm run smoke

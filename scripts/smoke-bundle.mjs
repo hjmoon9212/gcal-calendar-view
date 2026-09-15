@@ -1,5 +1,5 @@
 /*
- * 빌드된 main.js 가 원본(src/main.js)과 **같은 물건**인지 확인한다 — `npm run build` 뒤에 돈다.
+ * 빌드된 main.js 가 원본(src/main.ts 를 압축 없이 묶은 것)과 **같은 물건**인지 확인한다 — `npm run build` 뒤에 돈다.
  *
  * 0.7.0 에서 배포 방식이 "커밋한 main.js 를 그대로 첨부" → "CI 가 src/ 를 esbuild 로 묶어 첨부" 로
  * 바뀌었다. 번들러가 모양을 바꾸면 BRAT 이 받는 파일이 조용히 달라진다. 그래서:
@@ -42,8 +42,19 @@ const check = (cond, msg) => {
   }
 };
 
+// 원본 기준: src/main.ts 를 압축 없이 묶는다(0.7.1 부터 src 가 TS 모듈이라 그대로 require 할 수 없다)
+const sourceOut = path.resolve(".test-build-one/source-main.cjs");
+await esbuild.build({
+  entryPoints: ["src/main.ts"],
+  outfile: sourceOut,
+  bundle: true,
+  platform: "node",
+  format: "cjs",
+  external: ["obsidian", "luxon"],
+  logLevel: "warning",
+});
 const bundle = require(path.resolve("main.js"));
-const source = require(path.resolve("src/main.js"));
+const source = require(sourceOut);
 const Plugin = bundle.default ?? bundle;
 
 check(typeof Plugin === "function", "기본 export 가 클래스(함수)다");

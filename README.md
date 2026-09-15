@@ -168,7 +168,7 @@ note: - 변경은 `tasks-gcal-sync` 가 자동 푸시
 npm ci
 npm test          # 테스트 코드 타입체크 + tests/*.test.ts
 npm run build     # main.js
-npm run smoke     # 빌드한 main.js 가 src/main.js 와 같은 물건인지(기본 export · luxon 미포함 · 순수 함수 결과)
+npm run smoke     # 빌드한 main.js 가 src/main.ts 와 같은 물건인지(기본 export · luxon 미포함 · 순수 함수 결과)
 npm run test:one -- tests/pure.test.ts   # 파일 하나만
 
 # 스크래치 볼트로 바로 뽑아 보기(실제 볼트 말고)

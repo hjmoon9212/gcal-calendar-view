@@ -2,12 +2,12 @@
  * 모듈 레벨 순수 함수의 **현재 동작**을 고정한다(0.7.0 — 코드를 옮기기 전의 안전망).
  *
  * 0.7.x 는 main.js 한 파일(2557줄)을 src/ 모듈로 나누는 동작 보존 리팩토링이다. 옮기면서
- * 결과가 한 글자라도 달라지면 여기서 걸린다. 지금은 main.js 가 내보내는 `__test` 로 꺼내 쓰고,
+ * 결과가 한 글자라도 달라지면 여기서 걸린다. 지금은 src/main 이 내보내는 `__test` 로 꺼내 쓰고,
  * 함수가 모듈로 옮겨 가면 import 경로만 바꾼다 — 단언은 그대로 둔다.
  */
 import { eq, done } from "./helpers/assert";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const T = require("../src/main.js").__test;
+const T = require("../src/main").__test;
 
 // ── parseOptions: 코드블록 본문 ──
 eq(T.parseOptions(""), { note: [] }, "빈 블록 → note 만");

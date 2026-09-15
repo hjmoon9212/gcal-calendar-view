@@ -10,7 +10,7 @@ import { eq, ok, done } from "./helpers/assert";
 import { FakeEl, serializeEl } from "./helpers/fakeDom";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const mod = require("../src/main.js");
+const mod = require("../src/main");
 const PluginClass = mod.default ?? mod;
 const T = mod.__test;
 
