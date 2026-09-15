@@ -2554,4 +2554,4 @@ module.exports = class GcalCalendarViewPlugin extends Plugin {
 
 // 순수 함수만 테스트에서 꺼내 쓴다(스코프 결정은 노트 위치에 따라 갈리는 유일한 분기다).
 // Obsidian 은 module.exports 의 기본 export 만 보므로 이 속성은 무해하다.
-module.exports.__test = { parseOptions, resolveSource, parseList, resolveCalFilter, resolveEventColorInfo, categoryColorMap, layoutTimeLanes, byDayOrder, dayRank, DEFAULT_SETTINGS };
+module.exports.__test = { parseOptions, resolveSource, parseList, resolveCalFilter, resolveEventColorInfo, categoryColorMap, layoutTimeLanes, byDayOrder, dayRank, DEFAULT_SETTINGS, TaskSheetModal, GcalCalendarSettingTab };

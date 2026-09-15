@@ -1,0 +1,39 @@
+{
+  "tag": "div",
+  "children": [
+    {
+      "tag": "div",
+      "style": {
+        "cssText": "display:flex;gap:10px;align-items:flex-start;border-left:4px solid #123456;padding-left:10px;margin-bottom:4px;"
+      },
+      "children": [
+        {
+          "tag": "div",
+          "children": [
+            {
+              "tag": "div",
+              "text": "회의",
+              "style": {
+                "cssText": "font-size:16px;font-weight:600;line-height:1.4;word-break:break-word;"
+              }
+            },
+            {
+              "tag": "div",
+              "text": "- · 2026-08-06",
+              "style": {
+                "cssText": "font-size:12px;opacity:.6;margin-top:4px;word-break:break-all;"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tag": "div",
+      "text": "📆 Google Calendar 일정입니다 (읽기 전용).",
+      "style": {
+        "cssText": "font-size:13px;opacity:.7;margin-top:14px;"
+      }
+    }
+  ]
+}

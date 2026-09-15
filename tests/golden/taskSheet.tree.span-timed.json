@@ -1,0 +1,281 @@
+{
+  "tag": "div",
+  "children": [
+    {
+      "tag": "div",
+      "style": {
+        "cssText": "display:flex;gap:10px;align-items:flex-start;border-left:4px solid #123456;padding-left:10px;margin-bottom:4px;"
+      },
+      "children": [
+        {
+          "tag": "div",
+          "children": [
+            {
+              "tag": "div",
+              "text": "보고서",
+              "style": {
+                "cssText": "font-size:16px;font-weight:600;line-height:1.4;word-break:break-word;"
+              }
+            },
+            {
+              "tag": "div",
+              "text": "note.md · 2026-08-10",
+              "style": {
+                "cssText": "font-size:12px;opacity:.6;margin-top:4px;word-break:break-all;"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tag": "div",
+      "text": "📅 마감일 — 지금 2026-08-10",
+      "style": {
+        "cssText": "font-size:12px;opacity:.6;margin:16px 0 6px;"
+      }
+    },
+    {
+      "tag": "div",
+      "style": {
+        "cssText": "display:flex;flex-wrap:wrap;align-items:center;gap:8px;"
+      },
+      "children": [
+        {
+          "tag": "button",
+          "text": "오늘",
+          "style": {
+            "cssText": "min-height:40px;padding:0 14px;border-radius:8px;font-size:14px;cursor:pointer;"
+          },
+          "handlers": [
+            "onclick"
+          ]
+        },
+        {
+          "tag": "button",
+          "text": "내일",
+          "style": {
+            "cssText": "min-height:40px;padding:0 14px;border-radius:8px;font-size:14px;cursor:pointer;"
+          },
+          "handlers": [
+            "onclick"
+          ]
+        },
+        {
+          "tag": "button",
+          "text": "+7일",
+          "style": {
+            "cssText": "min-height:40px;padding:0 14px;border-radius:8px;font-size:14px;cursor:pointer;"
+          },
+          "handlers": [
+            "onclick"
+          ]
+        },
+        {
+          "tag": "input",
+          "style": {
+            "cssText": "min-height:40px;font-size:14px;padding:0 8px;border-radius:8px;"
+          },
+          "type": "date",
+          "value": "2026-08-10",
+          "handlers": [
+            "onchange"
+          ]
+        }
+      ]
+    },
+    {
+      "tag": "div",
+      "text": "🛫 시작일 — 지금 2026-08-08",
+      "style": {
+        "cssText": "font-size:12px;opacity:.6;margin:16px 0 6px;"
+      }
+    },
+    {
+      "tag": "div",
+      "style": {
+        "cssText": "display:flex;flex-wrap:wrap;align-items:center;gap:8px;"
+      },
+      "children": [
+        {
+          "tag": "input",
+          "style": {
+            "cssText": "min-height:40px;font-size:14px;padding:0 8px;border-radius:8px;"
+          },
+          "type": "date",
+          "value": "2026-08-08",
+          "handlers": [
+            "onchange"
+          ]
+        }
+      ]
+    },
+    {
+      "tag": "div",
+      "text": "↔ 기간째 이동 — 고른 날이 🛫 가 되고 기간 길이는 유지됩니다",
+      "style": {
+        "cssText": "font-size:12px;opacity:.6;margin:16px 0 6px;"
+      }
+    },
+    {
+      "tag": "div",
+      "style": {
+        "cssText": "display:flex;flex-wrap:wrap;align-items:center;gap:8px;"
+      },
+      "children": [
+        {
+          "tag": "input",
+          "style": {
+            "cssText": "min-height:40px;font-size:14px;padding:0 8px;border-radius:8px;"
+          },
+          "type": "date",
+          "value": "2026-08-08",
+          "handlers": [
+            "onchange"
+          ]
+        }
+      ]
+    },
+    {
+      "tag": "div",
+      "text": "⏰ 시각 — 지금 09:00-10:00",
+      "style": {
+        "cssText": "font-size:12px;opacity:.6;margin:16px 0 6px;"
+      }
+    },
+    {
+      "tag": "div",
+      "style": {
+        "cssText": "display:flex;flex-wrap:wrap;align-items:center;gap:8px;"
+      },
+      "children": [
+        {
+          "tag": "input",
+          "style": {
+            "cssText": "min-height:40px;font-size:14px;padding:0 8px;border-radius:8px;"
+          },
+          "type": "time",
+          "value": "09:00",
+          "step": "900"
+        },
+        {
+          "tag": "span",
+          "text": "~",
+          "style": {
+            "cssText": "opacity:.5;"
+          }
+        },
+        {
+          "tag": "input",
+          "style": {
+            "cssText": "min-height:40px;font-size:14px;padding:0 8px;border-radius:8px;"
+          },
+          "type": "time",
+          "value": "10:00",
+          "step": "900"
+        }
+      ]
+    },
+    {
+      "tag": "div",
+      "style": {
+        "cssText": "display:flex;flex-wrap:wrap;align-items:center;gap:8px;"
+      },
+      "children": [
+        {
+          "tag": "button",
+          "text": "15분",
+          "style": {
+            "cssText": "min-height:40px;padding:0 14px;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600;"
+          },
+          "handlers": [
+            "onclick"
+          ]
+        },
+        {
+          "tag": "button",
+          "text": "30분",
+          "style": {
+            "cssText": "min-height:40px;padding:0 14px;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600;"
+          },
+          "handlers": [
+            "onclick"
+          ]
+        },
+        {
+          "tag": "button",
+          "text": "1시간",
+          "style": {
+            "cssText": "min-height:40px;padding:0 14px;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600;"
+          },
+          "handlers": [
+            "onclick"
+          ]
+        }
+      ]
+    },
+    {
+      "tag": "div",
+      "style": {
+        "cssText": "display:flex;flex-wrap:wrap;align-items:center;gap:8px;"
+      },
+      "children": [
+        {
+          "tag": "button",
+          "text": "저장",
+          "style": {
+            "cssText": "min-height:40px;padding:0 14px;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600;"
+          },
+          "handlers": [
+            "onclick"
+          ]
+        },
+        {
+          "tag": "button",
+          "text": "시각 제거",
+          "style": {
+            "cssText": "min-height:40px;padding:0 14px;border-radius:8px;font-size:14px;cursor:pointer;"
+          },
+          "handlers": [
+            "onclick"
+          ]
+        }
+      ]
+    },
+    {
+      "tag": "div",
+      "text": "그 밖",
+      "style": {
+        "cssText": "font-size:12px;opacity:.6;margin:16px 0 6px;"
+      }
+    },
+    {
+      "tag": "div",
+      "style": {
+        "cssText": "display:flex;flex-wrap:wrap;align-items:center;gap:8px;"
+      },
+      "children": [
+        {
+          "tag": "button",
+          "text": "✏️ 편집",
+          "style": {
+            "cssText": "min-height:40px;padding:0 14px;border-radius:8px;font-size:14px;cursor:pointer;"
+          },
+          "handlers": [
+            "onclick"
+          ]
+        },
+        {
+          "tag": "button",
+          "text": "📄 원본 열기",
+          "style": {
+            "cssText": "min-height:40px;padding:0 14px;border-radius:8px;font-size:14px;cursor:pointer;"
+          },
+          "handlers": [
+            "onclick"
+          ]
+        }
+      ]
+    }
+  ]
+}

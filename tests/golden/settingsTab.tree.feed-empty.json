@@ -1,0 +1,626 @@
+{
+  "tag": "div",
+  "children": [
+    {
+      "tag": "h3",
+      "text": "사용법"
+    },
+    {
+      "tag": "div",
+      "style": {
+        "cssText": "font-size:12px;line-height:1.7;opacity:.85;"
+      },
+      "children": [
+        {
+          "tag": "p",
+          "text": "노트에 코드블록으로 넣는다:",
+          "style": {
+            "margin": "0 0 6px"
+          }
+        },
+        {
+          "tag": "div",
+          "style": {
+            "cssText": "margin:0 0 10px;"
+          },
+          "children": [
+            {
+              "tag": "div",
+              "style": {
+                "cssText": "display:flex;align-items:center;gap:8px;margin-bottom:3px;"
+              },
+              "children": [
+                {
+                  "tag": "span",
+                  "text": "이 노트가 놓인 폴더 이하 (기본)",
+                  "style": {
+                    "cssText": "font-size:11px;opacity:.6;"
+                  }
+                },
+                {
+                  "tag": "button",
+                  "text": "복사",
+                  "style": {
+                    "cssText": "font-size:11px;padding:1px 8px;border-radius:10px;cursor:pointer;"
+                  },
+                  "handlers": [
+                    "onclick"
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "pre",
+              "text": "```gcal-calendar\n```",
+              "style": {
+                "cssText": "font-size:11px;padding:8px;border-radius:4px;background:var(--background-secondary);margin:0;white-space:pre;overflow-x:auto;user-select:text;"
+              }
+            }
+          ]
+        },
+        {
+          "tag": "div",
+          "style": {
+            "cssText": "margin:0 0 10px;"
+          },
+          "children": [
+            {
+              "tag": "div",
+              "style": {
+                "cssText": "display:flex;align-items:center;gap:8px;margin-bottom:3px;"
+              },
+              "children": [
+                {
+                  "tag": "span",
+                  "text": "볼트 전체",
+                  "style": {
+                    "cssText": "font-size:11px;opacity:.6;"
+                  }
+                },
+                {
+                  "tag": "button",
+                  "text": "복사",
+                  "style": {
+                    "cssText": "font-size:11px;padding:1px 8px;border-radius:10px;cursor:pointer;"
+                  },
+                  "handlers": [
+                    "onclick"
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "pre",
+              "text": "```gcal-calendar\nscope: vault\n```",
+              "style": {
+                "cssText": "font-size:11px;padding:8px;border-radius:4px;background:var(--background-secondary);margin:0;white-space:pre;overflow-x:auto;user-select:text;"
+              }
+            }
+          ]
+        },
+        {
+          "tag": "div",
+          "style": {
+            "cssText": "margin:0 0 10px;"
+          },
+          "children": [
+            {
+              "tag": "div",
+              "style": {
+                "cssText": "display:flex;align-items:center;gap:8px;margin-bottom:3px;"
+              },
+              "children": [
+                {
+                  "tag": "span",
+                  "text": "소스 쿼리 직접 지정 · 이 블록에만 붙일 설명(여러 줄, 마크다운)",
+                  "style": {
+                    "cssText": "font-size:11px;opacity:.6;"
+                  }
+                },
+                {
+                  "tag": "button",
+                  "text": "복사",
+                  "style": {
+                    "cssText": "font-size:11px;padding:1px 8px;border-radius:10px;cursor:pointer;"
+                  },
+                  "handlers": [
+                    "onclick"
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "pre",
+              "text": "```gcal-calendar\nsource: \"0. Note/1. Project\" and !\"Template\"\nnote: - 이 프로젝트의 할 일만 모읍니다.\nnote: - **마감 임박**한 것부터 처리할 것.\nnote: - 배경은 [[프로젝트 개요]] 참고.\n```",
+              "style": {
+                "cssText": "font-size:11px;padding:8px;border-radius:4px;background:var(--background-secondary);margin:0;white-space:pre;overflow-x:auto;user-select:text;"
+              }
+            }
+          ]
+        },
+        {
+          "tag": "div",
+          "style": {
+            "cssText": "margin:0 0 10px;"
+          },
+          "children": [
+            {
+              "tag": "div",
+              "style": {
+                "cssText": "display:flex;align-items:center;gap:8px;margin-bottom:3px;"
+              },
+              "children": [
+                {
+                  "tag": "span",
+                  "text": "이 블록에 그릴 Google Calendar 일정 고르기 (#gcal/ 태그와 같은 이름, 쉼표로 구분)",
+                  "style": {
+                    "cssText": "font-size:11px;opacity:.6;"
+                  }
+                },
+                {
+                  "tag": "button",
+                  "text": "복사",
+                  "style": {
+                    "cssText": "font-size:11px;padding:1px 8px;border-radius:10px;cursor:pointer;"
+                  },
+                  "handlers": [
+                    "onclick"
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "pre",
+              "text": "```gcal-calendar\ngcal: Growth, Routine\n```",
+              "style": {
+                "cssText": "font-size:11px;padding:8px;border-radius:4px;background:var(--background-secondary);margin:0;white-space:pre;overflow-x:auto;user-select:text;"
+              }
+            }
+          ]
+        },
+        {
+          "tag": "div",
+          "style": {
+            "cssText": "margin:0 0 10px;"
+          },
+          "children": [
+            {
+              "tag": "div",
+              "style": {
+                "cssText": "display:flex;align-items:center;gap:8px;margin-bottom:3px;"
+              },
+              "children": [
+                {
+                  "tag": "span",
+                  "text": "특정 캘린더만 빼기 · 이 블록에서는 일정을 아예 안 그리기(task 전용)",
+                  "style": {
+                    "cssText": "font-size:11px;opacity:.6;"
+                  }
+                },
+                {
+                  "tag": "button",
+                  "text": "복사",
+                  "style": {
+                    "cssText": "font-size:11px;padding:1px 8px;border-radius:10px;cursor:pointer;"
+                  },
+                  "handlers": [
+                    "onclick"
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "pre",
+              "text": "```gcal-calendar\ngcal-exclude: Event\n```\n\n```gcal-calendar\ngcal: off\n```",
+              "style": {
+                "cssText": "font-size:11px;padding:8px;border-radius:4px;background:var(--background-secondary);margin:0;white-space:pre;overflow-x:auto;user-select:text;"
+              }
+            }
+          ]
+        },
+        {
+          "tag": "ul",
+          "style": {
+            "cssText": "margin:0 0 4px;padding-left:18px;"
+          },
+          "children": [
+            {
+              "tag": "li",
+              "text": "태스크는 기간 막대(🛫 start ~ 📅 due)로 표시. start 없으면 due 하루짜리 막대."
+            },
+            {
+              "tag": "li",
+              "text": "막대·트레이 카드를 날짜로 드래그 = 기간째 이동(놓은 칸 = 🛫 시작일, 없으면 📅 마감일)."
+            },
+            {
+              "tag": "li",
+              "text": "Shift + 드래그 = 📅 마감일만 조정 (🛫 없으면 생성)."
+            },
+            {
+              "tag": "li",
+              "text": "일간 보기: 블록 드래그 = 시각 이동(15분 단위) · 아래끝 드래그 = 종료 시각 · 종일 줄 ↔ 그리드 = 시각 부여/제거."
+            },
+            {
+              "tag": "li",
+              "text": "일간 보기에서 끌면 착지 지점에 그림자와 시각 배지가 뜬다 — 마우스 커서가 아니라 그 그림자에 맞춰 놓는다."
+            },
+            {
+              "tag": "li",
+              "text": "클릭 = 원본 열기(현재 탭) · Ctrl+클릭 = 새 탭 · Ctrl+Shift+클릭 = 분할 창 · 우클릭 = Tasks 편집 모달."
+            },
+            {
+              "tag": "li",
+              "text": "📥 날짜 없음 / 🔴 지연 카드의 빠른 버튼·날짜선택기로도 마감일 변경."
+            },
+            {
+              "tag": "li",
+              "text": "카테고리 필터의 «전체» 버튼은 토글이다 — 다 켜져 있으면 «전체 해제», 비우고 볼 것만 켜면 된다."
+            },
+            {
+              "tag": "li",
+              "text": "변경은 노트에 바로 쓰이고 tasks-gcal-sync 가 Google Calendar 로 올린다."
+            },
+            {
+              "tag": "li",
+              "text": "시각(⏰)은 일간 보기 드래그로만 넣는다 — 줄 끝에 적으면 Tasks 가 📅 까지 못 읽는다."
+            },
+            {
+              "tag": "li",
+              "text": "📆 는 Google Calendar 일정(읽기 전용)이다 — 드래그·클릭·편집이 되지 않는다. 색은 같은 이름의 카테고리를 따른다."
+            },
+            {
+              "tag": "li",
+              "text": "gcal: / gcal-exclude: 의 값은 #gcal/ 태그와 같은 캘린더 이름이다. 동기화 플러그인 설정에서 고른 캘린더의 부분집합이라, 여기 적었다고 안 고른 캘린더를 가져오지는 않는다."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tag": "h3",
+      "text": "모바일"
+    },
+    {
+      "setting": {
+        "name": "모바일 화면",
+        "desc": "폰에서는 드래그·우클릭이 터치에서 동작하지 않아 조작이 불가능합니다. 모바일 화면은 월간 요약과 날짜별 목록으로 그리고, 항목을 탭하면 뜨는 액션시트에서 마감일·시작일·시각을 고칩니다. «자동» 은 폰에서만 켜집니다 — 태블릿은 폰으로 잡히지 않으니 «항상» 을 쓰세요.",
+        "controls": [
+          {
+            "type": "dropdown",
+            "value": "auto",
+            "options": [
+              [
+                "auto",
+                "자동 (폰에서만)"
+              ],
+              [
+                "always",
+                "항상"
+              ],
+              [
+                "off",
+                "끄기"
+              ]
+            ],
+            "handler": true
+          }
+        ]
+      }
+    },
+    {
+      "tag": "h3",
+      "text": "카테고리"
+    },
+    {
+      "tag": "p",
+      "text": "task 의 #gcal/<key> 태그로 분류된다. 색을 Google Calendar 의 커스텀 색과 맞추면 캘린더와 GCal 이 같은 색으로 보인다.",
+      "style": {
+        "cssText": "font-size:12px;opacity:.7;margin:0 0 4px;"
+      }
+    },
+    {
+      "tag": "p",
+      "text": "key (#gcal/<key>)  ·  표시 이름  ·  색",
+      "style": {
+        "cssText": "font-size:11px;opacity:.5;margin:0 0 6px;"
+      }
+    },
+    {
+      "setting": {
+        "infoRemoved": true,
+        "controls": [
+          {
+            "type": "text",
+            "value": "work",
+            "placeholder": "key (예: work)",
+            "handler": true
+          },
+          {
+            "type": "text",
+            "value": "Work",
+            "placeholder": "표시 이름",
+            "handler": true
+          },
+          {
+            "type": "color",
+            "value": "#3f51b5",
+            "handler": true
+          },
+          {
+            "type": "extraButton",
+            "icon": "trash",
+            "tooltip": "삭제",
+            "handler": true
+          }
+        ]
+      }
+    },
+    {
+      "setting": {
+        "infoRemoved": true,
+        "controls": [
+          {
+            "type": "text",
+            "value": "growth",
+            "placeholder": "key (예: work)",
+            "handler": true
+          },
+          {
+            "type": "text",
+            "value": "Growth",
+            "placeholder": "표시 이름",
+            "handler": true
+          },
+          {
+            "type": "color",
+            "value": "#0b8043",
+            "handler": true
+          },
+          {
+            "type": "extraButton",
+            "icon": "trash",
+            "tooltip": "삭제",
+            "handler": true
+          }
+        ]
+      }
+    },
+    {
+      "setting": {
+        "infoRemoved": true,
+        "controls": [
+          {
+            "type": "text",
+            "value": "routine",
+            "placeholder": "key (예: work)",
+            "handler": true
+          },
+          {
+            "type": "text",
+            "value": "Routine",
+            "placeholder": "표시 이름",
+            "handler": true
+          },
+          {
+            "type": "color",
+            "value": "#9e69af",
+            "handler": true
+          },
+          {
+            "type": "extraButton",
+            "icon": "trash",
+            "tooltip": "삭제",
+            "handler": true
+          }
+        ]
+      }
+    },
+    {
+      "setting": {
+        "infoRemoved": true,
+        "controls": [
+          {
+            "type": "text",
+            "value": "personal",
+            "placeholder": "key (예: work)",
+            "handler": true
+          },
+          {
+            "type": "text",
+            "value": "Personal",
+            "placeholder": "표시 이름",
+            "handler": true
+          },
+          {
+            "type": "color",
+            "value": "#e67c73",
+            "handler": true
+          },
+          {
+            "type": "extraButton",
+            "icon": "trash",
+            "tooltip": "삭제",
+            "handler": true
+          }
+        ]
+      }
+    },
+    {
+      "setting": {
+        "infoRemoved": true,
+        "controls": [
+          {
+            "type": "text",
+            "value": "hobby",
+            "placeholder": "key (예: work)",
+            "handler": true
+          },
+          {
+            "type": "text",
+            "value": "Hobby",
+            "placeholder": "표시 이름",
+            "handler": true
+          },
+          {
+            "type": "color",
+            "value": "#e4c441",
+            "handler": true
+          },
+          {
+            "type": "extraButton",
+            "icon": "trash",
+            "tooltip": "삭제",
+            "handler": true
+          }
+        ]
+      }
+    },
+    {
+      "setting": {
+        "infoRemoved": true,
+        "controls": [
+          {
+            "type": "text",
+            "value": "event",
+            "placeholder": "key (예: work)",
+            "handler": true
+          },
+          {
+            "type": "text",
+            "value": "Event",
+            "placeholder": "표시 이름",
+            "handler": true
+          },
+          {
+            "type": "color",
+            "value": "#a2845e",
+            "handler": true
+          },
+          {
+            "type": "extraButton",
+            "icon": "trash",
+            "tooltip": "삭제",
+            "handler": true
+          }
+        ]
+      }
+    },
+    {
+      "setting": {
+        "infoRemoved": true,
+        "controls": [
+          {
+            "type": "text",
+            "value": "non-core",
+            "placeholder": "key (예: work)",
+            "handler": true
+          },
+          {
+            "type": "text",
+            "value": "Non-core",
+            "placeholder": "표시 이름",
+            "handler": true
+          },
+          {
+            "type": "color",
+            "value": "#a79b8e",
+            "handler": true
+          },
+          {
+            "type": "extraButton",
+            "icon": "trash",
+            "tooltip": "삭제",
+            "handler": true
+          }
+        ]
+      }
+    },
+    {
+      "setting": {
+        "controls": [
+          {
+            "type": "button",
+            "buttonText": "카테고리 추가",
+            "handler": true
+          }
+        ]
+      }
+    },
+    {
+      "setting": {
+        "name": "기본 카테고리",
+        "desc": "#gcal/ 태그가 없는 task 에 쓰인다. 색 폴백도 겸한다.",
+        "controls": [
+          {
+            "type": "dropdown",
+            "value": "personal",
+            "options": [
+              [
+                "work",
+                "Work"
+              ],
+              [
+                "growth",
+                "Growth"
+              ],
+              [
+                "routine",
+                "Routine"
+              ],
+              [
+                "personal",
+                "Personal"
+              ],
+              [
+                "hobby",
+                "Hobby"
+              ],
+              [
+                "event",
+                "Event"
+              ],
+              [
+                "non-core",
+                "Non-core"
+              ]
+            ],
+            "handler": true
+          }
+        ]
+      }
+    },
+    {
+      "tag": "h3",
+      "text": "GCal 일정 캘린더 (읽기 전용)"
+    },
+    {
+      "tag": "p",
+      "text": "tasks-gcal-sync 설정의 «캘린더 뷰에 표시할 일정» 에서 고른 캘린더의 회의·약속이 📆 로 그려집니다. 기본은 같은 이름의 카테고리 색을 따르므로 (예: Growth 캘린더 → 위의 growth 카테고리), 보통은 손댈 게 없습니다.",
+      "cls": "setting-item-description"
+    },
+    {
+      "tag": "p",
+      "text": "고른 캘린더가 없습니다. tasks-gcal-sync 설정 → «캘린더 뷰에 표시할 일정» 에서 고르세요.",
+      "cls": "setting-item-description"
+    },
+    {
+      "setting": {
+        "name": "기본 색",
+        "desc": "같은 이름의 카테고리가 없는 캘린더에 쓰입니다 (예: Holidays in South Korea).",
+        "controls": [
+          {
+            "type": "color",
+            "value": "#7f8c8d",
+            "handler": true
+          },
+          {
+            "type": "extraButton",
+            "icon": "rotate-ccw",
+            "tooltip": "기본값(#7f8c8d)으로 되돌리기",
+            "handler": true
+          }
+        ]
+      }
+    }
+  ]
+}

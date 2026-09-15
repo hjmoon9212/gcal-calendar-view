@@ -67,6 +67,10 @@ export class Plugin {
   addSettingTab(tab: any): void {
     this.__settingTabs.push(tab);
   }
+  __codeBlocks: [string, (...a: any[]) => any][] = [];
+  registerMarkdownCodeBlockProcessor(lang: string, fn: (...a: any[]) => any): void {
+    this.__codeBlocks.push([lang, fn]);
+  }
   registerEvent(ref: any): void {
     this.__events.push(ref);
   }
@@ -181,13 +185,36 @@ class RecButton {
     return this;
   }
 }
+class RecColor {
+  type = "color";
+  value = "";
+  onChangeCb?: (v: string) => any;
+  setValue(v: string) {
+    this.value = v;
+    return this;
+  }
+  onChange(cb: (v: string) => any) {
+    this.onChangeCb = cb;
+    return this;
+  }
+}
 export class Setting {
   nameText = "";
   descText = "";
   controls: any[] = [];
   controlEl: any = { style: {} };
+  settingEl: any = { style: {} };
+  infoRemoved = false;
+  infoEl: any = {
+    remove: () => {
+      this.infoRemoved = true;
+    },
+  };
   constructor(containerEl: any) {
     containerEl?.__push?.({ kind: "setting", setting: this });
+  }
+  addColorPicker(cb: (c: any) => any) {
+    return this.add(new RecColor(), cb);
   }
   setName(n: string) {
     this.nameText = n;

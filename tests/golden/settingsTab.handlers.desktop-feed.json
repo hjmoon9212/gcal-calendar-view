@@ -1,0 +1,1649 @@
+[
+  {
+    "target": "<button> 복사",
+    "changed": {},
+    "calls": [],
+    "display": 0,
+    "notices": [],
+    "clipboard": [
+      "```gcal-calendar\n```"
+    ],
+    "buttonTextAfter": "복사됨"
+  },
+  {
+    "target": "<button> 복사",
+    "changed": {},
+    "calls": [],
+    "display": 0,
+    "notices": [],
+    "clipboard": [
+      "```gcal-calendar\nscope: vault\n```"
+    ],
+    "buttonTextAfter": "복사됨"
+  },
+  {
+    "target": "<button> 복사",
+    "changed": {},
+    "calls": [],
+    "display": 0,
+    "notices": [],
+    "clipboard": [
+      "```gcal-calendar\nsource: \"0. Note/1. Project\" and !\"Template\"\nnote: - 이 프로젝트의 할 일만 모읍니다.\nnote: - **마감 임박**한 것부터 처리할 것.\nnote: - 배경은 [[프로젝트 개요]] 참고.\n```"
+    ],
+    "buttonTextAfter": "복사됨"
+  },
+  {
+    "target": "<button> 복사",
+    "changed": {},
+    "calls": [],
+    "display": 0,
+    "notices": [],
+    "clipboard": [
+      "```gcal-calendar\ngcal: Growth, Routine\n```"
+    ],
+    "buttonTextAfter": "복사됨"
+  },
+  {
+    "target": "<button> 복사",
+    "changed": {},
+    "calls": [],
+    "display": 0,
+    "notices": [],
+    "clipboard": [
+      "```gcal-calendar\ngcal-exclude: Event\n```\n\n```gcal-calendar\ngcal: off\n```"
+    ],
+    "buttonTextAfter": "복사됨"
+  },
+  {
+    "target": "모바일 화면 0:dropdown",
+    "input": "off",
+    "changed": {
+      "mobileUi": "off"
+    },
+    "calls": [
+      [
+        "saveSettings"
+      ],
+      [
+        "refreshAll"
+      ]
+    ],
+    "display": 0,
+    "notices": [],
+    "clipboard": []
+  },
+  {
+    "target": "(이름 없음) 0:text",
+    "input": "  new  ",
+    "changed": {
+      "categories": [
+        {
+          "key": "new",
+          "label": "Work",
+          "color": "#3f51b5"
+        },
+        {
+          "key": "growth",
+          "label": "Growth",
+          "color": "#0b8043"
+        },
+        {
+          "key": "routine",
+          "label": "Routine",
+          "color": "#9e69af"
+        },
+        {
+          "key": "personal",
+          "label": "Personal",
+          "color": "#e67c73"
+        },
+        {
+          "key": "hobby",
+          "label": "Hobby",
+          "color": "#e4c441"
+        },
+        {
+          "key": "event",
+          "label": "Event",
+          "color": "#a2845e"
+        },
+        {
+          "key": "non-core",
+          "label": "Non-core",
+          "color": "#a79b8e"
+        }
+      ]
+    },
+    "calls": [
+      [
+        "saveSettings"
+      ]
+    ],
+    "display": 0,
+    "notices": [],
+    "clipboard": []
+  },
+  {
+    "target": "(이름 없음) 1:text",
+    "input": "  new  ",
+    "changed": {
+      "categories": [
+        {
+          "key": "work",
+          "label": "  new  ",
+          "color": "#3f51b5"
+        },
+        {
+          "key": "growth",
+          "label": "Growth",
+          "color": "#0b8043"
+        },
+        {
+          "key": "routine",
+          "label": "Routine",
+          "color": "#9e69af"
+        },
+        {
+          "key": "personal",
+          "label": "Personal",
+          "color": "#e67c73"
+        },
+        {
+          "key": "hobby",
+          "label": "Hobby",
+          "color": "#e4c441"
+        },
+        {
+          "key": "event",
+          "label": "Event",
+          "color": "#a2845e"
+        },
+        {
+          "key": "non-core",
+          "label": "Non-core",
+          "color": "#a79b8e"
+        }
+      ]
+    },
+    "calls": [
+      [
+        "saveSettings"
+      ]
+    ],
+    "display": 0,
+    "notices": [],
+    "clipboard": []
+  },
+  {
+    "target": "(이름 없음) 2:color",
+    "input": "#010203",
+    "changed": {
+      "categories": [
+        {
+          "key": "work",
+          "label": "Work",
+          "color": "#010203"
+        },
+        {
+          "key": "growth",
+          "label": "Growth",
+          "color": "#0b8043"
+        },
+        {
+          "key": "routine",
+          "label": "Routine",
+          "color": "#9e69af"
+        },
+        {
+          "key": "personal",
+          "label": "Personal",
+          "color": "#e67c73"
+        },
+        {
+          "key": "hobby",
+          "label": "Hobby",
+          "color": "#e4c441"
+        },
+        {
+          "key": "event",
+          "label": "Event",
+          "color": "#a2845e"
+        },
+        {
+          "key": "non-core",
+          "label": "Non-core",
+          "color": "#a79b8e"
+        }
+      ]
+    },
+    "calls": [
+      [
+        "saveSettings"
+      ]
+    ],
+    "display": 0,
+    "notices": [],
+    "clipboard": []
+  },
+  {
+    "target": "(이름 없음) 3:extraButton 삭제",
+    "changed": {
+      "categories": [
+        {
+          "key": "growth",
+          "label": "Growth",
+          "color": "#0b8043"
+        },
+        {
+          "key": "routine",
+          "label": "Routine",
+          "color": "#9e69af"
+        },
+        {
+          "key": "personal",
+          "label": "Personal",
+          "color": "#e67c73"
+        },
+        {
+          "key": "hobby",
+          "label": "Hobby",
+          "color": "#e4c441"
+        },
+        {
+          "key": "event",
+          "label": "Event",
+          "color": "#a2845e"
+        },
+        {
+          "key": "non-core",
+          "label": "Non-core",
+          "color": "#a79b8e"
+        }
+      ]
+    },
+    "calls": [
+      [
+        "saveSettings"
+      ]
+    ],
+    "display": 1,
+    "notices": [],
+    "clipboard": []
+  },
+  {
+    "target": "(이름 없음) 0:text",
+    "input": "  new  ",
+    "changed": {
+      "categories": [
+        {
+          "key": "work",
+          "label": "Work",
+          "color": "#3f51b5"
+        },
+        {
+          "key": "new",
+          "label": "Growth",
+          "color": "#0b8043"
+        },
+        {
+          "key": "routine",
+          "label": "Routine",
+          "color": "#9e69af"
+        },
+        {
+          "key": "personal",
+          "label": "Personal",
+          "color": "#e67c73"
+        },
+        {
+          "key": "hobby",
+          "label": "Hobby",
+          "color": "#e4c441"
+        },
+        {
+          "key": "event",
+          "label": "Event",
+          "color": "#a2845e"
+        },
+        {
+          "key": "non-core",
+          "label": "Non-core",
+          "color": "#a79b8e"
+        }
+      ]
+    },
+    "calls": [
+      [
+        "saveSettings"
+      ]
+    ],
+    "display": 0,
+    "notices": [],
+    "clipboard": []
+  },
+  {
+    "target": "(이름 없음) 1:text",
+    "input": "  new  ",
+    "changed": {
+      "categories": [
+        {
+          "key": "work",
+          "label": "Work",
+          "color": "#3f51b5"
+        },
+        {
+          "key": "growth",
+          "label": "  new  ",
+          "color": "#0b8043"
+        },
+        {
+          "key": "routine",
+          "label": "Routine",
+          "color": "#9e69af"
+        },
+        {
+          "key": "personal",
+          "label": "Personal",
+          "color": "#e67c73"
+        },
+        {
+          "key": "hobby",
+          "label": "Hobby",
+          "color": "#e4c441"
+        },
+        {
+          "key": "event",
+          "label": "Event",
+          "color": "#a2845e"
+        },
+        {
+          "key": "non-core",
+          "label": "Non-core",
+          "color": "#a79b8e"
+        }
+      ]
+    },
+    "calls": [
+      [
+        "saveSettings"
+      ]
+    ],
+    "display": 0,
+    "notices": [],
+    "clipboard": []
+  },
+  {
+    "target": "(이름 없음) 2:color",
+    "input": "#010203",
+    "changed": {
+      "categories": [
+        {
+          "key": "work",
+          "label": "Work",
+          "color": "#3f51b5"
+        },
+        {
+          "key": "growth",
+          "label": "Growth",
+          "color": "#010203"
+        },
+        {
+          "key": "routine",
+          "label": "Routine",
+          "color": "#9e69af"
+        },
+        {
+          "key": "personal",
+          "label": "Personal",
+          "color": "#e67c73"
+        },
+        {
+          "key": "hobby",
+          "label": "Hobby",
+          "color": "#e4c441"
+        },
+        {
+          "key": "event",
+          "label": "Event",
+          "color": "#a2845e"
+        },
+        {
+          "key": "non-core",
+          "label": "Non-core",
+          "color": "#a79b8e"
+        }
+      ]
+    },
+    "calls": [
+      [
+        "saveSettings"
+      ]
+    ],
+    "display": 0,
+    "notices": [],
+    "clipboard": []
+  },
+  {
+    "target": "(이름 없음) 3:extraButton 삭제",
+    "changed": {
+      "categories": [
+        {
+          "key": "work",
+          "label": "Work",
+          "color": "#3f51b5"
+        },
+        {
+          "key": "routine",
+          "label": "Routine",
+          "color": "#9e69af"
+        },
+        {
+          "key": "personal",
+          "label": "Personal",
+          "color": "#e67c73"
+        },
+        {
+          "key": "hobby",
+          "label": "Hobby",
+          "color": "#e4c441"
+        },
+        {
+          "key": "event",
+          "label": "Event",
+          "color": "#a2845e"
+        },
+        {
+          "key": "non-core",
+          "label": "Non-core",
+          "color": "#a79b8e"
+        }
+      ]
+    },
+    "calls": [
+      [
+        "saveSettings"
+      ]
+    ],
+    "display": 1,
+    "notices": [],
+    "clipboard": []
+  },
+  {
+    "target": "(이름 없음) 0:text",
+    "input": "  new  ",
+    "changed": {
+      "categories": [
+        {
+          "key": "work",
+          "label": "Work",
+          "color": "#3f51b5"
+        },
+        {
+          "key": "growth",
+          "label": "Growth",
+          "color": "#0b8043"
+        },
+        {
+          "key": "new",
+          "label": "Routine",
+          "color": "#9e69af"
+        },
+        {
+          "key": "personal",
+          "label": "Personal",
+          "color": "#e67c73"
+        },
+        {
+          "key": "hobby",
+          "label": "Hobby",
+          "color": "#e4c441"
+        },
+        {
+          "key": "event",
+          "label": "Event",
+          "color": "#a2845e"
+        },
+        {
+          "key": "non-core",
+          "label": "Non-core",
+          "color": "#a79b8e"
+        }
+      ]
+    },
+    "calls": [
+      [
+        "saveSettings"
+      ]
+    ],
+    "display": 0,
+    "notices": [],
+    "clipboard": []
+  },
+  {
+    "target": "(이름 없음) 1:text",
+    "input": "  new  ",
+    "changed": {
+      "categories": [
+        {
+          "key": "work",
+          "label": "Work",
+          "color": "#3f51b5"
+        },
+        {
+          "key": "growth",
+          "label": "Growth",
+          "color": "#0b8043"
+        },
+        {
+          "key": "routine",
+          "label": "  new  ",
+          "color": "#9e69af"
+        },
+        {
+          "key": "personal",
+          "label": "Personal",
+          "color": "#e67c73"
+        },
+        {
+          "key": "hobby",
+          "label": "Hobby",
+          "color": "#e4c441"
+        },
+        {
+          "key": "event",
+          "label": "Event",
+          "color": "#a2845e"
+        },
+        {
+          "key": "non-core",
+          "label": "Non-core",
+          "color": "#a79b8e"
+        }
+      ]
+    },
+    "calls": [
+      [
+        "saveSettings"
+      ]
+    ],
+    "display": 0,
+    "notices": [],
+    "clipboard": []
+  },
+  {
+    "target": "(이름 없음) 2:color",
+    "input": "#010203",
+    "changed": {
+      "categories": [
+        {
+          "key": "work",
+          "label": "Work",
+          "color": "#3f51b5"
+        },
+        {
+          "key": "growth",
+          "label": "Growth",
+          "color": "#0b8043"
+        },
+        {
+          "key": "routine",
+          "label": "Routine",
+          "color": "#010203"
+        },
+        {
+          "key": "personal",
+          "label": "Personal",
+          "color": "#e67c73"
+        },
+        {
+          "key": "hobby",
+          "label": "Hobby",
+          "color": "#e4c441"
+        },
+        {
+          "key": "event",
+          "label": "Event",
+          "color": "#a2845e"
+        },
+        {
+          "key": "non-core",
+          "label": "Non-core",
+          "color": "#a79b8e"
+        }
+      ]
+    },
+    "calls": [
+      [
+        "saveSettings"
+      ]
+    ],
+    "display": 0,
+    "notices": [],
+    "clipboard": []
+  },
+  {
+    "target": "(이름 없음) 3:extraButton 삭제",
+    "changed": {
+      "categories": [
+        {
+          "key": "work",
+          "label": "Work",
+          "color": "#3f51b5"
+        },
+        {
+          "key": "growth",
+          "label": "Growth",
+          "color": "#0b8043"
+        },
+        {
+          "key": "personal",
+          "label": "Personal",
+          "color": "#e67c73"
+        },
+        {
+          "key": "hobby",
+          "label": "Hobby",
+          "color": "#e4c441"
+        },
+        {
+          "key": "event",
+          "label": "Event",
+          "color": "#a2845e"
+        },
+        {
+          "key": "non-core",
+          "label": "Non-core",
+          "color": "#a79b8e"
+        }
+      ]
+    },
+    "calls": [
+      [
+        "saveSettings"
+      ]
+    ],
+    "display": 1,
+    "notices": [],
+    "clipboard": []
+  },
+  {
+    "target": "(이름 없음) 0:text",
+    "input": "  new  ",
+    "changed": {
+      "categories": [
+        {
+          "key": "work",
+          "label": "Work",
+          "color": "#3f51b5"
+        },
+        {
+          "key": "growth",
+          "label": "Growth",
+          "color": "#0b8043"
+        },
+        {
+          "key": "routine",
+          "label": "Routine",
+          "color": "#9e69af"
+        },
+        {
+          "key": "new",
+          "label": "Personal",
+          "color": "#e67c73"
+        },
+        {
+          "key": "hobby",
+          "label": "Hobby",
+          "color": "#e4c441"
+        },
+        {
+          "key": "event",
+          "label": "Event",
+          "color": "#a2845e"
+        },
+        {
+          "key": "non-core",
+          "label": "Non-core",
+          "color": "#a79b8e"
+        }
+      ]
+    },
+    "calls": [
+      [
+        "saveSettings"
+      ]
+    ],
+    "display": 0,
+    "notices": [],
+    "clipboard": []
+  },
+  {
+    "target": "(이름 없음) 1:text",
+    "input": "  new  ",
+    "changed": {
+      "categories": [
+        {
+          "key": "work",
+          "label": "Work",
+          "color": "#3f51b5"
+        },
+        {
+          "key": "growth",
+          "label": "Growth",
+          "color": "#0b8043"
+        },
+        {
+          "key": "routine",
+          "label": "Routine",
+          "color": "#9e69af"
+        },
+        {
+          "key": "personal",
+          "label": "  new  ",
+          "color": "#e67c73"
+        },
+        {
+          "key": "hobby",
+          "label": "Hobby",
+          "color": "#e4c441"
+        },
+        {
+          "key": "event",
+          "label": "Event",
+          "color": "#a2845e"
+        },
+        {
+          "key": "non-core",
+          "label": "Non-core",
+          "color": "#a79b8e"
+        }
+      ]
+    },
+    "calls": [
+      [
+        "saveSettings"
+      ]
+    ],
+    "display": 0,
+    "notices": [],
+    "clipboard": []
+  },
+  {
+    "target": "(이름 없음) 2:color",
+    "input": "#010203",
+    "changed": {
+      "categories": [
+        {
+          "key": "work",
+          "label": "Work",
+          "color": "#3f51b5"
+        },
+        {
+          "key": "growth",
+          "label": "Growth",
+          "color": "#0b8043"
+        },
+        {
+          "key": "routine",
+          "label": "Routine",
+          "color": "#9e69af"
+        },
+        {
+          "key": "personal",
+          "label": "Personal",
+          "color": "#010203"
+        },
+        {
+          "key": "hobby",
+          "label": "Hobby",
+          "color": "#e4c441"
+        },
+        {
+          "key": "event",
+          "label": "Event",
+          "color": "#a2845e"
+        },
+        {
+          "key": "non-core",
+          "label": "Non-core",
+          "color": "#a79b8e"
+        }
+      ]
+    },
+    "calls": [
+      [
+        "saveSettings"
+      ]
+    ],
+    "display": 0,
+    "notices": [],
+    "clipboard": []
+  },
+  {
+    "target": "(이름 없음) 3:extraButton 삭제",
+    "changed": {
+      "categories": [
+        {
+          "key": "work",
+          "label": "Work",
+          "color": "#3f51b5"
+        },
+        {
+          "key": "growth",
+          "label": "Growth",
+          "color": "#0b8043"
+        },
+        {
+          "key": "routine",
+          "label": "Routine",
+          "color": "#9e69af"
+        },
+        {
+          "key": "hobby",
+          "label": "Hobby",
+          "color": "#e4c441"
+        },
+        {
+          "key": "event",
+          "label": "Event",
+          "color": "#a2845e"
+        },
+        {
+          "key": "non-core",
+          "label": "Non-core",
+          "color": "#a79b8e"
+        }
+      ]
+    },
+    "calls": [
+      [
+        "saveSettings"
+      ]
+    ],
+    "display": 1,
+    "notices": [],
+    "clipboard": []
+  },
+  {
+    "target": "(이름 없음) 0:text",
+    "input": "  new  ",
+    "changed": {
+      "categories": [
+        {
+          "key": "work",
+          "label": "Work",
+          "color": "#3f51b5"
+        },
+        {
+          "key": "growth",
+          "label": "Growth",
+          "color": "#0b8043"
+        },
+        {
+          "key": "routine",
+          "label": "Routine",
+          "color": "#9e69af"
+        },
+        {
+          "key": "personal",
+          "label": "Personal",
+          "color": "#e67c73"
+        },
+        {
+          "key": "new",
+          "label": "Hobby",
+          "color": "#e4c441"
+        },
+        {
+          "key": "event",
+          "label": "Event",
+          "color": "#a2845e"
+        },
+        {
+          "key": "non-core",
+          "label": "Non-core",
+          "color": "#a79b8e"
+        }
+      ]
+    },
+    "calls": [
+      [
+        "saveSettings"
+      ]
+    ],
+    "display": 0,
+    "notices": [],
+    "clipboard": []
+  },
+  {
+    "target": "(이름 없음) 1:text",
+    "input": "  new  ",
+    "changed": {
+      "categories": [
+        {
+          "key": "work",
+          "label": "Work",
+          "color": "#3f51b5"
+        },
+        {
+          "key": "growth",
+          "label": "Growth",
+          "color": "#0b8043"
+        },
+        {
+          "key": "routine",
+          "label": "Routine",
+          "color": "#9e69af"
+        },
+        {
+          "key": "personal",
+          "label": "Personal",
+          "color": "#e67c73"
+        },
+        {
+          "key": "hobby",
+          "label": "  new  ",
+          "color": "#e4c441"
+        },
+        {
+          "key": "event",
+          "label": "Event",
+          "color": "#a2845e"
+        },
+        {
+          "key": "non-core",
+          "label": "Non-core",
+          "color": "#a79b8e"
+        }
+      ]
+    },
+    "calls": [
+      [
+        "saveSettings"
+      ]
+    ],
+    "display": 0,
+    "notices": [],
+    "clipboard": []
+  },
+  {
+    "target": "(이름 없음) 2:color",
+    "input": "#010203",
+    "changed": {
+      "categories": [
+        {
+          "key": "work",
+          "label": "Work",
+          "color": "#3f51b5"
+        },
+        {
+          "key": "growth",
+          "label": "Growth",
+          "color": "#0b8043"
+        },
+        {
+          "key": "routine",
+          "label": "Routine",
+          "color": "#9e69af"
+        },
+        {
+          "key": "personal",
+          "label": "Personal",
+          "color": "#e67c73"
+        },
+        {
+          "key": "hobby",
+          "label": "Hobby",
+          "color": "#010203"
+        },
+        {
+          "key": "event",
+          "label": "Event",
+          "color": "#a2845e"
+        },
+        {
+          "key": "non-core",
+          "label": "Non-core",
+          "color": "#a79b8e"
+        }
+      ]
+    },
+    "calls": [
+      [
+        "saveSettings"
+      ]
+    ],
+    "display": 0,
+    "notices": [],
+    "clipboard": []
+  },
+  {
+    "target": "(이름 없음) 3:extraButton 삭제",
+    "changed": {
+      "categories": [
+        {
+          "key": "work",
+          "label": "Work",
+          "color": "#3f51b5"
+        },
+        {
+          "key": "growth",
+          "label": "Growth",
+          "color": "#0b8043"
+        },
+        {
+          "key": "routine",
+          "label": "Routine",
+          "color": "#9e69af"
+        },
+        {
+          "key": "personal",
+          "label": "Personal",
+          "color": "#e67c73"
+        },
+        {
+          "key": "event",
+          "label": "Event",
+          "color": "#a2845e"
+        },
+        {
+          "key": "non-core",
+          "label": "Non-core",
+          "color": "#a79b8e"
+        }
+      ]
+    },
+    "calls": [
+      [
+        "saveSettings"
+      ]
+    ],
+    "display": 1,
+    "notices": [],
+    "clipboard": []
+  },
+  {
+    "target": "(이름 없음) 0:text",
+    "input": "  new  ",
+    "changed": {
+      "categories": [
+        {
+          "key": "work",
+          "label": "Work",
+          "color": "#3f51b5"
+        },
+        {
+          "key": "growth",
+          "label": "Growth",
+          "color": "#0b8043"
+        },
+        {
+          "key": "routine",
+          "label": "Routine",
+          "color": "#9e69af"
+        },
+        {
+          "key": "personal",
+          "label": "Personal",
+          "color": "#e67c73"
+        },
+        {
+          "key": "hobby",
+          "label": "Hobby",
+          "color": "#e4c441"
+        },
+        {
+          "key": "new",
+          "label": "Event",
+          "color": "#a2845e"
+        },
+        {
+          "key": "non-core",
+          "label": "Non-core",
+          "color": "#a79b8e"
+        }
+      ]
+    },
+    "calls": [
+      [
+        "saveSettings"
+      ]
+    ],
+    "display": 0,
+    "notices": [],
+    "clipboard": []
+  },
+  {
+    "target": "(이름 없음) 1:text",
+    "input": "  new  ",
+    "changed": {
+      "categories": [
+        {
+          "key": "work",
+          "label": "Work",
+          "color": "#3f51b5"
+        },
+        {
+          "key": "growth",
+          "label": "Growth",
+          "color": "#0b8043"
+        },
+        {
+          "key": "routine",
+          "label": "Routine",
+          "color": "#9e69af"
+        },
+        {
+          "key": "personal",
+          "label": "Personal",
+          "color": "#e67c73"
+        },
+        {
+          "key": "hobby",
+          "label": "Hobby",
+          "color": "#e4c441"
+        },
+        {
+          "key": "event",
+          "label": "  new  ",
+          "color": "#a2845e"
+        },
+        {
+          "key": "non-core",
+          "label": "Non-core",
+          "color": "#a79b8e"
+        }
+      ]
+    },
+    "calls": [
+      [
+        "saveSettings"
+      ]
+    ],
+    "display": 0,
+    "notices": [],
+    "clipboard": []
+  },
+  {
+    "target": "(이름 없음) 2:color",
+    "input": "#010203",
+    "changed": {
+      "categories": [
+        {
+          "key": "work",
+          "label": "Work",
+          "color": "#3f51b5"
+        },
+        {
+          "key": "growth",
+          "label": "Growth",
+          "color": "#0b8043"
+        },
+        {
+          "key": "routine",
+          "label": "Routine",
+          "color": "#9e69af"
+        },
+        {
+          "key": "personal",
+          "label": "Personal",
+          "color": "#e67c73"
+        },
+        {
+          "key": "hobby",
+          "label": "Hobby",
+          "color": "#e4c441"
+        },
+        {
+          "key": "event",
+          "label": "Event",
+          "color": "#010203"
+        },
+        {
+          "key": "non-core",
+          "label": "Non-core",
+          "color": "#a79b8e"
+        }
+      ]
+    },
+    "calls": [
+      [
+        "saveSettings"
+      ]
+    ],
+    "display": 0,
+    "notices": [],
+    "clipboard": []
+  },
+  {
+    "target": "(이름 없음) 3:extraButton 삭제",
+    "changed": {
+      "categories": [
+        {
+          "key": "work",
+          "label": "Work",
+          "color": "#3f51b5"
+        },
+        {
+          "key": "growth",
+          "label": "Growth",
+          "color": "#0b8043"
+        },
+        {
+          "key": "routine",
+          "label": "Routine",
+          "color": "#9e69af"
+        },
+        {
+          "key": "personal",
+          "label": "Personal",
+          "color": "#e67c73"
+        },
+        {
+          "key": "hobby",
+          "label": "Hobby",
+          "color": "#e4c441"
+        },
+        {
+          "key": "non-core",
+          "label": "Non-core",
+          "color": "#a79b8e"
+        }
+      ]
+    },
+    "calls": [
+      [
+        "saveSettings"
+      ]
+    ],
+    "display": 1,
+    "notices": [],
+    "clipboard": []
+  },
+  {
+    "target": "(이름 없음) 0:text",
+    "input": "  new  ",
+    "changed": {
+      "categories": [
+        {
+          "key": "work",
+          "label": "Work",
+          "color": "#3f51b5"
+        },
+        {
+          "key": "growth",
+          "label": "Growth",
+          "color": "#0b8043"
+        },
+        {
+          "key": "routine",
+          "label": "Routine",
+          "color": "#9e69af"
+        },
+        {
+          "key": "personal",
+          "label": "Personal",
+          "color": "#e67c73"
+        },
+        {
+          "key": "hobby",
+          "label": "Hobby",
+          "color": "#e4c441"
+        },
+        {
+          "key": "event",
+          "label": "Event",
+          "color": "#a2845e"
+        },
+        {
+          "key": "new",
+          "label": "Non-core",
+          "color": "#a79b8e"
+        }
+      ]
+    },
+    "calls": [
+      [
+        "saveSettings"
+      ]
+    ],
+    "display": 0,
+    "notices": [],
+    "clipboard": []
+  },
+  {
+    "target": "(이름 없음) 1:text",
+    "input": "  new  ",
+    "changed": {
+      "categories": [
+        {
+          "key": "work",
+          "label": "Work",
+          "color": "#3f51b5"
+        },
+        {
+          "key": "growth",
+          "label": "Growth",
+          "color": "#0b8043"
+        },
+        {
+          "key": "routine",
+          "label": "Routine",
+          "color": "#9e69af"
+        },
+        {
+          "key": "personal",
+          "label": "Personal",
+          "color": "#e67c73"
+        },
+        {
+          "key": "hobby",
+          "label": "Hobby",
+          "color": "#e4c441"
+        },
+        {
+          "key": "event",
+          "label": "Event",
+          "color": "#a2845e"
+        },
+        {
+          "key": "non-core",
+          "label": "  new  ",
+          "color": "#a79b8e"
+        }
+      ]
+    },
+    "calls": [
+      [
+        "saveSettings"
+      ]
+    ],
+    "display": 0,
+    "notices": [],
+    "clipboard": []
+  },
+  {
+    "target": "(이름 없음) 2:color",
+    "input": "#010203",
+    "changed": {
+      "categories": [
+        {
+          "key": "work",
+          "label": "Work",
+          "color": "#3f51b5"
+        },
+        {
+          "key": "growth",
+          "label": "Growth",
+          "color": "#0b8043"
+        },
+        {
+          "key": "routine",
+          "label": "Routine",
+          "color": "#9e69af"
+        },
+        {
+          "key": "personal",
+          "label": "Personal",
+          "color": "#e67c73"
+        },
+        {
+          "key": "hobby",
+          "label": "Hobby",
+          "color": "#e4c441"
+        },
+        {
+          "key": "event",
+          "label": "Event",
+          "color": "#a2845e"
+        },
+        {
+          "key": "non-core",
+          "label": "Non-core",
+          "color": "#010203"
+        }
+      ]
+    },
+    "calls": [
+      [
+        "saveSettings"
+      ]
+    ],
+    "display": 0,
+    "notices": [],
+    "clipboard": []
+  },
+  {
+    "target": "(이름 없음) 3:extraButton 삭제",
+    "changed": {
+      "categories": [
+        {
+          "key": "work",
+          "label": "Work",
+          "color": "#3f51b5"
+        },
+        {
+          "key": "growth",
+          "label": "Growth",
+          "color": "#0b8043"
+        },
+        {
+          "key": "routine",
+          "label": "Routine",
+          "color": "#9e69af"
+        },
+        {
+          "key": "personal",
+          "label": "Personal",
+          "color": "#e67c73"
+        },
+        {
+          "key": "hobby",
+          "label": "Hobby",
+          "color": "#e4c441"
+        },
+        {
+          "key": "event",
+          "label": "Event",
+          "color": "#a2845e"
+        }
+      ]
+    },
+    "calls": [
+      [
+        "saveSettings"
+      ]
+    ],
+    "display": 1,
+    "notices": [],
+    "clipboard": []
+  },
+  {
+    "target": "(이름 없음) 0:button 카테고리 추가",
+    "changed": {
+      "categories": [
+        {
+          "key": "work",
+          "label": "Work",
+          "color": "#3f51b5"
+        },
+        {
+          "key": "growth",
+          "label": "Growth",
+          "color": "#0b8043"
+        },
+        {
+          "key": "routine",
+          "label": "Routine",
+          "color": "#9e69af"
+        },
+        {
+          "key": "personal",
+          "label": "Personal",
+          "color": "#e67c73"
+        },
+        {
+          "key": "hobby",
+          "label": "Hobby",
+          "color": "#e4c441"
+        },
+        {
+          "key": "event",
+          "label": "Event",
+          "color": "#a2845e"
+        },
+        {
+          "key": "non-core",
+          "label": "Non-core",
+          "color": "#a79b8e"
+        },
+        {
+          "key": "",
+          "label": "",
+          "color": "#7f8c8d"
+        }
+      ]
+    },
+    "calls": [
+      [
+        "saveSettings"
+      ]
+    ],
+    "display": 1,
+    "notices": [],
+    "clipboard": []
+  },
+  {
+    "target": "기본 카테고리 0:dropdown",
+    "input": "non-core",
+    "changed": {
+      "defaultCategory": "non-core"
+    },
+    "calls": [
+      [
+        "saveSettings"
+      ]
+    ],
+    "display": 0,
+    "notices": [],
+    "clipboard": []
+  },
+  {
+    "target": "Work 0:color",
+    "input": "#010203",
+    "changed": {
+      "eventColors": {
+        "cal-own": "#010203"
+      }
+    },
+    "calls": [
+      [
+        "saveSettings"
+      ]
+    ],
+    "display": 1,
+    "notices": [],
+    "clipboard": []
+  },
+  {
+    "target": "Work 1:extraButton 카테고리 색으로 되돌리기",
+    "changed": {
+      "eventColors": {}
+    },
+    "calls": [
+      [
+        "saveSettings"
+      ]
+    ],
+    "display": 1,
+    "notices": [],
+    "clipboard": []
+  },
+  {
+    "target": "Growth 0:color",
+    "input": "#010203",
+    "changed": {
+      "eventColors": {
+        "cal-own": "#abcdef",
+        "cal-growth": "#010203"
+      }
+    },
+    "calls": [
+      [
+        "saveSettings"
+      ]
+    ],
+    "display": 1,
+    "notices": [],
+    "clipboard": []
+  },
+  {
+    "target": "Growth 1:extraButton 카테고리 색으로 되돌리기",
+    "changed": {},
+    "calls": [
+      [
+        "saveSettings"
+      ]
+    ],
+    "display": 1,
+    "notices": [],
+    "clipboard": []
+  },
+  {
+    "target": "Holidays in South Korea 0:color",
+    "input": "#010203",
+    "changed": {
+      "eventColors": {
+        "cal-own": "#abcdef",
+        "cal-holiday": "#010203"
+      }
+    },
+    "calls": [
+      [
+        "saveSettings"
+      ]
+    ],
+    "display": 1,
+    "notices": [],
+    "clipboard": []
+  },
+  {
+    "target": "Holidays in South Korea 1:extraButton 카테고리 색으로 되돌리기",
+    "changed": {},
+    "calls": [
+      [
+        "saveSettings"
+      ]
+    ],
+    "display": 1,
+    "notices": [],
+    "clipboard": []
+  },
+  {
+    "target": "기본 색 0:color",
+    "input": "#010203",
+    "changed": {
+      "eventColor": "#010203"
+    },
+    "calls": [
+      [
+        "saveSettings"
+      ]
+    ],
+    "display": 1,
+    "notices": [],
+    "clipboard": []
+  },
+  {
+    "target": "기본 색 1:extraButton 기본값(#7f8c8d)으로 되돌리기",
+    "changed": {},
+    "calls": [
+      [
+        "saveSettings"
+      ]
+    ],
+    "display": 1,
+    "notices": [],
+    "clipboard": []
+  }
+]

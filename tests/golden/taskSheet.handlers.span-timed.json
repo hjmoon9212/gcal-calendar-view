@@ -1,0 +1,178 @@
+[
+  {
+    "target": "button 오늘",
+    "calls": [
+      [
+        "writeBack",
+        "task:보고서",
+        "2026-08-06"
+      ]
+    ],
+    "closed": 1
+  },
+  {
+    "target": "button 내일",
+    "calls": [
+      [
+        "writeBack",
+        "task:보고서",
+        "2026-08-07"
+      ]
+    ],
+    "closed": 1
+  },
+  {
+    "target": "button +7일",
+    "calls": [
+      [
+        "writeBack",
+        "task:보고서",
+        "2026-08-13"
+      ]
+    ],
+    "closed": 1
+  },
+  {
+    "target": "input[date] 2026-08-10",
+    "calls": [
+      [
+        "writeBack",
+        "task:보고서",
+        "2026-08-20"
+      ]
+    ],
+    "closed": 1
+  },
+  {
+    "target": "input[date] 2026-08-08",
+    "calls": [
+      [
+        "notice",
+        "시작일은 마감일(📅 2026-08-10)보다 뒤일 수 없어요"
+      ]
+    ],
+    "closed": 1
+  },
+  {
+    "target": "input[date] 2026-08-08",
+    "calls": [
+      [
+        "dropOnDate",
+        "task:보고서",
+        "2026-08-20",
+        false
+      ]
+    ],
+    "closed": 1
+  },
+  {
+    "target": "button 15분",
+    "calls": [
+      [
+        "applyDates",
+        "task:보고서",
+        {
+          "time": "09:00-09:15"
+        }
+      ],
+      [
+        "notice",
+        "⏰ 09:00-09:15"
+      ]
+    ],
+    "closed": 1
+  },
+  {
+    "target": "button 30분",
+    "calls": [
+      [
+        "applyDates",
+        "task:보고서",
+        {
+          "time": "09:00-09:30"
+        }
+      ],
+      [
+        "notice",
+        "⏰ 09:00-09:30"
+      ]
+    ],
+    "closed": 1
+  },
+  {
+    "target": "button 1시간",
+    "calls": [
+      [
+        "applyDates",
+        "task:보고서",
+        {
+          "time": "09:00-10:00"
+        }
+      ],
+      [
+        "notice",
+        "⏰ 09:00-10:00"
+      ]
+    ],
+    "closed": 1
+  },
+  {
+    "target": "button 저장",
+    "calls": [
+      [
+        "applyDates",
+        "task:보고서",
+        {
+          "time": "09:00-10:00"
+        }
+      ],
+      [
+        "notice",
+        "⏰ 09:00-10:00"
+      ]
+    ],
+    "closed": 1
+  },
+  {
+    "target": "button 시각 제거",
+    "calls": [
+      [
+        "applyDates",
+        "task:보고서",
+        {
+          "time": null
+        }
+      ],
+      [
+        "notice",
+        "⏰ 제거됨"
+      ]
+    ],
+    "closed": 1
+  },
+  {
+    "target": "button ✏️ 편집",
+    "calls": [
+      [
+        "editTask",
+        "task:보고서"
+      ]
+    ],
+    "closed": 1
+  },
+  {
+    "target": "button 📄 원본 열기",
+    "calls": [
+      [
+        "openAtLine",
+        "task:보고서"
+      ]
+    ],
+    "closed": 1
+  },
+  {
+    "target": "input[date] (빈 값)",
+    "calls": [],
+    "closed": 0
+  }
+]

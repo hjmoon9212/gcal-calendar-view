@@ -1,0 +1,139 @@
+[
+  {
+    "target": "button 오늘",
+    "calls": [
+      [
+        "writeBack",
+        "task:",
+        "2026-08-06"
+      ]
+    ],
+    "closed": 1
+  },
+  {
+    "target": "button 내일",
+    "calls": [
+      [
+        "writeBack",
+        "task:",
+        "2026-08-07"
+      ]
+    ],
+    "closed": 1
+  },
+  {
+    "target": "button +7일",
+    "calls": [
+      [
+        "writeBack",
+        "task:",
+        "2026-08-13"
+      ]
+    ],
+    "closed": 1
+  },
+  {
+    "target": "input[date] 2026-08-06",
+    "calls": [
+      [
+        "writeBack",
+        "task:",
+        "2026-08-20"
+      ]
+    ],
+    "closed": 1
+  },
+  {
+    "target": "button 15분",
+    "calls": [
+      [
+        "applyDates",
+        "task:",
+        {
+          "time": "12:00-12:15"
+        }
+      ],
+      [
+        "notice",
+        "⏰ 12:00-12:15"
+      ]
+    ],
+    "closed": 1
+  },
+  {
+    "target": "button 30분",
+    "calls": [
+      [
+        "applyDates",
+        "task:",
+        {
+          "time": "12:00-12:30"
+        }
+      ],
+      [
+        "notice",
+        "⏰ 12:00-12:30"
+      ]
+    ],
+    "closed": 1
+  },
+  {
+    "target": "button 1시간",
+    "calls": [
+      [
+        "applyDates",
+        "task:",
+        {
+          "time": "12:00-13:00"
+        }
+      ],
+      [
+        "notice",
+        "⏰ 12:00-13:00"
+      ]
+    ],
+    "closed": 1
+  },
+  {
+    "target": "button 저장",
+    "calls": [
+      [
+        "applyDates",
+        "task:",
+        {
+          "time": "12:00-13:00"
+        }
+      ],
+      [
+        "notice",
+        "⏰ 12:00-13:00"
+      ]
+    ],
+    "closed": 1
+  },
+  {
+    "target": "button ✏️ 편집",
+    "calls": [
+      [
+        "editTask",
+        "task:"
+      ]
+    ],
+    "closed": 1
+  },
+  {
+    "target": "button 📄 원본 열기",
+    "calls": [
+      [
+        "openAtLine",
+        "task:"
+      ]
+    ],
+    "closed": 1
+  },
+  {
+    "target": "input[date] (빈 값)",
+    "calls": [],
+    "closed": 0
+  }
+]

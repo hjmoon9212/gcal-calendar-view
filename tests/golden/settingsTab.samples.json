@@ -1,0 +1,7 @@
+[
+  "```gcal-calendar\n```",
+  "```gcal-calendar\nscope: vault\n```",
+  "```gcal-calendar\nsource: \"0. Note/1. Project\" and !\"Template\"\nnote: - 이 프로젝트의 할 일만 모읍니다.\nnote: - **마감 임박**한 것부터 처리할 것.\nnote: - 배경은 [[프로젝트 개요]] 참고.\n```",
+  "```gcal-calendar\ngcal: Growth, Routine\n```",
+  "```gcal-calendar\ngcal-exclude: Event\n```\n\n```gcal-calendar\ngcal: off\n```"
+]
