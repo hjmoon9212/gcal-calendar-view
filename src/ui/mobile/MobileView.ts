@@ -6,6 +6,7 @@
  * 액션시트(TaskSheetModal)로 간다 — 쓰기 경로는 데스크탑과 **같은** writer 를 쓴다.
  */
 import { Notice } from "obsidian";
+import { CalItem, Categories, catKey, El, itemColor, ViewCtx } from "../types";
 import { byDayOrder, isRO } from "../../core/order";
 import { layoutTimeLanes } from "../../core/timeLanes";
 import { addDays, coversDay, diffDays, onDay, sundayStart } from "../../core/dates";
@@ -14,7 +15,7 @@ import { mobileHourRange } from "../mobileHours";
 import { TaskSheetModal } from "../TaskSheetModal";
 import { dimCss, mobileRowSkinCss, skinCss, timeBlockLabel, titleOf, OVERDUE_RED, SUNDAY_RED, WARN_YELLOW } from "../style";
 
-export function createMobileView(ctx) {
+export function createMobileView(ctx: ViewCtx) {
     const {
         app, plugin, root, L, todayISO,
         S, st, ctrl, activeCats, saveState, syncCategories, collect, render,
@@ -23,7 +24,10 @@ export function createMobileView(ctx) {
         feed, feedPlugin, eventsFor, rangeForView,
         noteMarkdown, noteBlock, CALF,
     } = ctx;
-    let CATS = [], CATLABEL = {}, CATCOLOR = {}, CAT_DEFAULT = "";
+    let CATS: string[] = [];
+    let CATLABEL: Record<string, string> = {};
+    let CATCOLOR: Record<string, string> = {};
+    let CAT_DEFAULT = "";
 
     // ══════════════════════════ 모바일 화면 ════════════════════════════════════
     // 데스크탑 렌더러와 **화면만** 갈라진다. 수집(collect)·쓰기(applyDates)·편집(editTask)은
@@ -36,15 +40,15 @@ export function createMobileView(ctx) {
     //   · 중첩 스크롤 없음 — 폰에서 안쪽 스크롤 박스는 노트 스크롤과 싸운다.
     //                       데스크탑 트레이의 max-height:280px, 일간의 560px 박스를 쓰지 않는다.
 
-    const colorOf = (t) => (isRO(t) ? t.color : (CATCOLOR[t.cat] || CATCOLOR[CAT_DEFAULT] || "#7f8c8d"));
-    const fileName = (p) => (p ? p.split("/").pop().replace(/\.md$/, "") : "");
-    const metaLine = (t) => {
-        const bits = [CATLABEL[t.cat] || t.cat || "-"];
+    const colorOf = (t: CalItem) => itemColor(t, CATCOLOR, CAT_DEFAULT, "#7f8c8d");
+    const fileName = (p: any) => (p ? p.split("/").pop().replace(/\.md$/, "") : "");
+    const metaLine = (t: CalItem) => {
+        const bits = [CATLABEL[catKey(t)] || catKey(t) || "-"];
         if (t.path) bits.push("📄 " + fileName(t.path));
         return bits.join("  ·  ");
     };
-    const mmdd = (iso) => iso.slice(5).replace("-", ".");
-    const dateBadge = (t) => {
+    const mmdd = (iso: string) => iso.slice(5).replace("-", ".");
+    const dateBadge = (t: CalItem) => {
         if (t.start && t.due && t.start !== t.due) return "🛫 " + mmdd(t.start) + " ~ 📅 " + mmdd(t.due);
         if (t.due) return "📅 " + mmdd(t.due);
         if (t.start) return "🛫 " + mmdd(t.start);
@@ -52,11 +56,11 @@ export function createMobileView(ctx) {
     };
 
     /** 액션시트를 연다. 쓰기 함수를 그대로 넘긴다 — 모달은 노트를 직접 고치지 않는다. */
-    const openSheet = (t) => {
+    const openSheet = (t: CalItem) => {
         new TaskSheetModal(app, t, {
             applyDates, dropOnDate, writeBack, editTask, openAtLine,
             isRO, colorOf, metaLine, timeText, toMin, toHHMM, addDays, todayISO,
-            notice: (m) => new Notice(m),
+            notice: (m: any) => new Notice(m),
         }).open();
     };
 
@@ -65,7 +69,7 @@ export function createMobileView(ctx) {
      * 오지 않지만(피드가 데스크탑 전용이다), 나중에 넣을 때 목록 코드를 다시 짜지 않으려고
      * 처음부터 isRO 로 갈라 둔다.
      */
-    function mobileRow(item) {
+    function mobileRow(item: CalItem) {
         const ro = isRO(item);
         const el = document.createElement("div");
         // 📆 읽기 전용은 **데스크탑과 같은 서명**으로 그린다 — 점선 테두리 · 옅은 배경 ·
@@ -85,7 +89,7 @@ export function createMobileView(ctx) {
         sub.style.cssText = "display:flex;flex-wrap:wrap;gap:8px;font-size:11px;opacity:.6;margin-top:3px;";
         const badge = dateBadge(item);
         if (badge) sub.createEl("span", { text: badge });
-        if (item.tStart !== null && item.tStart !== undefined) sub.createEl("span", { text: "⏰ " + timeText(item.tStart, item.tEnd) });
+        if (item.tStart !== null && item.tStart !== undefined) sub.createEl("span", { text: "⏰ " + timeText(item.tStart, item.tEnd!) });
         if (item.recurring) sub.createEl("span", { text: "🔁" });
         if (!ro) sub.createEl("span", { text: "📄 " + fileName(item.path) });
         // 지연은 색으로 말한다 — 목록에서 눈에 띄어야 하는 건 이것 하나다.
@@ -103,7 +107,7 @@ export function createMobileView(ctx) {
     }
 
     /** 제목 + 행들. 비어 있으면 빈 이유를 한 줄로 말한다 (빈 화면은 고장과 구분되지 않는다). */
-    function mobileSection(box, label, items, emptyText) {
+    function mobileSection(box: El, label: string, items: CalItem[], emptyText?: string) {
         const sec = box.createEl("div");
         sec.style.cssText = "margin-bottom:14px;";
         const h = sec.createEl("div", { text: label });
@@ -125,7 +129,7 @@ export function createMobileView(ctx) {
      * 50px 라 막대에 글자가 들어가지 않고, 어차피 드래그도 못 한다.
      * 칸을 탭하면 아래 목록이 그 날 카드만 남는다 (다시 탭하면 해제).
      */
-    function mobileMonthGrid(box, items) {
+    function mobileMonthGrid(box: El, items: CalItem[]) {
         const first = st.view.startOf("month");
         const gridStart = sundayStart(first);
         const gridEnd = sundayStart(first.endOf("month")).plus({ days: 6 });
@@ -155,7 +159,7 @@ export function createMobileView(ctx) {
             n.style.cssText = "font-size:11px;" + (isToday ? "font-weight:800;color:var(--interactive-accent);" : "");
             const dots = cell.createEl("div");
             dots.style.cssText = "display:flex;justify-content:center;flex-wrap:wrap;gap:2px;margin-top:2px;min-height:6px;";
-            const cols = [];
+            const cols: string[] = [];
             for (const t of items) {
                 if (!coversDay(t, iso)) continue;
                 const cc = colorOf(t);
@@ -196,8 +200,8 @@ export function createMobileView(ctx) {
      * 카드마다 **안쪽 스크롤**을 둔다(데스크탑 280px → 폰 200px). 지연이 수십 건이어도
      * 달력까지 한참 스크롤하지 않게. 행은 `mobileRow` 라 **탭하면 액션시트**가 열린다.
      */
-    function mobileTrays(box, open) {
-        const card = (title, items, empty, accent) => {
+    function mobileTrays(box: El, open: CalItem[]) {
+        const card = (title: string, items: CalItem[], empty: any, accent: string) => {
             const wrap = box.createEl("div");
             wrap.style.cssText = "border:1px " + (accent ? "solid" : "dashed") +
                 " var(--background-modifier-border);" +
@@ -220,20 +224,20 @@ export function createMobileView(ctx) {
         // `t.due` 를 요구하므로, 남는 건 월간 그리드의 점 하나뿐이라 그 날짜 칸을 정확히
         // 탭해야만 닿는다.
         card("📥 날짜 없음 (" + open.filter((t) => !t.due).length + ")",
-            open.filter((t) => !t.due), "없음 🎉", "");
+            open.filter((t: CalItem) => !t.due), "없음 🎉", "");
         const overdue = open
-            .filter((t) => t.due && t.due < todayISO)
-            .sort((a, b) => (a.due < b.due ? -1 : 1));
+            .filter((t: CalItem) => t.due && t.due < todayISO)
+            .sort((a: any, b: any) => (a.due < b.due ? -1 : 1));
         card("🔴 지연 (" + overdue.length + ")", overdue, "없음 🎉", OVERDUE_RED);
     }
 
-    function renderMobileDay(box, items) {
+    function renderMobileDay(box: El, items: CalItem[]) {
         const iso = st.view.toISODate();
         // 데스크탑 renderDay 와 같은 기준: 이 날에 걸친 것(기간의 어느 하루라도 이 날이면)
-        const today = items.filter((t) => onDay(t, iso));
-        const timed = today.filter((t) => t.tStart !== null);
+        const today = items.filter((t: CalItem) => onDay(t, iso));
+        const timed = today.filter((t: CalItem) => t.tStart !== null);
         // 종일 줄 안에서도 📆 일정이 먼저 — 데스크탑 renderDay 와 같은 규칙
-        const allday = today.filter((t) => t.tStart === null).sort(byDayOrder);
+        const allday = today.filter((t: CalItem) => t.tStart === null).sort(byDayOrder);
 
         // ── 종일 줄 ──
         const ad = box.createEl("div");
@@ -257,7 +261,7 @@ export function createMobileView(ctx) {
                 skinCss(c, ro) + dimCss(dim);
             const lbl = chip.createEl("span", { text: (ro ? "📆 " : "") + titleOf(t) });
             lbl.style.cssText = "overflow:hidden;text-overflow:ellipsis;white-space:nowrap;";
-            chip.onclick = (e) => { e.stopPropagation(); openSheet(t); };
+            chip.onclick = (e: any) => { e.stopPropagation(); openSheet(t); };
         }
 
         // ── 시간 그리드 ──
@@ -309,7 +313,7 @@ export function createMobileView(ctx) {
                 dimCss(dim);
             blk.appendChild(document.createTextNode(timeBlockLabel(t, ro, timeText(t.tStart, t.tEnd))));
             // 블록 탭은 그리드까지 내려가면 안 된다 — 배치 중이라면 제 위에 자기를 놓게 된다.
-            blk.onclick = (e) => { e.stopPropagation(); openSheet(t); };
+            blk.onclick = (e: any) => { e.stopPropagation(); openSheet(t); };
         }
 
         // ── 그리드 아래 ──
@@ -333,7 +337,7 @@ export function createMobileView(ctx) {
         const noteMd = noteMarkdown();
         if (noteMd) box.appendChild(noteBlock(noteMd));
 
-        const all = collect().filter((t) => activeCats.has(t.cat));
+        const all = collect().filter((t) => activeCats.has(catKey(t)));
         const open = all.filter((t) => !t.done && !t.cancelled);
         const shown = st.showDone ? all : open;
 
@@ -370,7 +374,7 @@ export function createMobileView(ctx) {
         // ── 헤더: 이동 · 오늘 · 월간/일간 · 완료 토글 ──
         const bar = box.createEl("div");
         bar.style.cssText = "display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:8px;";
-        const navBtn = (label, fn, extra) => {
+        const navBtn = (label: string, fn: any, extra?: any) => {
             const b = bar.createEl("button", { text: label });
             b.style.cssText = "min-height:36px;padding:0 12px;border-radius:8px;font-size:13px;cursor:pointer;" + (extra || "");
             b.onclick = fn;
@@ -392,7 +396,7 @@ export function createMobileView(ctx) {
         // 월간은 이번 달을 열면서 **오늘을 고른 상태**로 둬서 아래 목록이 곧바로 오늘
         // 카드가 된다. 달만 맞추면 그리드에서 오늘을 한 번 더 찾아 탭해야 하고,
         // 그 사이에 이 달 전체 목록이 한 번 펼쳐진다.
-        const goToday = (m) => {
+        const goToday = (m: any) => {
             if (m === "day") {
                 st.view = L.now().startOf("day");
             } else {
@@ -507,13 +511,13 @@ export function createMobileView(ctx) {
         }
 
         // ── 조립 끝 ──
-        root.replaceChildren(...box.childNodes);
+        root.replaceChildren(...(box.childNodes as any));
         ctrl.holdHeight(root.offsetHeight);
         if (first) restorePageScroll();
     }
 
     return {
-        setCategories: (v) => { ({ CATS, CATLABEL, CATCOLOR, CAT_DEFAULT } = v); },
+        setCategories: (v: Categories) => { ({ CATS, CATLABEL, CATCOLOR, CAT_DEFAULT } = v); },
         renderMobileNow,
     };
 }

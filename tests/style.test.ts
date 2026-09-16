@@ -19,7 +19,7 @@ import { Platform } from "./obsidian-stub";
 
 installDom();
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const { createCalendar } = require("../src/calendar/createCalendar.js");
+const { createCalendar } = require("../src/calendar/createCalendar");
 
 const NOTE = "0. Note/할일.md";
 // 한 줄씩 성격이 다르다: 보통 · 지연 · 완료 · 취소 · 북마크+반복 · 시각 있음 · 🛫만 · 날짜 없음

@@ -26,7 +26,7 @@ export class GcalCalendarSettingTab extends PluginSettingTab {
                 btn.setText("복사됨");
                 setTimeout(() => btn.setText("복사"), 1200);
             } catch (e) {
-                new Notice("복사 실패: " + e.message);
+                new Notice("복사 실패: " + (e as any).message);
             }
         };
         const pre = box.createEl("pre");

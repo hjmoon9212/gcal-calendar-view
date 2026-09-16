@@ -16,7 +16,7 @@ import { Platform } from "./obsidian-stub";
 
 installDom();
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const { createCalendar } = require("../src/calendar/createCalendar.js");
+const { createCalendar } = require("../src/calendar/createCalendar");
 
 const FILES: Record<string, string> = {
   // 8월 6일(목)이 오늘. 주 경계(8/3 월 ~ 8/10 월)를 넘는 막대 · 지연 · 완료 · 취소 · 북마크 ·

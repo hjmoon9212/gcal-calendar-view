@@ -7,6 +7,7 @@
  * 그리기만 한다. 카테고리 네 값만 매 렌더 새로 오므로 setCategories 로 갈아 끼운다.
  */
 import { Notice } from "obsidian";
+import { CalItem, Categories, catKey, El, itemColor, ViewCtx } from "../types";
 import { byDayOrder, isRO } from "../../core/order";
 import { layoutTimeLanes } from "../../core/timeLanes";
 import { addDays, diffDays, onDay, sundayStart } from "../../core/dates";
@@ -15,7 +16,7 @@ import { calKey } from "../../core/blockOptions";
 import { layoutWeekBars } from "../lanes";
 import { barLabel, barTooltip, dayChipLabel, dayChipTooltip, dimCss, grabCss, skinCss, timeBlockLabel, timeBlockTooltip, titleOf, weekdayColor, OVERDUE_RED, WARN_YELLOW } from "../style";
 
-export function createDesktopView(ctx) {
+export function createDesktopView(ctx: ViewCtx) {
     const {
         app, plugin, root, L, todayISO, CALF,
         S, st, ctrl, activeCats, saveState, syncCategories, collect, render, takeDrag,
@@ -26,7 +27,10 @@ export function createDesktopView(ctx) {
         HOUR_H, DAY_BOX_H, GUTTER,
     } = ctx;
     // 매 렌더 새로 오는 값(설정에서 바뀔 수 있다)
-    let CATS = [], CATLABEL = {}, CATCOLOR = {}, CAT_DEFAULT = "";
+    let CATS: string[] = [];
+    let CATLABEL: Record<string, string> = {};
+    let CATCOLOR: Record<string, string> = {};
+    let CAT_DEFAULT = "";
 
     // 한 주(weekStartISO~+6)에 걸치는 태스크를 기간 막대로 area 위에 배치.
     // 막대 본체 드래그=기간째 이동, Shift+드래그=마감일 조정, 클릭=원본 열기. 반환=막대영역 높이(px).
@@ -39,21 +43,21 @@ export function createDesktopView(ctx) {
      */
     const LANE_H = 25;
 
-    function placeBars(area, tasks, weekStartISO, laneH, topOffset, laneMemo) {
-        const clampCol = (c) => Math.max(0, Math.min(6, c));
-        const colAt = (clientX) => { const r = area.getBoundingClientRect(); return clampCol(Math.floor((clientX - r.left) / r.width * 7)); };
+    function placeBars(area: El, tasks: CalItem[], weekStartISO: string, laneH: number, topOffset: number, laneMemo?: Map<string, number>) {
+        const clampCol = (c: any) => Math.max(0, Math.min(6, c));
+        const colAt = (clientX: number) => { const r = area.getBoundingClientRect(); return clampCol(Math.floor((clientX - r.left) / r.width * 7)); };
 
         // 막대 위에 떨궈도 처리되도록 area 자체가 드롭 받음 (빈 칸은 각 셀이 처리)
-        area.addEventListener("dragover", (e) => e.preventDefault());
-        area.addEventListener("drop", async (e) => { e.preventDefault(); const t = takeDrag(); if (t) await dropOnDate(t, addDays(weekStartISO, colAt(e.clientX)), e.shiftKey); });
+        area.addEventListener("dragover", (e: any) => e.preventDefault());
+        area.addEventListener("drop", async (e: any) => { e.preventDefault(); const t = takeDrag(); if (t) await dropOnDate(t, addDays(weekStartISO, colAt(e.clientX)), e.shiftKey); });
 
         const { placed, lanes: laneCount } = layoutWeekBars(tasks, weekStartISO, laneMemo);
         for (const b of placed) {
             const t = b.t;
             const ro = isRO(t);
-            const c = ro ? t.color : (CATCOLOR[t.cat] || CATCOLOR[CAT_DEFAULT]);
+            const c = itemColor(t, CATCOLOR, CAT_DEFAULT);
             const dim = t.done || t.cancelled;          // 취소[-] 도 완료처럼 흐리게
-            const overdue = !ro && !dim && t.due < todayISO;   // 일정에는 "지연" 이 없다
+            const overdue = !ro && !dim && t.due! < todayISO;   // 일정에는 "지연" 이 없다
             const bar = area.createEl("div");
             bar.title = barTooltip(t, ro, dim);
             // 일정은 더 옅은 배경 · 점선 테두리 · 굵은 좌측 레일 없음 · 커서 default 로
@@ -64,21 +68,21 @@ export function createDesktopView(ctx) {
                 bar.draggable = true;
                 // dragend 로 반드시 비운다 — 캘린더 밖에 떨궈 취소하면 st.dragging 이 남고,
                 // 그 뒤 외부 드래그(파일 끌어오기 등)가 캘린더에 떨어지면 엉뚱한 태스크가 이동한다.
-                bar.addEventListener("dragstart", (e) => { st.dragging = t; e.dataTransfer.effectAllowed = "move"; });
+                bar.addEventListener("dragstart", (e: any) => { st.dragging = t; e.dataTransfer.effectAllowed = "move"; });
                 bar.addEventListener("dragend", () => { st.dragging = null; });
-                bar.addEventListener("click", (e) => openAtLine(t, e));
-                bar.addEventListener("contextmenu", (e) => { e.preventDefault(); editTask(t); });   // 우클릭=편집 모달
+                bar.addEventListener("click", (e: any) => openAtLine(t, e));
+                bar.addEventListener("contextmenu", (e: any) => { e.preventDefault(); editTask(t); });   // 우클릭=편집 모달
             }
         }
         return laneCount * laneH;
     }
 
     // 날짜 없음 트레이용 — 잘리지 않는 카드
-    function trayItem(task) {
+    function trayItem(task: CalItem) {
         // 도달 불가 — 트레이는 tasks(=task 전용 배열)에서만 그려진다. 일정은 calTasks 에만 합류한다.
         // 그래도 막아 둔다: 뚫리면 지난 회의 수백 건이 🔴 지연 트레이를 덮는다.
         if (isRO(task)) return document.createElement("span");
-        const c = CATCOLOR[task.cat] || CATCOLOR[CAT_DEFAULT];
+        const c = itemColor(task, CATCOLOR, CAT_DEFAULT);
         const el = document.createElement("div");
         el.draggable = true;
         el.title = task.text;
@@ -87,7 +91,7 @@ export function createDesktopView(ctx) {
         t1.style.cssText = "font-size:13px;line-height:1.35;font-weight:500;white-space:normal;word-break:break-word;";
         const meta = el.createEl("div");
         meta.style.cssText = "font-size:11px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;";
-        let base = CATLABEL[task.cat] || task.cat;
+        let base = CATLABEL[catKey(task)] || catKey(task);
         if (task.due) base += " · 📅 " + task.due;
         const baseSpan = meta.createEl("span", { text: base });
         baseSpan.style.opacity = "0.55";
@@ -102,7 +106,7 @@ export function createDesktopView(ctx) {
         // 빠른 재예약 컨트롤 (드래그 없이 시점 변경)
         const ctl = el.createEl("div");
         ctl.style.cssText = "display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-top:6px;";
-        const mkBtn = (labelText, iso) => {
+        const mkBtn = (labelText: string, iso: string) => {
             const b = ctl.createEl("button", { text: labelText });
             b.style.cssText = "font-size:11px;padding:1px 7px;border-radius:10px;cursor:pointer;";
             b.onclick = async (e) => { e.stopPropagation(); await writeBack(task, iso); };
@@ -117,9 +121,9 @@ export function createDesktopView(ctx) {
         dp.style.cssText = "font-size:11px;padding:0 2px;";   // color-scheme 은 주입 스타일이 테마별로 처리
         dp.onclick = (e) => e.stopPropagation();
         dp.onmousedown = (e) => e.stopPropagation();
-        dp.onchange = async (e) => { if (e.target.value) await writeBack(task, e.target.value); };
+        dp.onchange = async (e: any) => { if (e.target.value) await writeBack(task, e.target.value); };
 
-        el.addEventListener("dragstart", (e) => { st.dragging = task; e.dataTransfer.effectAllowed = "move"; });
+        el.addEventListener("dragstart", (e: any) => { st.dragging = task; e.dataTransfer.effectAllowed = "move"; });
         el.addEventListener("dragend", () => { st.dragging = null; });   // 취소된 드래그가 남지 않게
         el.addEventListener("click", (e) => openAtLine(task, e));
         el.addEventListener("contextmenu", (e) => { e.preventDefault(); editTask(task); });   // 우클릭=편집 모달
@@ -127,7 +131,7 @@ export function createDesktopView(ctx) {
     }
 
     // 트레이를 파일별로 그룹핑해 렌더
-    function renderGrouped(container, items) {
+    function renderGrouped(container: El, items: CalItem[]) {
         if (!items.length) { container.createEl("span", { text: "없음 🎉" }).style.cssText = "font-size:12px;opacity:0.5;"; return; }
         const byFile = new Map();
         for (const t of items) { if (!byFile.has(t.path)) byFile.set(t.path, []); byFile.get(t.path).push(t); }
@@ -137,14 +141,14 @@ export function createDesktopView(ctx) {
             const name = path.split("/").pop().replace(/\.md$/, "");
             const hdr = grp.createEl("div", { text: `📄 ${name} (${byFile.get(path).length})` });
             hdr.style.cssText = "font-size:12px;font-weight:600;opacity:0.85;margin:2px 0 4px;cursor:pointer;border-bottom:1px solid var(--background-modifier-border);padding-bottom:2px;";
-            hdr.onclick = async (e) => { const f = app.vault.getAbstractFileByPath(path); if (f) await writer.openFile(path, f, openMode(e)); };
+            hdr.onclick = async (e: any) => { const f = app.vault.getAbstractFileByPath(path); if (f) await writer.openFile(path, f, openMode(e)); };
             const body = grp.createEl("div");
             body.style.cssText = "display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:6px;";
             for (const t of byFile.get(path)) body.appendChild(trayItem(t));
         }
     }
 
-    function renderWeek(container, tasks) {
+    function renderWeek(container: El, tasks: CalItem[]) {
         const weekStart = st.view.toISODate();
         const wd = ["일", "월", "화", "수", "목", "금", "토"];
         const head = container.createEl("div");
@@ -169,7 +173,7 @@ export function createDesktopView(ctx) {
         area.style.minHeight = (barsH + 12) + "px";
     }
 
-    function renderMonth(container, tasks) {
+    function renderMonth(container: El, tasks: CalItem[]) {
         const wd = ["일", "월", "화", "수", "목", "금", "토"];
         const wdHead = container.createEl("div");
         wdHead.style.cssText = "display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:2px;";
@@ -204,16 +208,16 @@ export function createDesktopView(ctx) {
     }
 
     // 일간 보기용 칩 (종일 스트립에 놓이는, 시각 없는 태스크)
-    function dayChip(task) {
+    function dayChip(task: CalItem) {
         const ro = isRO(task);
-        const c = ro ? task.color : (CATCOLOR[task.cat] || CATCOLOR[CAT_DEFAULT]);
+        const c = itemColor(task, CATCOLOR, CAT_DEFAULT);
         const el = document.createElement("div");
         el.title = dayChipTooltip(task, ro);
         el.style.cssText = `${skinCss(c, ro)}border-radius:4px;padding:2px 7px;font-size:11px;line-height:16px;${grabCss(ro)}max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;${dimCss(task.done || task.cancelled)}`;
         el.appendChild(document.createTextNode(dayChipLabel(task, ro)));
         if (!ro) {
             el.draggable = true;
-            el.addEventListener("dragstart", (e) => { st.dragging = task; e.dataTransfer.effectAllowed = "move"; });
+            el.addEventListener("dragstart", (e: any) => { st.dragging = task; e.dataTransfer.effectAllowed = "move"; });
             el.addEventListener("dragend", () => { st.dragging = null; });
             el.addEventListener("click", (e) => openAtLine(task, e));
             el.addEventListener("contextmenu", (e) => { e.preventDefault(); editTask(task); });
@@ -225,12 +229,12 @@ export function createDesktopView(ctx) {
     //   블록 드래그      = 시작 시각 이동(길이 유지)
     //   블록 하단 핸들   = 종료 시각만 변경
     //   종일 → 그리드    = 시각 부여 · 그리드 → 종일 = 시각 제거
-    function renderDay(container, tasks) {
+    function renderDay(container: El, tasks: CalItem[]) {
         const iso = st.view.toISODate();
-        const today = tasks.filter((t) => onDay(t, iso));
-        const timed = today.filter(t => t.tStart !== null).sort((a, b) => a.tStart - b.tStart || a.tEnd - b.tEnd);
+        const today = tasks.filter((t: CalItem) => onDay(t, iso));
+        const timed = today.filter((t: CalItem) => t.tStart !== null).sort((a: any, b: any) => a.tStart - b.tStart || a.tEnd - b.tEnd);
         // 종일 스트립 안에서도 📆 일정이 먼저다 — 그날 뼈대를 왼쪽에서 바로 읽게.
-        const allday = today.filter(t => t.tStart === null).sort(byDayOrder);
+        const allday = today.filter((t: CalItem) => t.tStart === null).sort(byDayOrder);
 
         // ── 종일 스트립 ──
         const ad = container.createEl("div");
@@ -238,9 +242,9 @@ export function createDesktopView(ctx) {
         const adLabel = ad.createEl("span", { text: `종일 (${allday.length})` });
         adLabel.style.cssText = "font-size:11px;opacity:.6;margin-right:2px;";
         for (const t of allday) ad.appendChild(dayChip(t));
-        ad.addEventListener("dragover", (e) => { e.preventDefault(); ad.style.background = "var(--background-modifier-active-hover)"; });
+        ad.addEventListener("dragover", (e: any) => { e.preventDefault(); ad.style.background = "var(--background-modifier-active-hover)"; });
         ad.addEventListener("dragleave", () => { ad.style.background = ""; });
-        ad.addEventListener("drop", async (e) => {
+        ad.addEventListener("drop", async (e: any) => {
             e.preventDefault(); e.stopPropagation(); ad.style.background = "";
             const t = takeDrag();
             if (!t) return;
@@ -276,7 +280,7 @@ export function createDesktopView(ctx) {
             nl.style.cssText = `position:absolute;left:${GUTTER}px;right:0;top:${(now.hour * 60 + now.minute) / 60 * HOUR_H}px;border-top:2px solid ${OVERDUE_RED};z-index:3;pointer-events:none;`;
         }
 
-        const minAt = (clientY) => {
+        const minAt = (clientY: number) => {
             const r = grid.getBoundingClientRect();
             return snapMin((clientY - r.top) / HOUR_H * 60);
         };
@@ -296,9 +300,9 @@ export function createDesktopView(ctx) {
         const badge = grid.createEl("div");
         badge.style.cssText = "position:absolute;left:2px;display:none;z-index:5;pointer-events:none;font-size:10px;font-weight:600;line-height:1.5;padding:0 4px;border-radius:6px;background:var(--interactive-accent);color:var(--text-on-accent);";
         // dropOnTime 과 같은 클램프를 태운다 — 끝자락에서 그림자와 결과가 갈라지지 않게
-        const startOf = (clientY) => Math.max(0, Math.min(1440 - SNAP_MIN, minAt(clientY)));
+        const startOf = (clientY: number) => Math.max(0, Math.min(1440 - SNAP_MIN, minAt(clientY)));
         const hideGhost = () => { ghost.style.display = "none"; badge.style.display = "none"; };
-        grid.addEventListener("dragover", (e) => {
+        grid.addEventListener("dragover", (e: any) => {
             e.preventDefault();
             const t = st.dragging;
             if (!t || isRO(t)) return;   // 일정은 착지 그림자도 그리지 않는다
@@ -314,8 +318,8 @@ export function createDesktopView(ctx) {
             badge.textContent = toHHMM(s);
             badge.style.display = "";
         });
-        grid.addEventListener("dragleave", (e) => { if (!grid.contains(e.relatedTarget)) hideGhost(); });
-        grid.addEventListener("drop", async (e) => {
+        grid.addEventListener("dragleave", (e: any) => { if (!grid.contains(e.relatedTarget)) hideGhost(); });
+        grid.addEventListener("drop", async (e: any) => {
             e.preventDefault();
             hideGhost();
             const t = takeDrag();
@@ -326,7 +330,7 @@ export function createDesktopView(ctx) {
         const placed = layoutTimeLanes(timed);
         for (const { t, lane, lanes, span } of placed) {
             const ro = isRO(t);
-            const c = ro ? t.color : (CATCOLOR[t.cat] || CATCOLOR[CAT_DEFAULT]);
+            const c = itemColor(t, CATCOLOR, CAT_DEFAULT);
             const dim = t.done || t.cancelled;
             const top = t.tStart / 60 * HOUR_H;
             const h = Math.max(16, (t.tEnd - t.tStart) / 60 * HOUR_H - 2);
@@ -337,13 +341,13 @@ export function createDesktopView(ctx) {
             blk.appendChild(document.createTextNode(timeBlockLabel(t, ro, toHHMM(t.tStart))));
             if (ro) continue;   // ↓ 아래는 전부 조작 경로 — 일정에는 리사이즈 레일조차 만들지 않는다
             blk.draggable = true;
-            blk.addEventListener("dragstart", (e) => { st.dragging = t; e.dataTransfer.effectAllowed = "move"; });
+            blk.addEventListener("dragstart", (e: any) => { st.dragging = t; e.dataTransfer.effectAllowed = "move"; });
             blk.addEventListener("dragend", () => { st.dragging = null; });
             // 리사이즈로 포인터를 놓으면 click 이 블록까지 버블링돼 원본 파일이 열려버린다
             // (pointerdown 의 stopPropagation 은 click 을 막지 못한다 — 별개 이벤트다).
             let resizing = false;
-            blk.addEventListener("click", (e) => { if (resizing) { e.preventDefault(); e.stopPropagation(); return; } openAtLine(t, e); });
-            blk.addEventListener("contextmenu", (e) => { e.preventDefault(); editTask(t); });
+            blk.addEventListener("click", (e: any) => { if (resizing) { e.preventDefault(); e.stopPropagation(); return; } openAtLine(t, e); });
+            blk.addEventListener("contextmenu", (e: any) => { e.preventDefault(); editTask(t); });
 
             // 하단 리사이즈 핸들 — 종료 시각만 바꾼다.
             // pointer 이벤트 + setPointerCapture 를 쓴다: mousedown/mousemove 로는 HTML5 드래그가
@@ -352,15 +356,15 @@ export function createDesktopView(ctx) {
             const rz = blk.createEl("div");
             rz.title = "드래그해서 종료 시각 조정";
             rz.style.cssText = `position:absolute;left:0;right:0;bottom:0;height:10px;cursor:ns-resize;touch-action:none;border-bottom:3px solid ${c};`;
-            rz.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); });
-            rz.addEventListener("pointerdown", (e) => {
+            rz.addEventListener("click", (e: any) => { e.preventDefault(); e.stopPropagation(); });
+            rz.addEventListener("pointerdown", (e: any) => {
                 e.preventDefault(); e.stopPropagation();
                 blk.draggable = false;             // 리사이즈 중에는 블록 이동 드래그를 끈다
                 resizing = true;
                 rz.setPointerCapture(e.pointerId);
                 const y0 = e.clientY;
                 let newEnd = t.tEnd;
-                const move = (ev) => {
+                const move = (ev: any) => {
                     newEnd = Math.min(1440, Math.max(t.tStart + SNAP_MIN, snapMin(t.tEnd + (ev.clientY - y0) / HOUR_H * 60)));
                     blk.style.height = Math.max(16, (newEnd - t.tStart) / 60 * HOUR_H - 2) + "px";
                 };
@@ -390,7 +394,7 @@ export function createDesktopView(ctx) {
 
     // 일간 보기 시간 그리드의 스크롤 컨테이너. 복원은 renderNow 의 restoreScroll 이 맡는다
     // (거기서 동기 + rAF 두 번 시도한다 — 한 번만 하면 아직 레이아웃 전이라 대입이 0으로 잘린다).
-    let dayBox = null;
+    let dayBox: El = null;
     let dayScrollRestoring = false;   // 복원 중 발생하는 scroll 이벤트가 저장값을 덮지 않게
 
     function renderDesktop() {
@@ -402,7 +406,7 @@ export function createDesktopView(ctx) {
         const box = document.createElement("div");
         const noteMd = noteMarkdown();
         if (noteMd) box.appendChild(noteBlock(noteMd));
-        const all = collect().filter(t => activeCats.has(t.cat));
+        const all = collect().filter((t) => activeCats.has(catKey(t)));
         const tasks = all.filter(t => !t.done && !t.cancelled);   // 트레이/현황 = 미완료(취소[-] 제외)
         // GCal 일정은 **달력에만** 합류한다. 트레이(날짜 없음·지연)는 tasks 에서 나오므로
         // 지난 회의가 🔴 지연을 덮는 일이 구조적으로 없고, 「완료」 토글도 일정에 닿지 않는다.
@@ -421,7 +425,7 @@ export function createDesktopView(ctx) {
         renderGrouped(trayBody, undated);
 
         // ── 지연(Overdue) 트레이 ── (취소 [-] 제외)
-        const overdue = tasks.filter(t => t.due && t.due < todayISO).sort((a, b) => a.due < b.due ? -1 : 1);
+        const overdue = tasks.filter((t) => t.due && t.due < todayISO).sort((a, b) => (a.due! < b.due! ? -1 : 1));
         const otray = box.createEl("div");
         otray.style.cssText = "border:1px solid var(--background-modifier-border);border-left:3px solid #e05a7a;border-radius:4px;padding:4px;margin-bottom:8px;";
         otray.createEl("div", { text: `🔴 지연 Overdue (${overdue.length}) — 드래그해서 다시 예약` }).style.cssText = "font-size:11px;opacity:0.85;margin-bottom:2px;color:#e05a7a;font-weight:600;";
@@ -463,7 +467,7 @@ export function createDesktopView(ctx) {
         const doneBtn = bar.createEl("button", { text: st.showDone ? "완료 ✓" : "완료 ✗" });
         doneBtn.title = "달력에 완료·취소 항목 표시/숨김";
         doneBtn.onclick = () => { st.showDone = !st.showDone; render(); };
-        const step = (n) => (st.mode === "month" ? st.view.plus({ months: n }) : st.mode === "day" ? st.view.plus({ days: n }) : st.view.plus({ weeks: n }));
+        const step = (n: number) => (st.mode === "month" ? st.view.plus({ months: n }) : st.mode === "day" ? st.view.plus({ days: n }) : st.view.plus({ weeks: n }));
         prev.onclick = () => { st.view = step(-1); render(); };
         next.onclick = () => { st.view = step(1); render(); };
         todayBtn.onclick = () => {
@@ -528,12 +532,12 @@ export function createDesktopView(ctx) {
             const sel = (() => {
                 try { return evFeed.listSelectedCalendars(); } catch (e) { return []; }
             })();
-            const shown = sel.filter((c) => passesCalFilter({ calendarName: c.name, calendarId: c.id }));
+            const shown = sel.filter((c: any) => passesCalFilter({ calendarName: c.name, calendarId: c.id }));
             // 블록에 적었지만 설정에서 안 고른 이름 — 이걸 안 알려주면 오타가 "그냥 안 나옴" 이 된다
-            const known = new Set(sel.flatMap((c) => [calKey(c.name), calKey(c.id)]));
+            const known = new Set(sel.flatMap((c: any) => [calKey(c.name), calKey(c.id)]));
             const unknown = [...CALF.include, ...CALF.exclude].filter((n) => !known.has(n));
             eb.title = "Google Calendar 일정 표시 (읽기 전용)" +
-                (shown.length ? "\n" + shown.map((c) => c.name).join(", ") : "") +
+                (shown.length ? "\n" + shown.map((c: any) => c.name).join(", ") : "") +
                 (CALF.include.length || CALF.exclude.length ? "\n(이 블록의 gcal / gcal-exclude 적용됨)" : "") +
                 (unknown.length ? `\n⚠️ 설정에 없는 이름: ${unknown.join(", ")}` : "") +
                 `\n이 기간에 ${evItems.length}건` +
@@ -547,7 +551,7 @@ export function createDesktopView(ctx) {
         else renderWeek(box, calTasks);
 
         // ── 조립 끝 → 한 번에 교체하고 스크롤 위치 복원 ──
-        root.replaceChildren(...box.childNodes);
+        root.replaceChildren(...(box.childNodes as any));
         const restoreScroll = () => {
             trayBody.scrollTop = S.trayScroll || 0;
             obody.scrollTop = S.overdueScroll || 0;
@@ -568,7 +572,7 @@ export function createDesktopView(ctx) {
     }
 
     return {
-        setCategories: (v) => { ({ CATS, CATLABEL, CATCOLOR, CAT_DEFAULT } = v); },
+        setCategories: (v: Categories) => { ({ CATS, CATLABEL, CATCOLOR, CAT_DEFAULT } = v); },
         renderDesktop,
     };
 }

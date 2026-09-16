@@ -16,7 +16,7 @@ import { noticeLog, Platform } from "./obsidian-stub";
 
 installDom();
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const { createCalendar } = require("../src/calendar/createCalendar.js");
+const { createCalendar } = require("../src/calendar/createCalendar");
 
 const NOTE = "0. Note/할일.md";
 const LINES = [

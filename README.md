@@ -166,10 +166,11 @@ note: - 변경은 `tasks-gcal-sync` 가 자동 푸시
 
 ```bash
 npm ci
-npm test          # 테스트 코드 타입체크 + tests/*.test.ts
+npm test          # 타입체크(strict) + 구조 불변식 검사 + tests/*.test.ts
 npm run build     # main.js
 npm run smoke     # 빌드한 main.js 가 src/main.ts 와 같은 물건인지(기본 export · luxon 미포함 · 순수 함수 결과)
 npm run test:one -- tests/pure.test.ts   # 파일 하나만
+GOLDEN=update npm test                   # 골든 다시 기록(동작을 일부러 바꿨을 때만)
 
 # 스크래치 볼트로 바로 뽑아 보기(실제 볼트 말고)
 GCAL_OUT="<스크래치 볼트>/.obsidian/plugins/gcal-calendar-view/main.js" npm run dev
@@ -180,5 +181,7 @@ node version-bump.mjs 0.7.1    # manifest.json + package.json + versions.json(�
 git commit -am "v0.7.1" && git push origin main
 git tag 0.7.1 && git push origin 0.7.1
 ```
+
+`scripts/check-invariants.mjs` 는 테스트가 못 잡는 **구조 규칙**을 본다: 노트 쓰기는 `src/write/` 에서만 · luxon 을 값으로 가져오지 않음(Dataview 것을 빌려 쓴다) · `byDayOrder`·`layoutTimeLanes` 는 한 번만 정의 · `src` 는 전부 `.ts`.
 
 태그를 push 하면 `.github/workflows/release.yml` 이 **테스트 · 빌드 · 스모크를 통과한 뒤** `main.js`·`manifest.json`·`styles.css`·`versions.json` 을 첨부한 Release 를 만들고 BRAT 이 받아간다. 태그와 `manifest.json` 의 version 이 다르면 워크플로가 실패한다.

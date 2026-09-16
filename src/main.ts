@@ -25,8 +25,7 @@ import { parseList, parseOptions, resolveCalFilter, resolveSource } from "./core
 import { categoryColorMap, resolveEventColorInfo } from "./core/colors";
 import { byDayOrder, dayRank } from "./core/order";
 import { layoutTimeLanes } from "./core/timeLanes";
-// @ts-ignore — 0.7.1 은 JS 그대로 옮겼다(타입은 0.7.5)
-import { createCalendar } from "./calendar/createCalendar.js";
+import { createCalendar } from "./calendar/createCalendar";
 
 export default class GcalCalendarViewPlugin extends Plugin {
     settings: any;
@@ -144,7 +143,7 @@ export default class GcalCalendarViewPlugin extends Plugin {
             });
         } catch (e) {
             console.error("[gcal-calendar-view] 렌더 실패", e);
-            el.createEl("div", { text: "캘린더 렌더 실패 — 콘솔을 확인하세요: " + e.message });
+            el.createEl("div", { text: "캘린더 렌더 실패 — 콘솔을 확인하세요: " + (e as any).message });
             return;
         }
         this.views.add(cal);

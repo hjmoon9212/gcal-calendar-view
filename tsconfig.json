@@ -5,12 +5,10 @@
     "inlineSources": true,
     "module": "ESNext",
     "target": "ES2018",
-    "allowJs": true,
-    "noImplicitAny": true,
+    "strict": true,
     "moduleResolution": "node",
     "importHelpers": true,
     "isolatedModules": true,
-    "strictNullChecks": true,
     "lib": [
       "DOM",
       "ES5",

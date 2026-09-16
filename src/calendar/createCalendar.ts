@@ -25,7 +25,22 @@ import { createMobileView } from "../ui/mobile/MobileView";
  * 캘린더 한 개를 container 안에 그린다. 반환값의 refresh() 를 호출부가 인덱스 변경에 물린다.
  * 본문은 dataviewjs 시절 로직 그대로다(레인 배치·드래그·낙관적 갱신·스크롤 복원·⏰).
  */
-export function createCalendar({ plugin, api, container, source, notes, sourcePath, component, calFilter }) {
+export interface CalendarArgs {
+    plugin: any;
+    /** Dataview API — 페이지 수집과 luxon 을 빌려 쓴다 */
+    api: any;
+    container: any;
+    /** 수집 스코프(Dataview 소스 쿼리). 상태 보관함의 키이기도 하다. */
+    source: string;
+    /** 블록의 `note:` 줄 */
+    notes: string[];
+    sourcePath: string;
+    /** 이 렌더의 수명(MarkdownRenderChild) — 구독을 여기 건다 */
+    component: any;
+    calFilter?: { off: boolean; include: string[]; exclude: string[] };
+}
+
+export function createCalendar({ plugin, api, container, source, notes, sourcePath, component, calFilter }: CalendarArgs) {
     const app = plugin.app;
     // 블록별 일정 필터 (calendars: / exclude-calendars:). 없으면 전부 통과.
     const CALF = calFilter || { off: false, include: [], exclude: [] };
@@ -51,7 +66,10 @@ export function createCalendar({ plugin, api, container, source, notes, sourcePa
     const takeDrag = () => ctrl.takeDrag();
     const render = () => ctrl.render();
     // 카테고리(설정에서 내려온다)는 매 렌더 다시 읽는다 — 이 네 값은 그래서 let 이다.
-    let CATS = [], CATLABEL = {}, CATCOLOR = {}, CAT_DEFAULT = "";
+    let CATS: string[] = [];
+    let CATLABEL: Record<string, string> = {};
+    let CATCOLOR: Record<string, string> = {};
+    let CAT_DEFAULT = "";
     const syncCategories = () => { ({ CATS, CATLABEL, CATCOLOR, CAT_DEFAULT } = ctrl.refreshCategories()); };
     syncCategories();
 
@@ -85,8 +103,8 @@ export function createCalendar({ plugin, api, container, source, notes, sourcePa
     });
     const feedPlugin = () => feedApi.feedPlugin();
     const feed = () => feedApi.feed();
-    const eventsFor = (fromISO, toISO) => feedApi.eventsFor(fromISO, toISO);
-    const passesCalFilter = (e) => feedApi.passes(e);
+    const eventsFor = (fromISO: string, toISO: string) => feedApi.eventsFor(fromISO, toISO);
+    const passesCalFilter = (e: any) => feedApi.passes(e);
 
 
     /**
@@ -99,7 +117,7 @@ export function createCalendar({ plugin, api, container, source, notes, sourcePa
     // 이 블록에 note: 가 적혀 있을 때만 그린다. 공통 사용법은 설정 화면에 붙박이로 있다.
     const noteMarkdown = () => (notes && notes.length ? notes.join("\n") : "");
 
-    function noteBlock(md) {
+    function noteBlock(md: string) {
         const d = document.createElement("div");
         d.style.cssText =
             "margin-bottom:8px;padding:6px 10px;border-left:3px solid var(--interactive-accent);" +
@@ -137,19 +155,19 @@ export function createCalendar({ plugin, api, container, source, notes, sourcePa
         rememberScroll,
         afterWrite: () => { invalidate(); render(); },
     });
-    const openMode = (e) => writer.openMode(e);
-    const openAtLine = (task, evt) => writer.openAtLine(task, evt);
-    const editTask = (task) => writer.editTask(task);
-    const applyDates = (task, changes) => writer.applyDates(task, changes);
-    const dropOnDate = (task, iso, shift) => writer.dropOnDate(task, iso, shift);
-    const dropOnTime = (task, iso, startMin) => writer.dropOnTime(task, iso, startMin);
-    const writeBack = (task, newDue) => writer.writeBack(task, newDue);
+    const openMode = (e: any) => writer.openMode(e);
+    const openAtLine = (task: any, evt?: any) => writer.openAtLine(task, evt);
+    const editTask = (task: any) => writer.editTask(task);
+    const applyDates = (task: any, changes: any) => writer.applyDates(task, changes);
+    const dropOnDate = (task: any, iso: string, shift: boolean) => writer.dropOnDate(task, iso, shift);
+    const dropOnTime = (task: any, iso: string, startMin: number) => writer.dropOnTime(task, iso, startMin);
+    const writeBack = (task: any, newDue: string) => writer.writeBack(task, newDue);
 
     // 배경 날짜 칸에 트레이 카드 드롭 → 해당 날짜로 due 지정/이동
-    function attachDrop(el, iso, baseBg) {
-        el.addEventListener("dragover", (e) => { e.preventDefault(); e.stopPropagation(); el.style.background = "var(--background-modifier-active-hover)"; });
+    function attachDrop(el: any, iso: string, baseBg: string) {
+        el.addEventListener("dragover", (e: any) => { e.preventDefault(); e.stopPropagation(); el.style.background = "var(--background-modifier-active-hover)"; });
         el.addEventListener("dragleave", () => { el.style.background = baseBg; });
-        el.addEventListener("drop", async (e) => { e.preventDefault(); e.stopPropagation(); el.style.background = baseBg; const t = takeDrag(); if (t) await dropOnDate(t, iso, e.shiftKey); });
+        el.addEventListener("drop", async (e: any) => { e.preventDefault(); e.stopPropagation(); el.style.background = baseBg; const t = takeDrag(); if (t) await dropOnDate(t, iso, e.shiftKey); });
     }
 
     const rangeForView = () => viewRange(st.mode, st.view);
