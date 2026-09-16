@@ -16,6 +16,7 @@ export class FakeEl {
   listeners: Record<string, ((e?: any) => any)[]> = {};
   onclick: ((e?: any) => any) | null = null;
   onchange: ((e?: any) => any) | null = null;
+  onmousedown: ((e?: any) => any) | null = null;
   type = "";
   value = "";
   step = "";
@@ -23,9 +24,62 @@ export class FakeEl {
   draggable = false;
   scrollTop = 0;
   removed = false;
+  /** 캘린더는 문서에 붙어 있는지로 살아 있음을 판단한다(isAlive · 구독 후 재렌더). */
+  isConnected = true;
+  /** 높이는 재지 않는다 — 0 이면 캘린더가 minHeight 예약을 건너뛴다(결정적). */
+  offsetHeight = 0;
+  scrollHeight = 0;
+  clientHeight = 0;
+  /** 레인 계산이 쓰는 폭. 7칸 × 100px 로 두면 clientX 100 = 1칸이라 계산이 눈에 보인다. */
+  rect = { left: 0, top: 0, width: 700, height: 1536 };
+  classList = {
+    add: (c: string) => this.addClass(c),
+    remove: (c: string) => {
+      this.cls = this.cls.split(" ").filter((x) => x && x !== c).join(" ");
+    },
+    contains: (c: string) => this.cls.split(" ").includes(c),
+  };
 
   constructor(tag: string) {
     this.tag = tag;
+  }
+
+  /** 스크롤 컨테이너를 찾을 때 위로 거슬러 올라간다. */
+  get parentElement(): FakeEl | null {
+    return this.parent;
+  }
+  /** `replaceChildren(...box.childNodes)` — 조립한 트리를 한 번에 옮긴다. */
+  get childNodes(): FakeEl[] {
+    return this.children;
+  }
+  get textContent(): string {
+    return this.text;
+  }
+  set textContent(t: string) {
+    this.text = t;
+  }
+  getBoundingClientRect(): { left: number; top: number; width: number; height: number } {
+    return this.rect;
+  }
+  contains(el: FakeEl | null): boolean {
+    for (let e = el; e; e = e.parent) if (e === this) return true;
+    return false;
+  }
+  removeEventListener(type: string, fn: (e?: any) => any): void {
+    const l = this.listeners[type];
+    if (l) this.listeners[type] = l.filter((f) => f !== fn);
+  }
+  setPointerCapture(_id: number): void {}
+  releasePointerCapture(_id: number): void {}
+  /** 붙어 있는 리스너를 부른다. 테스트가 사용자 동작을 흉내내는 유일한 통로다. */
+  fire(type: string, ev: any = {}): any[] {
+    const e = { preventDefault() {}, stopPropagation() {}, ...ev };
+    const out: any[] = [];
+    if (type === "click" && this.onclick) out.push(this.onclick(e));
+    if (type === "change" && this.onchange) out.push(this.onchange(e));
+    if (type === "mousedown" && this.onmousedown) out.push(this.onmousedown(e));
+    for (const fn of this.listeners[type] ?? []) out.push(fn(e));
+    return out;
   }
 
   createEl(tag: string, o: { text?: string; cls?: string; attr?: Record<string, string> } = {}): FakeEl {

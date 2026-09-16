@@ -1,0 +1,1535 @@
+{
+  "tag": "div",
+  "children": [
+    {
+      "tag": "div",
+      "cls": "gcal-cal",
+      "style": {
+        "width": "100%"
+      },
+      "children": [
+        {
+          "tag": "div",
+          "style": {
+            "cssText": "border:1px dashed var(--background-modifier-border);border-radius:4px;padding:4px;margin-bottom:8px;"
+          },
+          "children": [
+            {
+              "tag": "div",
+              "text": "📥 날짜 없음 (3) — 달력으로 드래그해 날짜 지정",
+              "style": {
+                "cssText": "font-size:11px;opacity:0.7;margin-bottom:2px;"
+              }
+            },
+            {
+              "tag": "div",
+              "style": {
+                "cssText": "max-height:280px;overflow:auto;"
+              },
+              "handlers": [
+                "on:scroll"
+              ],
+              "children": [
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "margin-bottom:8px;"
+                  },
+                  "children": [
+                    {
+                      "tag": "div",
+                      "text": "📄 기타 (1)",
+                      "style": {
+                        "cssText": "font-size:12px;font-weight:600;opacity:0.85;margin:2px 0 4px;cursor:pointer;border-bottom:1px solid var(--background-modifier-border);padding-bottom:2px;"
+                      },
+                      "handlers": [
+                        "onclick"
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:6px;"
+                      },
+                      "children": [
+                        {
+                          "tag": "div",
+                          "style": {
+                            "cssText": "background:var(--background-primary);border:1px solid var(--background-modifier-border);border-left:4px solid #a79b8e;border-radius:5px;padding:5px 8px;cursor:grab;"
+                          },
+                          "title": "#task #gcal/non-core 다른 파일 날짜 없음",
+                          "draggable": true,
+                          "handlers": [
+                            "on:dragstart",
+                            "on:dragend",
+                            "on:click",
+                            "on:contextmenu"
+                          ],
+                          "children": [
+                            {
+                              "tag": "div",
+                              "text": "다른 파일 날짜 없음",
+                              "style": {
+                                "cssText": "font-size:13px;line-height:1.35;font-weight:500;white-space:normal;word-break:break-word;"
+                              }
+                            },
+                            {
+                              "tag": "div",
+                              "style": {
+                                "cssText": "font-size:11px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
+                              },
+                              "children": [
+                                {
+                                  "tag": "span",
+                                  "text": "Non-core",
+                                  "style": {
+                                    "opacity": "0.55"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "tag": "div",
+                              "style": {
+                                "cssText": "display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-top:6px;"
+                              },
+                              "children": [
+                                {
+                                  "tag": "button",
+                                  "text": "오늘",
+                                  "style": {
+                                    "cssText": "font-size:11px;padding:1px 7px;border-radius:10px;cursor:pointer;"
+                                  },
+                                  "handlers": [
+                                    "onclick"
+                                  ]
+                                },
+                                {
+                                  "tag": "button",
+                                  "text": "내일",
+                                  "style": {
+                                    "cssText": "font-size:11px;padding:1px 7px;border-radius:10px;cursor:pointer;"
+                                  },
+                                  "handlers": [
+                                    "onclick"
+                                  ]
+                                },
+                                {
+                                  "tag": "button",
+                                  "text": "+7일",
+                                  "style": {
+                                    "cssText": "font-size:11px;padding:1px 7px;border-radius:10px;cursor:pointer;"
+                                  },
+                                  "handlers": [
+                                    "onclick"
+                                  ]
+                                },
+                                {
+                                  "tag": "input",
+                                  "style": {
+                                    "cssText": "font-size:11px;padding:0 2px;"
+                                  },
+                                  "type": "date",
+                                  "value": "2026-08-06",
+                                  "handlers": [
+                                    "onclick",
+                                    "onchange"
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "margin-bottom:8px;"
+                  },
+                  "children": [
+                    {
+                      "tag": "div",
+                      "text": "📄 할일 (2)",
+                      "style": {
+                        "cssText": "font-size:12px;font-weight:600;opacity:0.85;margin:2px 0 4px;cursor:pointer;border-bottom:1px solid var(--background-modifier-border);padding-bottom:2px;"
+                      },
+                      "handlers": [
+                        "onclick"
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:6px;"
+                      },
+                      "children": [
+                        {
+                          "tag": "div",
+                          "style": {
+                            "cssText": "background:var(--background-primary);border:1px solid var(--background-modifier-border);border-left:4px solid #0b8043;border-radius:5px;padding:5px 8px;cursor:grab;"
+                          },
+                          "title": "#task #gcal/growth 시작만 🛫 2026-08-05",
+                          "draggable": true,
+                          "handlers": [
+                            "on:dragstart",
+                            "on:dragend",
+                            "on:click",
+                            "on:contextmenu"
+                          ],
+                          "children": [
+                            {
+                              "tag": "div",
+                              "text": "시작만",
+                              "style": {
+                                "cssText": "font-size:13px;line-height:1.35;font-weight:500;white-space:normal;word-break:break-word;"
+                              }
+                            },
+                            {
+                              "tag": "div",
+                              "style": {
+                                "cssText": "font-size:11px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
+                              },
+                              "children": [
+                                {
+                                  "tag": "span",
+                                  "text": "Growth",
+                                  "style": {
+                                    "opacity": "0.55"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "tag": "div",
+                              "style": {
+                                "cssText": "display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-top:6px;"
+                              },
+                              "children": [
+                                {
+                                  "tag": "button",
+                                  "text": "오늘",
+                                  "style": {
+                                    "cssText": "font-size:11px;padding:1px 7px;border-radius:10px;cursor:pointer;"
+                                  },
+                                  "handlers": [
+                                    "onclick"
+                                  ]
+                                },
+                                {
+                                  "tag": "button",
+                                  "text": "내일",
+                                  "style": {
+                                    "cssText": "font-size:11px;padding:1px 7px;border-radius:10px;cursor:pointer;"
+                                  },
+                                  "handlers": [
+                                    "onclick"
+                                  ]
+                                },
+                                {
+                                  "tag": "button",
+                                  "text": "+7일",
+                                  "style": {
+                                    "cssText": "font-size:11px;padding:1px 7px;border-radius:10px;cursor:pointer;"
+                                  },
+                                  "handlers": [
+                                    "onclick"
+                                  ]
+                                },
+                                {
+                                  "tag": "input",
+                                  "style": {
+                                    "cssText": "font-size:11px;padding:0 2px;"
+                                  },
+                                  "type": "date",
+                                  "value": "2026-08-06",
+                                  "handlers": [
+                                    "onclick",
+                                    "onchange"
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "tag": "div",
+                          "style": {
+                            "cssText": "background:var(--background-primary);border:1px solid var(--background-modifier-border);border-left:4px solid #0b8043;border-radius:5px;padding:5px 8px;cursor:grab;"
+                          },
+                          "title": "#task #gcal/growth 날짜 없음",
+                          "draggable": true,
+                          "handlers": [
+                            "on:dragstart",
+                            "on:dragend",
+                            "on:click",
+                            "on:contextmenu"
+                          ],
+                          "children": [
+                            {
+                              "tag": "div",
+                              "text": "날짜 없음",
+                              "style": {
+                                "cssText": "font-size:13px;line-height:1.35;font-weight:500;white-space:normal;word-break:break-word;"
+                              }
+                            },
+                            {
+                              "tag": "div",
+                              "style": {
+                                "cssText": "font-size:11px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
+                              },
+                              "children": [
+                                {
+                                  "tag": "span",
+                                  "text": "Growth",
+                                  "style": {
+                                    "opacity": "0.55"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "tag": "div",
+                              "style": {
+                                "cssText": "display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-top:6px;"
+                              },
+                              "children": [
+                                {
+                                  "tag": "button",
+                                  "text": "오늘",
+                                  "style": {
+                                    "cssText": "font-size:11px;padding:1px 7px;border-radius:10px;cursor:pointer;"
+                                  },
+                                  "handlers": [
+                                    "onclick"
+                                  ]
+                                },
+                                {
+                                  "tag": "button",
+                                  "text": "내일",
+                                  "style": {
+                                    "cssText": "font-size:11px;padding:1px 7px;border-radius:10px;cursor:pointer;"
+                                  },
+                                  "handlers": [
+                                    "onclick"
+                                  ]
+                                },
+                                {
+                                  "tag": "button",
+                                  "text": "+7일",
+                                  "style": {
+                                    "cssText": "font-size:11px;padding:1px 7px;border-radius:10px;cursor:pointer;"
+                                  },
+                                  "handlers": [
+                                    "onclick"
+                                  ]
+                                },
+                                {
+                                  "tag": "input",
+                                  "style": {
+                                    "cssText": "font-size:11px;padding:0 2px;"
+                                  },
+                                  "type": "date",
+                                  "value": "2026-08-06",
+                                  "handlers": [
+                                    "onclick",
+                                    "onchange"
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tag": "div",
+          "style": {
+            "cssText": "border:1px solid var(--background-modifier-border);border-left:3px solid #e05a7a;border-radius:4px;padding:4px;margin-bottom:8px;"
+          },
+          "children": [
+            {
+              "tag": "div",
+              "text": "🔴 지연 Overdue (1) — 드래그해서 다시 예약",
+              "style": {
+                "cssText": "font-size:11px;opacity:0.85;margin-bottom:2px;color:#e05a7a;font-weight:600;"
+              }
+            },
+            {
+              "tag": "div",
+              "style": {
+                "cssText": "max-height:280px;overflow:auto;"
+              },
+              "handlers": [
+                "on:scroll"
+              ],
+              "children": [
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "margin-bottom:8px;"
+                  },
+                  "children": [
+                    {
+                      "tag": "div",
+                      "text": "📄 할일 (1)",
+                      "style": {
+                        "cssText": "font-size:12px;font-weight:600;opacity:0.85;margin:2px 0 4px;cursor:pointer;border-bottom:1px solid var(--background-modifier-border);padding-bottom:2px;"
+                      },
+                      "handlers": [
+                        "onclick"
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:6px;"
+                      },
+                      "children": [
+                        {
+                          "tag": "div",
+                          "style": {
+                            "cssText": "background:var(--background-primary);border:1px solid var(--background-modifier-border);border-left:4px solid #e67c73;border-radius:5px;padding:5px 8px;cursor:grab;"
+                          },
+                          "title": "#task #gcal/personal 지난주 마감 📅 2026-08-03",
+                          "draggable": true,
+                          "handlers": [
+                            "on:dragstart",
+                            "on:dragend",
+                            "on:click",
+                            "on:contextmenu"
+                          ],
+                          "children": [
+                            {
+                              "tag": "div",
+                              "text": "지난주 마감",
+                              "style": {
+                                "cssText": "font-size:13px;line-height:1.35;font-weight:500;white-space:normal;word-break:break-word;"
+                              }
+                            },
+                            {
+                              "tag": "div",
+                              "style": {
+                                "cssText": "font-size:11px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
+                              },
+                              "children": [
+                                {
+                                  "tag": "span",
+                                  "text": "Personal · 📅 2026-08-03",
+                                  "style": {
+                                    "opacity": "0.55"
+                                  }
+                                },
+                                {
+                                  "tag": "span",
+                                  "text": " (3일 지남)",
+                                  "style": {
+                                    "cssText": "color:#eab308;font-weight:700;"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "tag": "div",
+                              "style": {
+                                "cssText": "display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-top:6px;"
+                              },
+                              "children": [
+                                {
+                                  "tag": "button",
+                                  "text": "오늘",
+                                  "style": {
+                                    "cssText": "font-size:11px;padding:1px 7px;border-radius:10px;cursor:pointer;"
+                                  },
+                                  "handlers": [
+                                    "onclick"
+                                  ]
+                                },
+                                {
+                                  "tag": "button",
+                                  "text": "내일",
+                                  "style": {
+                                    "cssText": "font-size:11px;padding:1px 7px;border-radius:10px;cursor:pointer;"
+                                  },
+                                  "handlers": [
+                                    "onclick"
+                                  ]
+                                },
+                                {
+                                  "tag": "button",
+                                  "text": "+7일",
+                                  "style": {
+                                    "cssText": "font-size:11px;padding:1px 7px;border-radius:10px;cursor:pointer;"
+                                  },
+                                  "handlers": [
+                                    "onclick"
+                                  ]
+                                },
+                                {
+                                  "tag": "input",
+                                  "style": {
+                                    "cssText": "font-size:11px;padding:0 2px;"
+                                  },
+                                  "type": "date",
+                                  "value": "2026-08-03",
+                                  "handlers": [
+                                    "onclick",
+                                    "onchange"
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tag": "div",
+          "style": {
+            "cssText": "display:flex;align-items:center;gap:8px;margin-bottom:6px;"
+          },
+          "children": [
+            {
+              "tag": "button",
+              "text": "◀",
+              "handlers": [
+                "onclick"
+              ]
+            },
+            {
+              "tag": "b",
+              "text": "2026.08.06 (목)",
+              "style": {
+                "minWidth": "150px"
+              }
+            },
+            {
+              "tag": "button",
+              "text": "▶",
+              "handlers": [
+                "onclick"
+              ]
+            },
+            {
+              "tag": "button",
+              "text": "오늘",
+              "handlers": [
+                "onclick"
+              ]
+            },
+            {
+              "tag": "button",
+              "text": "월간",
+              "style": {
+                "cssText": "font-size:11px;padding:2px 9px;border-radius:10px;cursor:pointer;opacity:.6;"
+              },
+              "handlers": [
+                "onclick"
+              ]
+            },
+            {
+              "tag": "button",
+              "text": "주간",
+              "style": {
+                "cssText": "font-size:11px;padding:2px 9px;border-radius:10px;cursor:pointer;opacity:.6;"
+              },
+              "handlers": [
+                "onclick"
+              ]
+            },
+            {
+              "tag": "button",
+              "text": "일간",
+              "style": {
+                "cssText": "font-size:11px;padding:2px 9px;border-radius:10px;cursor:pointer;border:1px solid var(--interactive-accent);font-weight:700;"
+              },
+              "title": "일간 보기 — 누르면 현재 시각으로 맞춘다",
+              "handlers": [
+                "onclick"
+              ]
+            },
+            {
+              "tag": "button",
+              "text": "완료 ✓",
+              "title": "달력에 완료·취소 항목 표시/숨김",
+              "handlers": [
+                "onclick"
+              ]
+            }
+          ]
+        },
+        {
+          "tag": "div",
+          "style": {
+            "cssText": "display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:8px;"
+          },
+          "children": [
+            {
+              "tag": "button",
+              "text": "전체 해제",
+              "style": {
+                "cssText": "font-size:11px;padding:2px 8px;border-radius:12px;cursor:pointer;"
+              },
+              "title": "카테고리를 모두 끈다 — 볼 것만 다시 켜면 된다",
+              "handlers": [
+                "onclick"
+              ]
+            },
+            {
+              "tag": "button",
+              "style": {
+                "cssText": "display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:2px 8px;border-radius:12px;cursor:pointer;border:1px solid var(--background-modifier-border);opacity:1;"
+              },
+              "handlers": [
+                "onclick"
+              ],
+              "children": [
+                {
+                  "tag": "span",
+                  "style": {
+                    "cssText": "width:8px;height:8px;border-radius:50%;background:#3f51b5;display:inline-block;"
+                  }
+                },
+                {
+                  "tag": "span",
+                  "text": "Work"
+                }
+              ]
+            },
+            {
+              "tag": "button",
+              "style": {
+                "cssText": "display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:2px 8px;border-radius:12px;cursor:pointer;border:1px solid var(--background-modifier-border);opacity:1;"
+              },
+              "handlers": [
+                "onclick"
+              ],
+              "children": [
+                {
+                  "tag": "span",
+                  "style": {
+                    "cssText": "width:8px;height:8px;border-radius:50%;background:#0b8043;display:inline-block;"
+                  }
+                },
+                {
+                  "tag": "span",
+                  "text": "Growth"
+                }
+              ]
+            },
+            {
+              "tag": "button",
+              "style": {
+                "cssText": "display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:2px 8px;border-radius:12px;cursor:pointer;border:1px solid var(--background-modifier-border);opacity:1;"
+              },
+              "handlers": [
+                "onclick"
+              ],
+              "children": [
+                {
+                  "tag": "span",
+                  "style": {
+                    "cssText": "width:8px;height:8px;border-radius:50%;background:#9e69af;display:inline-block;"
+                  }
+                },
+                {
+                  "tag": "span",
+                  "text": "Routine"
+                }
+              ]
+            },
+            {
+              "tag": "button",
+              "style": {
+                "cssText": "display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:2px 8px;border-radius:12px;cursor:pointer;border:1px solid var(--background-modifier-border);opacity:1;"
+              },
+              "handlers": [
+                "onclick"
+              ],
+              "children": [
+                {
+                  "tag": "span",
+                  "style": {
+                    "cssText": "width:8px;height:8px;border-radius:50%;background:#e67c73;display:inline-block;"
+                  }
+                },
+                {
+                  "tag": "span",
+                  "text": "Personal"
+                }
+              ]
+            },
+            {
+              "tag": "button",
+              "style": {
+                "cssText": "display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:2px 8px;border-radius:12px;cursor:pointer;border:1px solid var(--background-modifier-border);opacity:1;"
+              },
+              "handlers": [
+                "onclick"
+              ],
+              "children": [
+                {
+                  "tag": "span",
+                  "style": {
+                    "cssText": "width:8px;height:8px;border-radius:50%;background:#e4c441;display:inline-block;"
+                  }
+                },
+                {
+                  "tag": "span",
+                  "text": "Hobby"
+                }
+              ]
+            },
+            {
+              "tag": "button",
+              "style": {
+                "cssText": "display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:2px 8px;border-radius:12px;cursor:pointer;border:1px solid var(--background-modifier-border);opacity:1;"
+              },
+              "handlers": [
+                "onclick"
+              ],
+              "children": [
+                {
+                  "tag": "span",
+                  "style": {
+                    "cssText": "width:8px;height:8px;border-radius:50%;background:#a2845e;display:inline-block;"
+                  }
+                },
+                {
+                  "tag": "span",
+                  "text": "Event"
+                }
+              ]
+            },
+            {
+              "tag": "button",
+              "style": {
+                "cssText": "display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:2px 8px;border-radius:12px;cursor:pointer;border:1px solid var(--background-modifier-border);opacity:1;"
+              },
+              "handlers": [
+                "onclick"
+              ],
+              "children": [
+                {
+                  "tag": "span",
+                  "style": {
+                    "cssText": "width:8px;height:8px;border-radius:50%;background:#a79b8e;display:inline-block;"
+                  }
+                },
+                {
+                  "tag": "span",
+                  "text": "Non-core"
+                }
+              ]
+            },
+            {
+              "tag": "span",
+              "style": {
+                "cssText": "width:1px;height:14px;background:var(--background-modifier-border);margin:0 2px;"
+              }
+            },
+            {
+              "tag": "button",
+              "style": {
+                "cssText": "display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:2px 8px;border-radius:12px;cursor:pointer;border:1px dashed var(--background-modifier-border);opacity:1;"
+              },
+              "title": "Google Calendar 일정 표시 (읽기 전용)\nWork, Growth\n이 기간에 2건\n「완료」 토글과 카테고리 필터는 task 에만 적용됩니다",
+              "handlers": [
+                "onclick"
+              ],
+              "children": [
+                {
+                  "tag": "span",
+                  "text": "📅 일정"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tag": "div",
+          "style": {
+            "cssText": "display:flex;flex-wrap:wrap;gap:4px;align-items:center;border:1px solid var(--background-modifier-border);border-radius:4px 4px 0 0;padding:5px 6px;min-height:32px;"
+          },
+          "handlers": [
+            "on:dragover",
+            "on:dragleave",
+            "on:drop"
+          ],
+          "children": [
+            {
+              "tag": "span",
+              "text": "종일 (6)",
+              "style": {
+                "cssText": "font-size:11px;opacity:.6;margin-right:2px;"
+              }
+            },
+            {
+              "tag": "div",
+              "style": {
+                "cssText": "background:#0b804314;border:1px dashed #0b8043;border-radius:4px;padding:2px 7px;font-size:11px;line-height:16px;cursor:default;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
+              },
+              "title": "워크숍\n📆 Growth\n종일\n(읽기 전용 — Google Calendar 일정)",
+              "children": [
+                {
+                  "tag": "#text",
+                  "text": "📆 워크숍"
+                }
+              ]
+            },
+            {
+              "tag": "div",
+              "style": {
+                "cssText": "background:#3f51b52b;border:1px solid #3f51b5;border-left:4px solid #3f51b5;border-radius:4px;padding:2px 7px;font-size:11px;line-height:16px;cursor:grab;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.55;text-decoration:line-through;"
+              },
+              "title": "끝난일\n시간 그리드로 드래그하면 시각이 지정됩니다",
+              "draggable": true,
+              "handlers": [
+                "on:dragstart",
+                "on:dragend",
+                "on:click",
+                "on:contextmenu"
+              ],
+              "children": [
+                {
+                  "tag": "#text",
+                  "text": "끝난일"
+                }
+              ]
+            },
+            {
+              "tag": "div",
+              "style": {
+                "cssText": "background:#3f51b52b;border:1px solid #3f51b5;border-left:4px solid #3f51b5;border-radius:4px;padding:2px 7px;font-size:11px;line-height:16px;cursor:grab;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.55;text-decoration:line-through;"
+              },
+              "title": "취소된일\n시간 그리드로 드래그하면 시각이 지정됩니다",
+              "draggable": true,
+              "handlers": [
+                "on:dragstart",
+                "on:dragend",
+                "on:click",
+                "on:contextmenu"
+              ],
+              "children": [
+                {
+                  "tag": "#text",
+                  "text": "취소된일"
+                }
+              ]
+            },
+            {
+              "tag": "div",
+              "style": {
+                "cssText": "background:#e4c4412b;border:1px solid #e4c441;border-left:4px solid #e4c441;border-radius:4px;padding:2px 7px;font-size:11px;line-height:16px;cursor:grab;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
+              },
+              "title": "북마크\n시간 그리드로 드래그하면 시각이 지정됩니다",
+              "draggable": true,
+              "handlers": [
+                "on:dragstart",
+                "on:dragend",
+                "on:click",
+                "on:contextmenu"
+              ],
+              "children": [
+                {
+                  "tag": "#text",
+                  "text": "🔖 북마크"
+                }
+              ]
+            },
+            {
+              "tag": "div",
+              "style": {
+                "cssText": "background:#9e69af2b;border:1px solid #9e69af;border-left:4px solid #9e69af;border-radius:4px;padding:2px 7px;font-size:11px;line-height:16px;cursor:grab;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
+              },
+              "title": "반복\n🔁 반복\n시간 그리드로 드래그하면 시각이 지정됩니다",
+              "draggable": true,
+              "handlers": [
+                "on:dragstart",
+                "on:dragend",
+                "on:click",
+                "on:contextmenu"
+              ],
+              "children": [
+                {
+                  "tag": "#text",
+                  "text": "🔁 반복"
+                }
+              ]
+            },
+            {
+              "tag": "div",
+              "style": {
+                "cssText": "background:#3f51b52b;border:1px solid #3f51b5;border-left:4px solid #3f51b5;border-radius:4px;padding:2px 7px;font-size:11px;line-height:16px;cursor:grab;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
+              },
+              "title": "보고서\n시간 그리드로 드래그하면 시각이 지정됩니다",
+              "draggable": true,
+              "handlers": [
+                "on:dragstart",
+                "on:dragend",
+                "on:click",
+                "on:contextmenu"
+              ],
+              "children": [
+                {
+                  "tag": "#text",
+                  "text": "보고서"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tag": "div",
+          "style": {
+            "cssText": "position:relative;height:560px;overflow:auto;border:1px solid var(--background-modifier-border);border-top:0;border-radius:0 0 4px 4px;"
+          },
+          "handlers": [
+            "on:scroll"
+          ],
+          "children": [
+            {
+              "tag": "div",
+              "style": {
+                "cssText": "position:relative;height:1536px;"
+              },
+              "handlers": [
+                "on:dragover",
+                "on:dragleave",
+                "on:drop",
+                "on:dragend"
+              ],
+              "children": [
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "position:absolute;left:0;right:0;top:0px;height:64px;border-top:1px solid var(--background-modifier-border);"
+                  },
+                  "children": [
+                    {
+                      "tag": "span",
+                      "text": "00:00",
+                      "style": {
+                        "cssText": "position:absolute;left:5px;top:1px;font-size:10px;opacity:.45;"
+                      }
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:absolute;left:52px;right:0;top:32px;border-top:1px dashed var(--background-modifier-border);opacity:.5;"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "position:absolute;left:0;right:0;top:64px;height:64px;border-top:1px solid var(--background-modifier-border);"
+                  },
+                  "children": [
+                    {
+                      "tag": "span",
+                      "text": "01:00",
+                      "style": {
+                        "cssText": "position:absolute;left:5px;top:1px;font-size:10px;opacity:.45;"
+                      }
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:absolute;left:52px;right:0;top:32px;border-top:1px dashed var(--background-modifier-border);opacity:.5;"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "position:absolute;left:0;right:0;top:128px;height:64px;border-top:1px solid var(--background-modifier-border);"
+                  },
+                  "children": [
+                    {
+                      "tag": "span",
+                      "text": "02:00",
+                      "style": {
+                        "cssText": "position:absolute;left:5px;top:1px;font-size:10px;opacity:.45;"
+                      }
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:absolute;left:52px;right:0;top:32px;border-top:1px dashed var(--background-modifier-border);opacity:.5;"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "position:absolute;left:0;right:0;top:192px;height:64px;border-top:1px solid var(--background-modifier-border);"
+                  },
+                  "children": [
+                    {
+                      "tag": "span",
+                      "text": "03:00",
+                      "style": {
+                        "cssText": "position:absolute;left:5px;top:1px;font-size:10px;opacity:.45;"
+                      }
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:absolute;left:52px;right:0;top:32px;border-top:1px dashed var(--background-modifier-border);opacity:.5;"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "position:absolute;left:0;right:0;top:256px;height:64px;border-top:1px solid var(--background-modifier-border);"
+                  },
+                  "children": [
+                    {
+                      "tag": "span",
+                      "text": "04:00",
+                      "style": {
+                        "cssText": "position:absolute;left:5px;top:1px;font-size:10px;opacity:.45;"
+                      }
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:absolute;left:52px;right:0;top:32px;border-top:1px dashed var(--background-modifier-border);opacity:.5;"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "position:absolute;left:0;right:0;top:320px;height:64px;border-top:1px solid var(--background-modifier-border);"
+                  },
+                  "children": [
+                    {
+                      "tag": "span",
+                      "text": "05:00",
+                      "style": {
+                        "cssText": "position:absolute;left:5px;top:1px;font-size:10px;opacity:.45;"
+                      }
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:absolute;left:52px;right:0;top:32px;border-top:1px dashed var(--background-modifier-border);opacity:.5;"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "position:absolute;left:0;right:0;top:384px;height:64px;border-top:1px solid var(--background-modifier-border);"
+                  },
+                  "children": [
+                    {
+                      "tag": "span",
+                      "text": "06:00",
+                      "style": {
+                        "cssText": "position:absolute;left:5px;top:1px;font-size:10px;opacity:.45;"
+                      }
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:absolute;left:52px;right:0;top:32px;border-top:1px dashed var(--background-modifier-border);opacity:.5;"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "position:absolute;left:0;right:0;top:448px;height:64px;border-top:1px solid var(--background-modifier-border);"
+                  },
+                  "children": [
+                    {
+                      "tag": "span",
+                      "text": "07:00",
+                      "style": {
+                        "cssText": "position:absolute;left:5px;top:1px;font-size:10px;opacity:.45;"
+                      }
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:absolute;left:52px;right:0;top:32px;border-top:1px dashed var(--background-modifier-border);opacity:.5;"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "position:absolute;left:0;right:0;top:512px;height:64px;border-top:1px solid var(--background-modifier-border);"
+                  },
+                  "children": [
+                    {
+                      "tag": "span",
+                      "text": "08:00",
+                      "style": {
+                        "cssText": "position:absolute;left:5px;top:1px;font-size:10px;opacity:.45;"
+                      }
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:absolute;left:52px;right:0;top:32px;border-top:1px dashed var(--background-modifier-border);opacity:.5;"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "position:absolute;left:0;right:0;top:576px;height:64px;border-top:1px solid var(--background-modifier-border);"
+                  },
+                  "children": [
+                    {
+                      "tag": "span",
+                      "text": "09:00",
+                      "style": {
+                        "cssText": "position:absolute;left:5px;top:1px;font-size:10px;opacity:.45;"
+                      }
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:absolute;left:52px;right:0;top:32px;border-top:1px dashed var(--background-modifier-border);opacity:.5;"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "position:absolute;left:0;right:0;top:640px;height:64px;border-top:1px solid var(--background-modifier-border);"
+                  },
+                  "children": [
+                    {
+                      "tag": "span",
+                      "text": "10:00",
+                      "style": {
+                        "cssText": "position:absolute;left:5px;top:1px;font-size:10px;opacity:.45;"
+                      }
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:absolute;left:52px;right:0;top:32px;border-top:1px dashed var(--background-modifier-border);opacity:.5;"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "position:absolute;left:0;right:0;top:704px;height:64px;border-top:1px solid var(--background-modifier-border);"
+                  },
+                  "children": [
+                    {
+                      "tag": "span",
+                      "text": "11:00",
+                      "style": {
+                        "cssText": "position:absolute;left:5px;top:1px;font-size:10px;opacity:.45;"
+                      }
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:absolute;left:52px;right:0;top:32px;border-top:1px dashed var(--background-modifier-border);opacity:.5;"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "position:absolute;left:0;right:0;top:768px;height:64px;border-top:1px solid var(--background-modifier-border);"
+                  },
+                  "children": [
+                    {
+                      "tag": "span",
+                      "text": "12:00",
+                      "style": {
+                        "cssText": "position:absolute;left:5px;top:1px;font-size:10px;opacity:.45;"
+                      }
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:absolute;left:52px;right:0;top:32px;border-top:1px dashed var(--background-modifier-border);opacity:.5;"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "position:absolute;left:0;right:0;top:832px;height:64px;border-top:1px solid var(--background-modifier-border);"
+                  },
+                  "children": [
+                    {
+                      "tag": "span",
+                      "text": "13:00",
+                      "style": {
+                        "cssText": "position:absolute;left:5px;top:1px;font-size:10px;opacity:.45;"
+                      }
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:absolute;left:52px;right:0;top:32px;border-top:1px dashed var(--background-modifier-border);opacity:.5;"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "position:absolute;left:0;right:0;top:896px;height:64px;border-top:1px solid var(--background-modifier-border);"
+                  },
+                  "children": [
+                    {
+                      "tag": "span",
+                      "text": "14:00",
+                      "style": {
+                        "cssText": "position:absolute;left:5px;top:1px;font-size:10px;opacity:.45;"
+                      }
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:absolute;left:52px;right:0;top:32px;border-top:1px dashed var(--background-modifier-border);opacity:.5;"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "position:absolute;left:0;right:0;top:960px;height:64px;border-top:1px solid var(--background-modifier-border);"
+                  },
+                  "children": [
+                    {
+                      "tag": "span",
+                      "text": "15:00",
+                      "style": {
+                        "cssText": "position:absolute;left:5px;top:1px;font-size:10px;opacity:.45;"
+                      }
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:absolute;left:52px;right:0;top:32px;border-top:1px dashed var(--background-modifier-border);opacity:.5;"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "position:absolute;left:0;right:0;top:1024px;height:64px;border-top:1px solid var(--background-modifier-border);"
+                  },
+                  "children": [
+                    {
+                      "tag": "span",
+                      "text": "16:00",
+                      "style": {
+                        "cssText": "position:absolute;left:5px;top:1px;font-size:10px;opacity:.45;"
+                      }
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:absolute;left:52px;right:0;top:32px;border-top:1px dashed var(--background-modifier-border);opacity:.5;"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "position:absolute;left:0;right:0;top:1088px;height:64px;border-top:1px solid var(--background-modifier-border);"
+                  },
+                  "children": [
+                    {
+                      "tag": "span",
+                      "text": "17:00",
+                      "style": {
+                        "cssText": "position:absolute;left:5px;top:1px;font-size:10px;opacity:.45;"
+                      }
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:absolute;left:52px;right:0;top:32px;border-top:1px dashed var(--background-modifier-border);opacity:.5;"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "position:absolute;left:0;right:0;top:1152px;height:64px;border-top:1px solid var(--background-modifier-border);"
+                  },
+                  "children": [
+                    {
+                      "tag": "span",
+                      "text": "18:00",
+                      "style": {
+                        "cssText": "position:absolute;left:5px;top:1px;font-size:10px;opacity:.45;"
+                      }
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:absolute;left:52px;right:0;top:32px;border-top:1px dashed var(--background-modifier-border);opacity:.5;"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "position:absolute;left:0;right:0;top:1216px;height:64px;border-top:1px solid var(--background-modifier-border);"
+                  },
+                  "children": [
+                    {
+                      "tag": "span",
+                      "text": "19:00",
+                      "style": {
+                        "cssText": "position:absolute;left:5px;top:1px;font-size:10px;opacity:.45;"
+                      }
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:absolute;left:52px;right:0;top:32px;border-top:1px dashed var(--background-modifier-border);opacity:.5;"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "position:absolute;left:0;right:0;top:1280px;height:64px;border-top:1px solid var(--background-modifier-border);"
+                  },
+                  "children": [
+                    {
+                      "tag": "span",
+                      "text": "20:00",
+                      "style": {
+                        "cssText": "position:absolute;left:5px;top:1px;font-size:10px;opacity:.45;"
+                      }
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:absolute;left:52px;right:0;top:32px;border-top:1px dashed var(--background-modifier-border);opacity:.5;"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "position:absolute;left:0;right:0;top:1344px;height:64px;border-top:1px solid var(--background-modifier-border);"
+                  },
+                  "children": [
+                    {
+                      "tag": "span",
+                      "text": "21:00",
+                      "style": {
+                        "cssText": "position:absolute;left:5px;top:1px;font-size:10px;opacity:.45;"
+                      }
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:absolute;left:52px;right:0;top:32px;border-top:1px dashed var(--background-modifier-border);opacity:.5;"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "position:absolute;left:0;right:0;top:1408px;height:64px;border-top:1px solid var(--background-modifier-border);"
+                  },
+                  "children": [
+                    {
+                      "tag": "span",
+                      "text": "22:00",
+                      "style": {
+                        "cssText": "position:absolute;left:5px;top:1px;font-size:10px;opacity:.45;"
+                      }
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:absolute;left:52px;right:0;top:32px;border-top:1px dashed var(--background-modifier-border);opacity:.5;"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "position:absolute;left:0;right:0;top:1472px;height:64px;border-top:1px solid var(--background-modifier-border);"
+                  },
+                  "children": [
+                    {
+                      "tag": "span",
+                      "text": "23:00",
+                      "style": {
+                        "cssText": "position:absolute;left:5px;top:1px;font-size:10px;opacity:.45;"
+                      }
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:absolute;left:52px;right:0;top:32px;border-top:1px dashed var(--background-modifier-border);opacity:.5;"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "position:absolute;left:52px;right:0;top:768px;border-top:2px solid #e05a7a;z-index:3;pointer-events:none;"
+                  }
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "position:absolute;left:52px;right:0;display:none;z-index:4;pointer-events:none;box-sizing:border-box;border:1px dashed var(--interactive-accent);border-radius:4px;"
+                  },
+                  "children": [
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:absolute;inset:0;background:var(--interactive-accent);opacity:.22;border-radius:3px;"
+                      }
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:absolute;left:5px;top:1px;font-size:11px;font-weight:600;color:var(--text-accent);white-space:nowrap;"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "position:absolute;left:2px;display:none;z-index:5;pointer-events:none;font-size:10px;font-weight:600;line-height:1.5;padding:0 4px;border-radius:6px;background:var(--interactive-accent);color:var(--text-on-accent);"
+                  }
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "position:absolute;left:calc(52px + (100% - 52px) * 0);width:calc((100% - 52px) * 0.5 - 5px);top:576px;height:62px;z-index:2;box-sizing:border-box;background:#3f51b52b;border:1px solid #3f51b5;border-left:4px solid #3f51b5;border-radius:4px;padding:2px 6px;font-size:11px;line-height:1.3;overflow:hidden;cursor:grab;"
+                  },
+                  "title": "겹침\n⏰ 09:00-10:00\n드래그=시각 이동 · 아래끝 드래그=종료 시각 · 종일 줄로 드래그=시각 제거 · 클릭=열기",
+                  "draggable": true,
+                  "handlers": [
+                    "on:dragstart",
+                    "on:dragend",
+                    "on:click",
+                    "on:contextmenu"
+                  ],
+                  "children": [
+                    {
+                      "tag": "#text",
+                      "text": "09:00 겹침"
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:absolute;left:0;right:0;bottom:0;height:10px;cursor:ns-resize;touch-action:none;border-bottom:3px solid #3f51b5;"
+                      },
+                      "title": "드래그해서 종료 시각 조정",
+                      "handlers": [
+                        "on:click",
+                        "on:pointerdown"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "position:absolute;left:calc(52px + (100% - 52px) * 0.5);width:calc((100% - 52px) * 0.5 - 5px);top:608px;height:94px;z-index:2;box-sizing:border-box;background:#3f51b52b;border:1px solid #3f51b5;border-left:4px solid #3f51b5;border-radius:4px;padding:2px 6px;font-size:11px;line-height:1.3;overflow:hidden;cursor:grab;"
+                  },
+                  "title": "겹침\n⏰ 09:30-11:00\n드래그=시각 이동 · 아래끝 드래그=종료 시각 · 종일 줄로 드래그=시각 제거 · 클릭=열기",
+                  "draggable": true,
+                  "handlers": [
+                    "on:dragstart",
+                    "on:dragend",
+                    "on:click",
+                    "on:contextmenu"
+                  ],
+                  "children": [
+                    {
+                      "tag": "#text",
+                      "text": "09:30 겹침"
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:absolute;left:0;right:0;bottom:0;height:10px;cursor:ns-resize;touch-action:none;border-bottom:3px solid #3f51b5;"
+                      },
+                      "title": "드래그해서 종료 시각 조정",
+                      "handlers": [
+                        "on:click",
+                        "on:pointerdown"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "position:absolute;left:calc(52px + (100% - 52px) * 0);width:calc((100% - 52px) * 0.5 - 5px);top:640px;height:62px;z-index:1;box-sizing:border-box;background:#3f51b514;border:1px dashed #3f51b5;border-radius:4px;padding:2px 6px;font-size:11px;line-height:1.3;overflow:hidden;cursor:default;"
+                  },
+                  "title": "주간 회의\n📆 Work\n⏰ 10:00-11:00\n🔁 반복 일정\n📍 3층 회의실\n(읽기 전용 — Google Calendar 일정)",
+                  "children": [
+                    {
+                      "tag": "#text",
+                      "text": "10:00 📆 🔁 주간 회의"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
