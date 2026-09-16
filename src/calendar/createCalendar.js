@@ -7,6 +7,16 @@ import { byDayOrder, isRO } from "../core/order";
 import { layoutTimeLanes } from "../core/timeLanes";
 import { calKey } from "../core/blockOptions";
 import { resolveEventColor } from "../core/colors";
+import { addDays, coversDay, diffDays, onDay, sundayStart } from "../core/dates";
+import { DEFAULT_MIN, SNAP_MIN, snapMin, timeText, toHHMM, toMin } from "../core/time";
+import { pkey } from "../data/pending";
+import { gatherTasks } from "../data/gather";
+import { findTaskLine, patchLine } from "../write/linePatch";
+import { planDropOnDate, planDropOnTime, planWriteBack } from "../write/dropRules";
+import { syncCategories as resolveCategories } from "./categories";
+import { eventCacheKey, passesCalFilter as passesFilter, rangeForView as viewRange, toEventItem as makeEventItem } from "../feed/events";
+import { layoutWeekBars } from "../ui/lanes";
+import { mobileHourRange } from "../ui/mobileHours";
 import { TaskSheetModal } from "../ui/TaskSheetModal";
 
 /**
@@ -84,16 +94,7 @@ export function createCalendar({ plugin, api, container, source, notes, sourcePa
         if (Math.abs(scroller.scrollTop - S.scrollTop) > 1) scroller.scrollTop = S.scrollTop;
     };
 
-    // 낙관적 갱신 대기표: 파일에 방금 쓴 줄을 Dataview 인덱스가 따라올 때까지 임시로 덮어쓴다.
-    const PENDING_TTL = 20000;   // ms — 인덱스가 끝내 안 따라오면 이 시간 뒤 자동 해제
-    // 키에 줄 번호가 반드시 들어가야 한다. title 은 날짜·태그·🆔 를 지운 값이라
-    // 같은 파일에 제목이 똑같은 태스크(예: 매주 반복 로그)가 여러 개면 전부 같은 키가 되고,
-    // 하나를 옮기면 나머지가 그 줄로 덮여 그려진 뒤 applyDates 가 엉뚱한 줄에 쓰게 된다.
-    const pkey = (path, line, title) => path + "\u0000" + line + "\u0000" + title;
-    // 항목의 안정 식별자. task 는 파일+줄, GCal 일정은 피드가 준 uid 를 그대로 쓴다.
-    // placeBars 의 레인 메모가 이 값을 키로 삼는다 — 일정에는 path·line 이 없기 때문이다.
-    const SEP = String.fromCharCode(0);
-    const UID = (path, line) => path + SEP + line;
+    // 낙관적 갱신 대기표(키 규칙 · 만료)는 data/pending.ts 에 있다.
     // 날짜 선택기(webkit 캘린더 아이콘) 깨짐 → 깔끔한 SVG 아이콘으로 교체 (테마색 반영)
     (function fixDateIcon() {
         // 캘린더가 여러 개 열려 있어도 한 번만 주입하고, 테마는 선택자로 갈라 즉시 반영되게 한다.
@@ -171,26 +172,7 @@ export function createCalendar({ plugin, api, container, source, notes, sourcePa
     let CATS = [], CATLABEL = {}, CATCOLOR = {}, CAT_DEFAULT = "";
     const activeCats = new Set(Array.isArray(S.cats) ? S.cats : undefined);   // 필터도 재실행 후 유지
     const syncCategories = () => {
-        const cats = plugin.settings.categories.filter((c) => c.key);
-        CATS = cats.map((c) => c.key);
-        CATLABEL = Object.fromEntries(cats.map((c) => [c.key, c.label || c.key]));
-        // 색은 실제 Google Calendar 의 커스텀 색 HEX 를 그대로 쓴다.
-        CATCOLOR = Object.fromEntries(cats.map((c) => [c.key, c.color]));
-        CAT_DEFAULT = plugin.settings.defaultCategory || CATS[0] || "";
-        // 설정에서 사라진 카테고리는 필터에서도 뺀다. 설정에 "새로 생긴" 카테고리는
-        // 켠 채로 시작한다 — 방금 만든 카테고리가 안 보이면 버그로 읽힌다.
-        //
-        // "새로 생겼는지" 는 반드시 지난번 카테고리 "목록"(S.knownCats)과 견줘야 한다.
-        // 활성 목록(S.cats)과 견주면 꺼 둔 카테고리와 처음 보는 카테고리를 구분하지 못해
-        // 꺼 둔 게 다음 렌더에 되살아난다. 클릭 한 번이 곧 렌더 한 번이라, 두 번째로 끄는
-        // 순간 첫 번째가 켜져서 "한 번에 하나만 꺼진다" 로 나타났다(0.1.12 에서 수정).
-        const saved = Array.isArray(S.cats) ? S.cats : null;
-        // knownCats 가 없는 첫 실행: 이미 저장된 필터가 있으면 지금 목록을 다 아는 것으로 친다
-        // (안 그러면 업데이트 직후 꺼 둔 게 한 번 되살아난다). 저장분이 아예 없으면 전부 켠다.
-        const known = Array.isArray(S.knownCats) ? S.knownCats : (saved ? CATS : null);
-        for (const c of [...activeCats]) if (!CATS.includes(c)) activeCats.delete(c);
-        for (const c of CATS) if (!known || !known.includes(c)) activeCats.add(c);
-        S.knownCats = [...CATS];
+        ({ CATS, CATLABEL, CATCOLOR, CAT_DEFAULT } = resolveCategories(plugin.settings, S, activeCats));
     };
     syncCategories();
     // ═════════════════════════════════════════════════════════════════════════════
@@ -224,36 +206,15 @@ export function createCalendar({ plugin, api, container, source, notes, sourcePa
         return d;
     }
 
-    // ---- 날짜 헬퍼 (날짜만, TZ 안전) ----
-    const addDays = (iso, n) => { const d = new Date(iso + "T00:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
-    const diffDays = (a, b) => Math.round((Date.parse(a + "T00:00:00Z") - Date.parse(b + "T00:00:00Z")) / 86400000);
-    const sundayStart = (d) => d.minus({ days: d.weekday % 7 });   // 일요일 시작
+    // 날짜 계산(addDays · diffDays · sundayStart · coversDay · onDay)은 core/dates.ts.
+    // ⚠️ 이 값은 캘린더를 연 시점에 굳는다 — 자정을 넘기면 낡는다(알려진 버그, 0.8.x 에서 고친다).
     const todayISO = L.now().toISODate();
 
-    // ---- 시간(타임블록) ----
-    // 문법: ⏰ HH:MM-HH:MM (종료 생략 시 시작 + DEFAULT_MIN 분)
-    //
-    // ⚠️ 줄에 새로 넣을 때는 반드시 "첫 Tasks 필드 이모지 앞"에 삽입한다. 줄 끝에 붙이면 안 된다.
-    //    Tasks 8.3.0 은 필드 정규식을 전부 "$" 앵커로 만들고(Da()), deserialize() 가 줄 끝에서부터
-    //    하나씩 벗겨내는 do-while 루프다. 끝에 Tasks 가 모르는 토큰이 있으면 첫 바퀴에 아무것도
-    //    매치되지 않아 루프가 끝나고, 그 앞의 📅🛫 까지 통째로 설명(description)으로 흡수된다
-    //    → 마감일 기반 쿼리·정렬이 그 태스크를 놓친다.
-    // 그래서 시각은 사용자가 타이핑하지 않고 일간 보기 드래그로만 설정한다(위치를 코드가 통제).
-    const TIME_PAT = "\\u{23F0}\\s*(\\d{1,2}:\\d{2})(?:\\s*-\\s*(\\d{1,2}:\\d{2}))?";
-    const timeRe = () => new RegExp(TIME_PAT, "u");
-    const timeReStrip = () => new RegExp("\\s*" + TIME_PAT, "gu");
-    // 첫 Tasks 필드 이모지 = 삽입 기준점 (우선순위 이모지 포함)
-    const FIELD_EMOJI = /[\u{1F4C5}\u{1F4C6}\u{1F5D3}\u{1F6EB}\u{23F3}\u{231B}\u{2705}\u{2795}\u{274C}\u{1F501}\u{1F194}\u{26D4}\u{1F3C1}\u{1F53A}\u{23EB}\u{1F53C}\u{1F53D}\u{23EC}]/u;
-    const DEFAULT_MIN = 60;   // 종료 시각이 없을 때의 기본 길이
-    const SNAP_MIN = 15;      // 드래그 스냅 단위(분)
+    // ⏰ 타임블록의 문법·분 계산(TIME_PAT · FIELD_EMOJI · toMin · toHHMM · timeText · snapMin)은
+    // core/time.ts 에 있다. **줄에 넣는 위치 규칙**도 거기 주석에 있다 — 고치기 전에 읽을 것.
     const HOUR_H = 64;        // 일간 보기에서 1시간 높이(px). 15분 스냅 = 16px 라 15분 단위가 눈에 잡힌다
     const DAY_BOX_H = 560;    // 시간 그리드 스크롤 박스 높이(px)
     const GUTTER = 52;        // 시각 라벨이 차지하는 왼쪽 폭(px)
-
-    const toMin = (hhmm) => { const [h, m] = hhmm.split(":").map(Number); return h * 60 + m; };
-    const toHHMM = (min) => { const x = Math.max(0, Math.min(1439, Math.round(min))); return String(Math.floor(x / 60)).padStart(2, "0") + ":" + String(x % 60).padStart(2, "0"); };
-    const snapMin = (m) => Math.round(m / SNAP_MIN) * SNAP_MIN;
-    const timeText = (s, e) => toHHMM(s) + "-" + toHHMM(e);
 
     // 어디에 열 것인가 — Obsidian 링크와 똑같은 규칙을 따른다.
     //   그냥 클릭 = 현재 탭 · Ctrl(Cmd)+클릭 = 새 탭 · Ctrl+Shift+클릭 = 분할 창
@@ -293,15 +254,6 @@ export function createCalendar({ plugin, api, container, source, notes, sourcePa
         const ed = leaf.view && leaf.view.editor;
         if (ed) { ed.setCursor({ line, ch: 0 }); ed.scrollIntoView({ from: { line, ch: 0 }, to: { line, ch: 0 } }, true); }
     }
-
-    // 파일의 줄 배열에서 이 태스크의 실제 줄 인덱스를 찾는다. 못 찾으면 -1.
-    // task.line 이 맞으면 그대로 쓰고, 어긋났으면(외부 편집으로 줄이 밀렸을 때) text 로 재탐색한다.
-    // ⚠️ 확인 없이 task.line 을 그냥 쓰면 태스크가 아닌 줄을 덮어쓴다 → 호출부는 반드시 -1 을 처리할 것.
-    const findTaskLine = (lines, task) => {
-        const i = task.line;
-        if (lines[i] !== undefined && lines[i].includes(task.text)) return i;
-        return lines.findIndex(l => l.includes(task.text));
-    };
 
     // 우클릭 → Tasks 편집 모달(탭 이동 없이). apiV1.editTaskLineModal 로 줄을 수정 → 파일 반영 → 제자리 갱신.
     async function editTask(task) {
@@ -352,111 +304,21 @@ export function createCalendar({ plugin, api, container, source, notes, sourcePa
         el.addEventListener("drop", async (e) => { e.preventDefault(); e.stopPropagation(); el.style.background = baseBg; const t = takeDrag(); if (t) await dropOnDate(t, iso, e.shiftKey); });
     }
 
-    function gather() {
-        const out = [];
-        const now = Date.now();
-        // 만료된 대기표는 그 줄을 다시 만나야 풀렸다 → 줄이 지워지면 영원히 남는다. 매 수집마다 일괄 청소.
-        for (const [k, v] of G.pending) if (now - v.ts > PENDING_TTL) G.pending.delete(k);
-        // 제목 = 날짜·태그를 지운 값 → 날짜를 바꿔도 변하지 않으므로 대기표 키로 안전
-        const mkTitle = (s) => s
-            // 🔁 뒤에는 날짜가 아니라 문장이 온다(예: 🔁 every week on Monday) → 다음 필드/태그 전까지 제거
-            .replace(/🔁[^📅🛫⏳✅➕❌🆔⛔🔺⏫🔼🔽⏬#]*/gu, "")
-            .replace(/(?:📅|🛫|⏳|✅|➕|❌)\s*\d{4}-\d{2}-\d{2}/gu, "")
-            .replace(timeReStrip(), "")        // ⏰ 시각 필드 제거 (제목에 섞이면 GCal 이벤트 제목이 더러워진다)
-            .replace(/(?:🆔|⛔)\s*\S+/gu, "")   // 🆔 id · ⛔ 의존성 제거 (u 플래그로 이모지 정확 매칭)
-            .replace(/[🔺⏫🔼🔽⏬📅🛫⏳✅➕❌🔁]/gu, "")   // 우선순위 표시 · 남은 필드 마커 제거
-            .replace(/#\S+/g, "")
-            .replace(/\s+/g, " ").trim();
-        for (const p of api.pages(SOURCE)) {
-            for (const t of p.file.tasks) {
-                let text = String(t.text || "");
-                if (!/#task\b/.test(text)) continue;
-                let title = mkTitle(text);
-                // 낙관적 갱신: 방금 쓴 줄이 아직 인덱스에 안 반영됐으면 그 줄로 대체해서 그린다
-                const key = pkey(p.file.path, t.line, title);
-                const ov = G.pending.get(key);
-                if (ov) {
-                    if (ov.text === text) G.pending.delete(key);   // 인덱스가 따라옴 → 해제
-                    else { text = ov.text; title = mkTitle(text); }   // 편집 모달로 제목이 바뀐 경우까지 반영
-                }
-                const dm = text.match(/📅\s*(\d{4}-\d{2}-\d{2})/);
-                const sm = text.match(/🛫\s*(\d{4}-\d{2}-\d{2})/);
-                const gm = text.match(/#gcal\/([\w-]+)/);
-                const cancelled = t.status === "-";   // - [-] = Tasks 취소 상태
-                const bookmark = t.status === "b";    // - [b] = 북마크 상태
-                // ⏰ 시각. 종료가 없거나 역전돼 있으면 기본 길이로 보정한다(막대 높이가 0/음수가 되지 않게).
-                const tm = text.match(timeRe());
-                let tStart = null, tEnd = null;
-                if (tm) {
-                    tStart = Math.min(1439, toMin(tm[1]));
-                    tEnd = tm[2] ? toMin(tm[2]) : tStart + DEFAULT_MIN;
-                    if (tEnd <= tStart) tEnd = tStart + DEFAULT_MIN;
-                    tEnd = Math.min(1440, tEnd);
-                }
-                // 🔁 반복 task. mkTitle 이 제목에서 지우므로 여기서 원문을 보고 잡아둔다.
-                const recurring = /🔁/u.test(text);
-                out.push({ kind: "task", uid: UID(p.file.path, t.line), path: p.file.path, line: t.line, text, title, due: dm ? dm[1] : null, start: sm ? sm[1] : null, tStart, tEnd, cat: gm ? gm[1].toLowerCase() : CAT_DEFAULT, done: !!t.completed, cancelled, bookmark, recurring });
-            }
-        }
-        return out;
-    }
+    const gather = () => gatherTasks(api.pages(SOURCE), { catDefault: CAT_DEFAULT, pending: G.pending, now: Date.now() });
 
-    /**
-     * 이 블록이 이 캘린더를 그리는가. 이름(대소문자·공백 무시)이나 id 로 맞춘다 —
-     * 사람이 손으로 적는 값이므로 이름이 주 경로이고, id 는 이름이 겹칠 때의 탈출구다.
-     */
-    const passesCalFilter = (e) => {
-        const name = calKey(e.calendarName);
-        const id = calKey(e.calendarId);
-        const hit = (list) => list.includes(name) || list.includes(id);
-        if (CALF.include.length && !hit(CALF.include)) return false;
-        if (CALF.exclude.length && hit(CALF.exclude)) return false;
-        return true;
-    };
+    const passesCalFilter = (e) => passesFilter(e, CALF);
 
-    const HEX6 = /^#[0-9a-fA-F]{6}$/;
-    /**
-     * 일정의 색. **카테고리 색을 먼저 본다** — 따로 맞춰 놓을 필요가 없게.
-     *
-     * `#gcal/<이름>` 라우팅이 태그 이름과 캘린더 이름을 그대로 맞추므로(보정 규칙이
-     * 없으면), 캘린더 이름을 소문자로 내리면 카테고리 키와 맞는다. 그래서 같은 캘린더의
-     * task 막대와 회의 막대가 **저절로 같은 색**이 된다. 카테고리 색을 바꾸면 둘 다 따라온다.
-     */
     /**
      * 일정의 색. **색은 전부 이 플러그인 설정이 정한다** — tasks-gcal-sync 가 실어 보내는
      * `e.color` 는 일부러 보지 않는다. 색이 두 군데 있으면 어느 쪽이 이기는지를 매번
      * 되짚어야 하고, 실제로 그렇게 헷갈렸다.
+     *
+     * 기본이 **카테고리 색**인 이유: `#gcal/<이름>` 라우팅이 태그 이름과 캘린더 이름을 그대로
+     * 맞추므로, 캘린더 "Growth" 의 회의는 growth 카테고리 색이 되어 같은 캘린더의 task 막대와
+     * 저절로 같아진다.
      */
     const eventColor = (e) => resolveEventColor(plugin.settings, CATCOLOR, e.calendarId, e.calendarName);
-
-    /**
-     * 피드가 준 일정 → 캘린더가 그릴 수 있는 항목.
-     *
-     * **task 항목과 같은 오리 모양으로 만든다** — start/due/tStart/tEnd 를 그대로 쓰므로
-     * placeBars 의 레인 배치도, renderDay 의 종일/시간 분리도, 일간 클러스터 계산도
-     * 손댈 게 없다. 새 레이아웃 코드를 만들지 않는 것이 이 기능의 위험을 가장 크게 줄인다.
-     *
-     * path·line 은 **일부러 null** 이다. isRO 가드를 하나 빠뜨려도 파일 경로가 해석되지
-     * 않아 아무것도 못 고친다(이중 안전장치).
-     */
-    const toEventItem = (e) => ({
-        kind: "event",
-        uid: e.uid,
-        path: null, line: null, text: "",
-        title: e.title,
-        start: e.startISO, due: e.endISO,
-        tStart: e.tStart, tEnd: e.tEnd,
-        cat: null,                       // 카테고리가 아니다 — 필터도 별도 토글로 건다
-        // 기본은 **카테고리 색**이다. `#gcal/<이름>` 라우팅이 태그 이름과 캘린더 이름을
-        // 그대로 맞추므로(보정 규칙이 없으면), 캘린더 "Growth" 의 회의는 growth 카테고리
-        // 색이 되어 같은 캘린더의 task 막대와 저절로 같아진다. 동기화 플러그인 설정에서
-        // 색을 고르면 그게 이긴다 → eventColor()
-        color: eventColor(e),
-        calendarName: e.calendarName || "",
-        location: e.location || "", allDay: e.allDay,
-        recurring: !!e.recurring,
-        done: false, cancelled: false, bookmark: false,
-    });
+    const toEventItem = (e) => makeEventItem(e, eventColor(e));
 
     // 일정은 gather() 에 넣지 않는다. dataCache 는 볼트 쓰기 때 무효화되는 물건이라
     // 거기 넣으면 일정이 영영 낡고, 대기표(pending) 스윕이 헛돈다. 별도 메모를 둔다.
@@ -485,11 +347,7 @@ export function createCalendar({ plugin, api, container, source, notes, sourcePa
         subscribe(feedPlugin());   // 준비 전에도 걸어 둔다 — 설정에서 캘린더를 고르면 알려 온다
         const f = feed();
         if (!f || !showEvents || CALF.off) return [];
-        // 카테고리 색이 바뀌면 캐시된 항목의 color 도 다시 계산해야 한다(eventColor 참고)
-        // 색 설정이 바뀌면 캐시된 항목도 다시 칠해야 한다 → 서명을 키에 넣는다
-        const key = fromISO + "|" + toISO + "|" + feedVersion + "|" +
-            CATS.map((c) => CATCOLOR[c]).join(",") + "|" +
-            plugin.settings.eventColor + "|" + JSON.stringify(plugin.settings.eventColors || {});
+        const key = eventCacheKey(fromISO, toISO, feedVersion, CATS, CATCOLOR, plugin.settings);
         // ★ 캐시가 맞아도 **먼저** 요청한다 (v0.2.7). 이 호출은 피드에게 "뷰가 이 구간을
         //   보고 있다" 를 알리는 유일한 신호다. 캐시 적중일 때 건너뛰었더니 조용한 구간에서
         //   피드가 이 창을 잊고 폴링을 멈췄고 — 폴링이 멈추면 달라질 일이 없으니 이 캐시도
@@ -511,14 +369,7 @@ export function createCalendar({ plugin, api, container, source, notes, sourcePa
         return items;
     };
 
-    // 지금 보기가 실제로 그리는 날짜 범위. 조회 창이자 peek 필터다.
-    const rangeForView = () => {
-        if (mode === "day") { const d = view.toISODate(); return [d, d]; }
-        if (mode === "week") { const s = view.toISODate(); return [s, addDays(s, 6)]; }
-        const first = sundayStart(view.startOf("month")).toISODate();
-        const last = sundayStart(view.endOf("month")).toISODate();
-        return [first, addDays(last, 6)];
-    };
+    const rangeForView = () => viewRange(mode, view);
 
     // 원본 줄의 🛫 start / 📅 due / ⏰ time 을 직접 변경 (changes: {start?, due?, time?}).
     // 없는 필드는 새로 추가하고, time 에 null 을 주면 시각을 제거한다.
@@ -529,32 +380,8 @@ export function createCalendar({ plugin, api, container, source, notes, sourcePa
         rememberScroll();   // 쓰기 → Dataview 재실행 사이에 스크롤이 튀지 않게
         const file = app.vault.getAbstractFileByPath(task.path);
         if (!file) { new Notice("파일 없음: " + task.path); return; }
-        // 파일의 실제 줄과 task.text 에 똑같이 적용하기 위해 변경을 함수로 분리
-        const patch = (ln) => {
-            if (changes.start !== undefined) {
-                if (/🛫\s*\d{4}-\d{2}-\d{2}/.test(ln)) ln = ln.replace(/🛫\s*\d{4}-\d{2}-\d{2}/, "🛫 " + changes.start);
-                else ln = ln.replace(/\s*$/, "") + " 🛫 " + changes.start;
-            }
-            if (changes.due !== undefined) {
-                if (/📅\s*\d{4}-\d{2}-\d{2}/.test(ln)) ln = ln.replace(/📅\s*\d{4}-\d{2}-\d{2}/, "📅 " + changes.due);
-                else ln = ln.replace(/\s*$/, "") + " 📅 " + changes.due;
-            }
-            // ⏰ 는 마지막에 처리한다 — 위에서 📅/🛫 를 새로 붙였을 수 있고, 시각은 그것들보다 앞에 와야 한다.
-            if (changes.time !== undefined) {
-                const cleaned = ln.replace(timeReStrip(), "");
-                if (changes.time === null) ln = cleaned;
-                else {
-                    const field = "⏰ " + changes.time;
-                    const m = cleaned.match(FIELD_EMOJI);
-                    // 첫 Tasks 필드 이모지 앞에 삽입. 줄 끝 append 는 Tasks 파싱을 깨뜨리므로 금지
-                    // (필드 정규식이 "$" 앵커라, 끝에 모르는 토큰이 있으면 그 앞 필드까지 안 읽힌다).
-                    ln = m
-                        ? cleaned.slice(0, m.index).replace(/\s*$/, "") + " " + field + " " + cleaned.slice(m.index)
-                        : cleaned.replace(/\s*$/, "") + " " + field;
-                }
-            }
-            return ln;
-        };
+        // 줄을 고치는 규칙은 write/linePatch.ts 한 곳에 있다.
+        const patch = (ln) => patchLine(ln, changes);
         let wroteAt = task.line;   // 실제로 고친 줄 (대기표 키를 여기에 맞춰야 함)
         let missed = false;
         await app.vault.process(file, (data) => {
@@ -573,48 +400,18 @@ export function createCalendar({ plugin, api, container, source, notes, sourcePa
         render();
     }
 
-    // 날짜 칸에 드롭. 드롭한 칸(iso)이 무엇이 되는지가 두 동작의 차이다.
-    //   일반   = 기간 이동 : iso 가 🛫 시작일(없으면 📅 마감일)이 되고 기간 길이는 그대로 유지.
-    //   Shift  = 마감 조정 : iso 가 📅 마감일이 되고 🛫 시작일은 고정 — 없으면 원래 마감일 자리에 새로 생김.
-    // 어느 쪽이든 start > due 상태는 만들지 않는다 (막대 폭이 음수가 되어 CSS 가 무효화된다).
-    async function dropOnDate(task, iso, shift) {
-        if (shift) {
-            const base = task.start || task.due;   // 고정될 왼쪽 끝
-            if (!base) { await applyDates(task, { due: iso }); new Notice("📅 " + iso); return; }
-            if (iso < base) { new Notice("마감일은 시작일(🛫 " + base + ")보다 앞설 수 없어요"); return; }
-            // 시작일이 없던 태스크는 원래 마감일을 시작일로 굳혀서 기간이 생기게 한다
-            await applyDates(task, task.start ? { due: iso } : { start: base, due: iso });
-            new Notice("📅 " + iso + (task.start ? "" : "  (🛫 " + base + " 생성)"));
-        } else {
-            if (!task.due) { await applyDates(task, { due: iso }); new Notice("📅 " + iso); return; }
-            if (!task.start) { await applyDates(task, { due: iso }); new Notice("📅 " + iso); return; }
-            const span = diffDays(task.due, task.start);       // 기간 길이(일) 보존
-            const newDue = addDays(iso, span);
-            await applyDates(task, { start: iso, due: newDue });
-            new Notice("🛫 " + iso + " → 📅 " + newDue);
-        }
-    }
-
-    // 일간 보기 시간 그리드에 드롭 → 시각 지정/이동. 길이는 보존(없던 태스크는 DEFAULT_MIN).
-    // 다른 날짜(트레이 포함)에서 끌어온 단일일 태스크는 마감일도 이 날짜로 맞춘다.
-    // 기간(🛫~📅)이 있는 태스크는 날짜를 건드리지 않는다 — 기간 이동은 월/주간 보기의 역할이다.
-    async function dropOnTime(task, iso, startMin) {
-        const len = task.tStart !== null ? task.tEnd - task.tStart : DEFAULT_MIN;
-        const s = Math.max(0, Math.min(1440 - SNAP_MIN, snapMin(startMin)));
-        const e = Math.min(1440, s + len);
-        const changes = { time: timeText(s, e) };
-        const spans = task.start && task.due && task.start !== task.due;
-        if (!spans && task.due !== iso) changes.due = iso;
-        await applyDates(task, changes);
-        new Notice("⏰ " + timeText(s, e) + (changes.due ? "  📅 " + iso : ""));
-    }
-
-    // 트레이 빠른버튼/날짜선택기 → 마감일만 지정 (버튼 라벨이 곧 마감일이므로 기간 이동이 아니다)
-    async function writeBack(task, newDue) {
-        if (task.start && newDue < task.start) { new Notice("마감일은 시작일(🛫 " + task.start + ")보다 앞설 수 없어요"); return; }
-        await applyDates(task, { due: newDue });
-        new Notice("📅 " + newDue);
-    }
+    // 무엇을 쓸지 정하는 규칙은 write/dropRules.ts 에 있다. 여기서는 **쓰고 말한다**.
+    const runPlan = async (task, plan) => {
+        if (!plan.changes) { new Notice(plan.notice); return; }
+        await applyDates(task, plan.changes);
+        new Notice(plan.notice);
+    };
+    // 배경 날짜 칸 드롭 (일반 = 기간째 이동 · Shift = 마감일만 조정)
+    const dropOnDate = (task, iso, shift) => runPlan(task, planDropOnDate(task, iso, shift));
+    // 일간 보기 시간 그리드 드롭 → 시각 지정/이동
+    const dropOnTime = (task, iso, startMin) => runPlan(task, planDropOnTime(task, iso, startMin));
+    // 트레이 빠른버튼·날짜선택기 → 마감일만 지정
+    const writeBack = (task, newDue) => runPlan(task, planWriteBack(task, newDue));
 
     // 한 주(weekStartISO~+6)에 걸치는 태스크를 기간 막대로 area 위에 배치.
     // 막대 본체 드래그=기간째 이동, Shift+드래그=마감일 조정, 클릭=원본 열기. 반환=막대영역 높이(px).
@@ -635,35 +432,7 @@ export function createCalendar({ plugin, api, container, source, notes, sourcePa
         area.addEventListener("dragover", (e) => e.preventDefault());
         area.addEventListener("drop", async (e) => { e.preventDefault(); const t = takeDrag(); if (t) await dropOnDate(t, addDays(weekStartISO, colAt(e.clientX)), e.shiftKey); });
 
-        const weekEndISO = addDays(weekStartISO, 6);
-        const vis = tasks.filter(t => t.due && (t.start || t.due) <= weekEndISO && t.due >= weekStartISO);
-        // **시작일이 먼저다** — 주 경계를 넘는 막대가 레인을 이어받으려면 그래야 한다.
-        // 같은 날 안에서는 공통 규칙(📆 종일 → 시각순 → 종일 task) → byDayOrder
-        vis.sort((a, b) => {
-            const sa = a.start || a.due, sb = b.start || b.due;
-            if (sa !== sb) return sa < sb ? -1 : 1;
-            return byDayOrder(a, b);
-        });
-        const laneEnd = [];
-        const placed = [];
-        // 주 경계를 넘는 막대는 지난주에 쓰던 레인을 그대로 이어받는다(비어 있을 때만).
-        // 주마다 독립 배치하면 연속된 막대가 다음 줄에서 다른 높이로 그려져 끊겨 보인다.
-        // uid 를 쓴다. 일정은 path·line 이 null 이라 예전 키로는 전부 한 값으로 뭉쳐
-        // 여러 주에 걸친 일정 막대가 주마다 레인을 갈아탄다. task 의 uid 는 path+line 이므로
-        // 결과 문자열이 예전과 바이트 동일이다(동작 변화 없음).
-        const memoKey = (t) => t.uid;
-        const occupy = (lane, eCol) => { while (laneEnd.length <= lane) laneEnd.push(-1); laneEnd[lane] = eCol; };
-        for (const t of vis) {
-            const sISO = t.start || t.due;
-            const rawS = diffDays(sISO, weekStartISO), rawE = diffDays(t.due, weekStartISO);
-            const sCol = clampCol(rawS), eCol = clampCol(rawE);
-            const prev = laneMemo ? laneMemo.get(memoKey(t)) : undefined;
-            let lane = (prev !== undefined && (laneEnd[prev] === undefined || laneEnd[prev] < sCol)) ? prev : laneEnd.findIndex(le => le < sCol);
-            if (lane === -1) lane = laneEnd.length;
-            occupy(lane, eCol);
-            if (laneMemo) laneMemo.set(memoKey(t), lane);
-            placed.push({ t, sCol, eCol, lane, clipL: rawS < 0, clipR: rawE > 6 });
-        }
+        const { placed, lanes: laneCount } = layoutWeekBars(tasks, weekStartISO, laneMemo);
         for (const b of placed) {
             const t = b.t;
             const ro = isRO(t);
@@ -701,7 +470,7 @@ export function createCalendar({ plugin, api, container, source, notes, sourcePa
                 bar.addEventListener("contextmenu", (e) => { e.preventDefault(); editTask(t); });   // 우클릭=편집 모달
             }
         }
-        return Math.max(laneEnd.length, 1) * laneH;
+        return laneCount * laneH;
     }
 
     // 날짜 없음 트레이용 — 잘리지 않는 카드
@@ -863,10 +632,10 @@ export function createCalendar({ plugin, api, container, source, notes, sourcePa
     //   종일 → 그리드    = 시각 부여 · 그리드 → 종일 = 시각 제거
     function renderDay(container, tasks) {
         const iso = view.toISODate();
-        const onDay = tasks.filter(t => t.due && (t.start || t.due) <= iso && t.due >= iso);
-        const timed = onDay.filter(t => t.tStart !== null).sort((a, b) => a.tStart - b.tStart || a.tEnd - b.tEnd);
+        const today = tasks.filter((t) => onDay(t, iso));
+        const timed = today.filter(t => t.tStart !== null).sort((a, b) => a.tStart - b.tStart || a.tEnd - b.tEnd);
         // 종일 스트립 안에서도 📆 일정이 먼저다 — 그날 뼈대를 왼쪽에서 바로 읽게.
-        const allday = onDay.filter(t => t.tStart === null).sort(byDayOrder);
+        const allday = today.filter(t => t.tStart === null).sort(byDayOrder);
 
         // ── 종일 스트립 ──
         const ad = container.createEl("div");
@@ -1050,14 +819,6 @@ export function createCalendar({ plugin, api, container, source, notes, sourcePa
     //   · 중첩 스크롤 없음 — 폰에서 안쪽 스크롤 박스는 노트 스크롤과 싸운다.
     //                       데스크탑 트레이의 max-height:280px, 일간의 560px 박스를 쓰지 않는다.
 
-    /** 항목이 차지하는 날짜 구간 [from, to]. 둘 다 없으면 null (= 날짜 없음). */
-    const spanOf = (t) => {
-        const a = t.start || t.due;
-        const b = t.due || t.start;
-        if (!a || !b) return null;
-        return a <= b ? [a, b] : [b, a];
-    };
-    const coversDay = (t, iso) => { const s = spanOf(t); return !!s && s[0] <= iso && iso <= s[1]; };
     const colorOf = (t) => (isRO(t) ? t.color : (CATCOLOR[t.cat] || CATCOLOR[CAT_DEFAULT] || "#7f8c8d"));
     const fileName = (p) => (p ? p.split("/").pop().replace(/\.md$/, "") : "");
     const metaLine = (t) => {
@@ -1253,10 +1014,10 @@ export function createCalendar({ plugin, api, container, source, notes, sourcePa
     function renderMobileDay(box, items) {
         const iso = view.toISODate();
         // 데스크탑 renderDay 와 같은 기준: 이 날에 걸친 것(기간의 어느 하루라도 이 날이면)
-        const onDay = items.filter((t) => t.due && (t.start || t.due) <= iso && t.due >= iso);
-        const timed = onDay.filter((t) => t.tStart !== null);
+        const today = items.filter((t) => onDay(t, iso));
+        const timed = today.filter((t) => t.tStart !== null);
         // 종일 줄 안에서도 📆 일정이 먼저 — 데스크탑 renderDay 와 같은 규칙
-        const allday = onDay.filter((t) => t.tStart === null).sort(byDayOrder);
+        const allday = today.filter((t) => t.tStart === null).sort(byDayOrder);
 
         // ── 종일 줄 ──
         const ad = box.createEl("div");
@@ -1290,15 +1051,7 @@ export function createCalendar({ plugin, api, container, source, notes, sourcePa
         // **안쪽 스크롤 박스를 만들지 않는다.** 폰에서 중첩 스크롤은 노트 스크롤과 싸운다.
         // 대신 그릴 시간대를 좁힌다 — 기본 08~20시, 항목이나 현재 시각이 벗어나면 그만큼 넓힌다.
         const fullDay = !!S.mFull;
-        let h0 = 24, h1 = 0;
-        for (const t of timed) {
-            h0 = Math.min(h0, Math.floor(t.tStart / 60));
-            h1 = Math.max(h1, Math.ceil(t.tEnd / 60));
-        }
-        if (iso === todayISO) { const nh = L.now().hour; h0 = Math.min(h0, nh); h1 = Math.max(h1, nh + 1); }
-        if (h0 > h1) { h0 = 8; h1 = 20; }                      // 이 날에 아무것도 없을 때
-        h0 = fullDay ? 0 : Math.max(0, Math.min(h0, 8));
-        h1 = fullDay ? 24 : Math.min(24, Math.max(h1, 20));
+        const [h0, h1] = mobileHourRange(timed, { fullDay, nowHour: iso === todayISO ? L.now().hour : null });
 
         const grid = box.createEl("div");
         grid.style.cssText = "position:relative;height:" + (h1 - h0) * M_HOUR_H + "px;" +
