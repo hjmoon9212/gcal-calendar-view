@@ -21,6 +21,7 @@ jobs:
       - name: Build & test
         run: |
           npm ci
+          # test = 테스트 타입체크 + 공유 파일(check-shared) + 구조 불변식 + 전체 테스트
           npm test
           npm run build
           # 빌드한 main.js 가 원본(src/main.ts)과 같은 물건인지
