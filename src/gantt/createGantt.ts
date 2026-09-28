@@ -13,7 +13,8 @@ import { gatherTasks } from "../data/gather";
 import { syncCategories } from "../calendar/categories";
 import { createWriteService } from "../write/TaskWriteService";
 import { buildGantt, GanttModel, GanttPage } from "./rows";
-import { renderGantt, GanttViewState } from "./GanttView";
+import { renderGantt, GanttViewState, LABEL_W } from "./GanttView";
+import { taskParents } from "./tree";
 import { isZoom } from "./scale";
 
 export interface GanttArgs {
@@ -48,13 +49,17 @@ export function createGantt(a: GanttArgs) {
     showDone: saved.showDone !== false,
     showDoneNotes: saved.showDoneNotes !== false,
     collapsed: Array.isArray(saved.collapsed) ? saved.collapsed : [],
+    // 하위 task 는 **기본 접힘** — 펼친 것만 기억한다(1단계만 보이게)
+    expanded: Array.isArray(saved.expanded) ? saved.expanded : [],
     scrollLeft: undefined,
+    avail: 0,
   };
   const save = () => {
     saved.zoom = state.zoom;
     saved.showDone = state.showDone;
     saved.showDoneNotes = state.showDoneNotes;
     saved.collapsed = state.collapsed;
+    saved.expanded = state.expanded;
   };
 
   let model: GanttModel | null = null;
@@ -68,7 +73,22 @@ export function createGantt(a: GanttArgs) {
     catDefault = cats.CAT_DEFAULT;
     const pages = Array.from(api.pages(a.source) as Iterable<GanttPage>);
     const tasks = gatherTasks(pages as any, { catDefault, pending: plugin.store.pending, now: Date.now() });
+    // 탭 들여쓰기 = 상하위. Dataview 가 목록 항목마다 부모 줄을 준다(file.lists, 없으면 file.tasks).
+    const parents = new Map<string, Map<number, number | null>>();
+    const linesByPath = new Map<string, Set<number>>();
+    for (const t of tasks) {
+      let set = linesByPath.get(t.path);
+      if (!set) linesByPath.set(t.path, (set = new Set()));
+      set.add(t.line);
+    }
+    for (const p of pages as any[]) {
+      const set = linesByPath.get(p.file.path);
+      if (!set) continue;
+      const lists = p.file.lists ?? p.file.tasks ?? [];
+      parents.set(p.file.path, taskParents(Array.from(lists as Iterable<any>), set));
+    }
     return buildGantt(pages, tasks, {
+      parents,
       startProp: a.startProp,
       endProps: a.endProps,
       excludeTypes: a.excludeTypes,
@@ -137,6 +157,24 @@ export function createGantt(a: GanttArgs) {
   function refresh() {
     model = null;
     renderNow();
+  }
+
+  // ── 화면 폭에 맞추기 ──
+  // 창(주·월·분기)을 실제 블록 폭에 펼친다. 폭은 붙은 뒤에야 잴 수 있고 창 크기·사이드바에 따라
+  // 바뀌므로 관찰한다. 하루 폭이 바뀔 만큼(8px 이상) 달라졌을 때만 다시 그린다.
+  const measure = () => {
+    const w = Math.max(0, (root.clientWidth || 0) - LABEL_W - 2);
+    if (Math.abs(w - (state.avail ?? 0)) >= 8) {
+      state.avail = w;
+      state.scrollLeft = undefined;
+      render();
+    }
+  };
+  const RO = (globalThis as any).ResizeObserver;
+  if (typeof RO === "function") {
+    const ro = new RO(() => measure());
+    ro.observe(root);
+    a.component?.register?.(() => ro.disconnect());
   }
 
   renderNow(); // 첫 페인트는 동기로

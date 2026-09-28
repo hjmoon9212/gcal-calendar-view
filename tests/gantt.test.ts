@@ -13,7 +13,8 @@ import { serializeEl, FakeEl } from "./helpers/fakeDom";
 import { installDom, makeHarness } from "./helpers/renderHarness";
 import { toISODate, getProp, firstDate, noteSpan } from "../src/gantt/noteDates";
 import { viewWindow, stepAnchor, addMonths, windowLabel, makeScale, monthTicks, dayTicks } from "../src/gantt/scale";
-import { buildGantt, filterToWindow, reachEnd, isOverrunRow } from "../src/gantt/rows";
+import { buildGantt, filterToWindow, reachEnd } from "../src/gantt/rows";
+import { buildTaskTree, taskParents, taskKey } from "../src/gantt/tree";
 import { statusInfo } from "../src/gantt/status";
 import { resolveSource, normalizePath } from "../src/core/blockOptions";
 
@@ -89,6 +90,10 @@ eq(statusInfo("검토중").label, "검토", "한글도 2글자");
   eq(sc.bar("2026-09-01", "2026-09-03"), null, "완전히 밖");
   eq(monthTicks(sc).map((t) => [t.label, t.x, t.width]), [["2026년 7월", 0, 70], ["8월", 70, 270]], "월 눈금 — 첫 칸만 연도");
 }
+// 화면 폭에 맞춤(0.9.0) — 3개월 창(92일)을 1840px 에 펼치면 하루 20px, 좁으면 최소 폭 + 스크롤
+eq(makeScale("2026-07-01", "2026-09-30", "month", 1840).dayPx, 20, "폭에 맞춰 하루 폭을 늘린다");
+eq(makeScale("2026-07-01", "2026-09-30", "month", 500).dayPx, 10, "좁으면 최소 폭(10px) 아래로 안 줄인다");
+eq(makeScale("2026-07-01", "2026-09-30", "month").dayPx, 10, "폭을 모르면 최소 폭");
 {
   const sc = makeScale("2026-12-30", "2027-01-02", "week");
   eq(monthTicks(sc).map((t) => t.label), ["2026년 12월", "2027년 1월"], "1월엔 연도");
@@ -121,7 +126,11 @@ const FM: Record<string, Record<string, any>> = {
 const FILES: Record<string, string> = {
   "P/모듈/알림톡.md": [
     "# 알림톡",
-    "- [ ] #task #gcal/work 템플릿 API 🛫 2026-07-22 📅 2026-08-05",
+    "- [ ] #task #gcal/work 템플릿 API 🛫 2026-07-22 📅 2026-08-05 🆔 tplApi",
+    "\t- [ ] #task #gcal/work 스키마 📅 2026-07-24",
+    "\t\t- [ ] #task #gcal/work 컬럼 정리 📅 2026-07-23",
+    "\t- 메모 불릿",
+    "\t\t- [ ] #task #gcal/work 필드 검증 📅 2026-07-28",
     "- [x] #task #gcal/work 발송 이력 🛫 2026-07-27 📅 2026-07-30 ✅ 2026-07-30",
     "- [ ] #task #gcal/work 리뷰 📅 2026-08-18",
     "- [ ] #task #gcal/work 날짜 미정",
@@ -174,7 +183,7 @@ const FILES: Record<string, string> = {
   // ── 종료일 초과 ──
   const ms = m.groups.find((g) => g.name === "매장음악")!;
   eq(ms.overrun, { until: "2026-09-20", count: 1 }, "종료일(09-10)보다 늦은 미완료 task 만 — 완료된 09-25 는 제외");
-  eq(ms.rows.map((r) => isOverrunRow(ms, r)), [false, true, false], "초과 행 표시는 미완료 + 📅 > 종료일");
+  eq(ms.rows.map((r) => r.late), [false, true, false], "초과 행 표시(late)는 미완료 + 📅 > 종료일");
   eq(reachEnd(ms), "2026-09-20", "차지하는 끝 = 초과분까지");
   eq(al.overrun, null, "초과 없음");
   eq(m.groups.find((g) => g.name === "오리엔트")!.overrun, null, "열린 기간은 초과가 없다");
@@ -194,7 +203,72 @@ const FILES: Record<string, string> = {
   eq(filterToWindow(m, "2024-01-01", "2027-12-31", false).groups.map((v) => v.group.name).includes("옛날"), false, "완료 노트 숨김");
 }
 
+// ── 트리(탭 들여쓰기 = 상하위, 0.9.0) ──
+{
+  eq(
+    [...taskParents([{ line: 1 }, { line: 2, parent: 1 }, { line: 3, parent: 2 }, { line: 4, parent: 1 }, { line: 5 }], new Set([1, 3, 4, 5]))],
+    [[1, null], [3, 1], [4, 1], [5, null]],
+    "가장 가까운 task 조상 — task 아닌 불릿(2)을 건너뛴다"
+  );
+  eq([...taskParents([{ line: 1, parent: 2 }, { line: 2, parent: 1 }], new Set([1]))], [[1, null]], "순환은 끊는다");
+
+  const P = "N.md";
+  const t = (line: number, title: string, start: string | null, due: string | null, done = false, id = ""): any => ({
+    kind: "task", uid: P + line, path: P, line, text: title + (id ? " 🆔 " + id : ""), title, due, start, tStart: null, tEnd: null, cat: "work", done, cancelled: false, bookmark: false, recurring: false,
+  });
+  // 0 발송 큐(08-18~08-20)
+  //   1 유틸(08-17)          ← 부모보다 이름
+  //   2 이관(08-19~08-25)    ← 부모 📅(08-20)보다 늦음 → late, 부모 overrun
+  // 3 개발(날짜 없음)        ← 요약 막대
+  //   4 리팩토링(08-24, 완료)
+  //     5 화면(08-26)
+  // 6 메모(날짜 없음, 자식 없음) ← 행 안 됨
+  const tasks = [
+    t(0, "발송 큐", "2026-08-18", "2026-08-20", false, "CAE4Di"),
+    t(1, "유틸", null, "2026-08-17"),
+    t(2, "이관", "2026-08-19", "2026-08-25"),
+    t(3, "개발", null, null),
+    t(4, "리팩토링", null, "2026-08-24", true),
+    t(5, "화면", null, "2026-08-26"),
+    t(6, "메모", null, null),
+  ];
+  const par = new Map<number, number | null>([[0, null], [1, 0], [2, 0], [3, null], [4, 3], [5, 4], [6, null]]);
+  const tr = buildTaskTree(tasks, par, { noteEnd: null, showDone: true });
+  eq(tr.rows.map((r) => [r.task.title, r.depth, r.descendants]), [["발송 큐", 0, 2], ["유틸", 1, 0], ["이관", 1, 0], ["개발", 0, 2], ["리팩토링", 1, 1], ["화면", 2, 0]], "전위 순회 · 깊이 · 자손 수 · 형제는 시작일순");
+  eq(tr.undated, 1, "자기도 자손도 날짜 없는 task 만 날짜 없음");
+  const dev = tr.rows[3];
+  eq([dev.summary, dev.span, dev.reach], [true, ["2026-08-24", "2026-08-26"], ["2026-08-24", "2026-08-26"]], "날짜 없는 부모 = 자손 요약 막대");
+  eq(tr.rows[0].overrun, { until: "2026-08-25", count: 1 }, "부모 📅 보다 늦은 미완료 자식 → 부모 overrun");
+  eq(tr.rows[0].reach, ["2026-08-17", "2026-08-25"], "reach 는 자손까지");
+  eq(tr.rows.map((r) => r.late), [false, false, true, false, false, true], "late = 날짜 있는 가장 가까운 조상 📅 보다 늦음(완료 부모라도 그 📅 가 기준)");
+  eq(tr.rows[4].overrun, { until: "2026-08-26", count: 1 }, "완료 부모도 늦은 미완료 자식이 있으면 overrun");
+  eq(taskKey(tasks[0]), "id:CAE4Di", "접힘 키 = 🆔");
+  eq(taskKey(tasks[1]), "N.md#유틸", "🆔 없으면 경로#제목");
+
+  const hid = buildTaskTree(tasks, par, { noteEnd: null, showDone: false });
+  eq(hid.rows.map((r) => r.task.title), ["발송 큐", "유틸", "이관", "개발", "리팩토링", "화면"], "완료 부모라도 미완료 자식이 있으면 남는다(트리가 끊기지 않게)");
+  const hid2 = buildTaskTree([t(0, "a", null, "2026-08-01", true), t(1, "b", null, "2026-08-02", true)], new Map([[1, 0]]), { noteEnd: null, showDone: false });
+  eq(hid2.rows.length, 0, "완료 서브트리는 통째로 숨김");
+  const ne = buildTaskTree([t(0, "a", null, "2026-09-01")], new Map(), { noteEnd: "2026-08-31", showDone: true });
+  eq(ne.rows[0].late, true, "최상위는 노트 종료일이 기준");
+}
+
 // ── 화면 · 조작 ──
+/** Dataview 의 file.lists 흉내 — 목록 항목마다 들여쓰기로 부모 줄을 찾는다 */
+function listsOf(body: string): { line: number; parent?: number }[] {
+  const out: { line: number; parent?: number }[] = [];
+  const stack: { indent: number; line: number }[] = [];
+  body.split("\n").forEach((raw, line) => {
+    const m = raw.match(/^(\s*)[-*+]\s/);
+    if (!m) return;
+    const indent = m[1].replace(/\t/g, "    ").length;
+    while (stack.length && stack[stack.length - 1].indent >= indent) stack.pop();
+    out.push(stack.length ? { line, parent: stack[stack.length - 1].line } : { line });
+    stack.push({ indent, line });
+  });
+  return out;
+}
+
 const tick = () => new Promise((r) => setTimeout(r, 0));
 
 function open(extra: { excludeTypes?: string[]; notes?: string[]; tasksPluginEdit?: (l: string) => string } = {}) {
@@ -202,7 +276,7 @@ function open(extra: { excludeTypes?: string[]; notes?: string[]; tasksPluginEdi
   const base = h.args.api.pages;
   const api = {
     ...h.args.api,
-    pages: (src: string) => base(src).map((p: any) => ({ ...p, file: { ...p.file, frontmatter: FM[p.file.path] } })),
+    pages: (src: string) => base(src).map((p: any) => ({ ...p, file: { ...p.file, frontmatter: FM[p.file.path], lists: listsOf(h.files[p.file.path]) } })),
   };
   const g = createGantt({
     plugin: h.plugin, api, container: h.container, source: "!\"Template\"", notes: extra.notes ?? [],
@@ -238,7 +312,7 @@ function find(root: FakeEl, pred: (e: FakeEl) => boolean): FakeEl[] {
     tog.onclick!();
     await tick();
     ok(find(c.container, (e) => e.text === "템플릿 API").length === 0, "접으면 task 행이 사라진다");
-    ok(find(c.container, (e) => e.text === "(3)").length === 1, "접힌 그룹에 행 개수");
+    ok(find(c.container, (e) => e.text === "(6)").length === 1, "접힌 그룹에 행 개수(하위 task 포함)");
     eq(c.plugin.store.state["gantt:!\"Template\""].collapsed, ["P/모듈/알림톡.md"], "접힘은 블록 상태에 남는다");
   }
 
@@ -248,7 +322,7 @@ function find(root: FakeEl, pred: (e: FakeEl) => boolean): FakeEl[] {
     const lab = find(c.container, (e) => e.tag === "span" && e.text === "템플릿 API")[0];
     await lab.onclick!({});
     await tick();
-    eq(c.calls.editModal, ["- [ ] #task #gcal/work 템플릿 API 🛫 2026-07-22 📅 2026-08-05"], "클릭 = 편집 모달");
+    eq(c.calls.editModal, ["- [ ] #task #gcal/work 템플릿 API 🛫 2026-07-22 📅 2026-08-05 🆔 tplApi"], "클릭 = 편집 모달");
     eq(c.calls.writes.length, 1, "모달 결과를 한 번 쓴다");
     ok(c.files["P/모듈/알림톡.md"].includes("📅 2026-08-07"), "노트 줄이 바뀐다");
     ok(find(c.container, (e) => e.title?.includes("📅 2026-08-07")).length > 0, "다시 그린 막대가 새 날짜(낙관적 갱신)");
@@ -258,7 +332,7 @@ function find(root: FakeEl, pred: (e: FakeEl) => boolean): FakeEl[] {
   {
     const c = open();
     await find(c.container, (e) => e.tag === "span" && e.text === "리뷰")[0].onclick!({ ctrlKey: true });
-    eq(c.calls.opened.map((o) => [o.path, o.line]), [["P/모듈/알림톡.md", 3]], "Ctrl+클릭 = 원본 줄");
+    eq(c.calls.opened.map((o) => [o.path, o.line]), [["P/모듈/알림톡.md", 7]], "Ctrl+클릭 = 원본 줄");
     eq(c.calls.editModal.length, 0, "모달은 안 뜬다");
     await find(c.container, (e) => e.text === "📄 매장음악")[0].onclick!({});
     await tick();
@@ -296,6 +370,24 @@ function find(root: FakeEl, pred: (e: FakeEl) => boolean): FakeEl[] {
     await btn("오늘").onclick!();
     await tick();
     ok(find(c.container, (e) => e.text === "2026.07 ~ 2026.09").length === 1, "오늘 = 창을 되돌린다");
+  }
+
+  // 하위 task — 기본 접힘(1단계만) → ▸ 로 펼침 → 기억
+  {
+    const c = open();
+    ok(find(c.container, (e) => e.text === "스키마").length === 0, "하위 task 는 기본으로 접혀 있다");
+    ok(find(c.container, (e) => e.text === "(3)").length === 1, "접힌 task 에 하위 개수(전 단계)");
+    const tog = find(c.container, (e) => e.text === "▸" && !!e.parent?.children.some((x) => x.text === "템플릿 API"))[0];
+    tog.onclick!();
+    await tick();
+    ok(find(c.container, (e) => e.tag === "span" && e.text === "스키마").length === 1, "▸ → 1단계 자식이 보인다");
+    ok(find(c.container, (e) => e.tag === "span" && e.text === "필드 검증").length === 1, "불릿 아래 task 는 불릿을 건너뛰어 템플릿 API 의 자식");
+    ok(find(c.container, (e) => e.tag === "span" && e.text === "컬럼 정리").length === 0, "손자는 자식을 펼쳐야 보인다");
+    eq(c.plugin.store.state["gantt:!\"Template\""].expanded, ["id:tplApi"], "펼친 task 는 🆔 키로 기억");
+    const tog2 = find(c.container, (e) => e.text === "▸" && !!e.parent?.children.some((x) => x.text === "스키마"))[0];
+    tog2.onclick!();
+    await tick();
+    ok(find(c.container, (e) => e.tag === "span" && e.text === "컬럼 정리").length === 1, "스키마를 펼치면 손자");
   }
 
   // 날짜 없는 노트 줄 · note:

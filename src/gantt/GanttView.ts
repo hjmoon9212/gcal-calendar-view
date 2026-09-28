@@ -17,16 +17,18 @@ import { skinCss, dimCss, statusMark, titleOf, OVERDUE_RED } from "../ui/style";
 import { timeText } from "../core/time";
 import { addDays } from "../core/dates";
 import type { GanttGroup, GanttModel, GanttRow, VisibleGroup } from "./rows";
-import { filterToWindow, isOverrunRow } from "./rows";
+import { filterToWindow } from "./rows";
 import { dayTicks, makeScale, monthTicks, Scale, stepAnchor, viewWindow, windowLabel, Zoom, ZOOMS, ZOOM_LABEL } from "./scale";
 import { statusInfo } from "./status";
 
 type El = any;
 
-export const LABEL_W = 220;
-export const STATUS_W = 36;
-export const GROUP_H = 26;
-export const ROW_H = 22;
+// 0.9.0: 0.8.x 는 행 22px · 막대 16px · 글자 10px 라 정렬이 눈에 안 들어왔다 → 키운다
+export const LABEL_W = 280;
+export const STATUS_W = 40;
+export const GROUP_H = 32;
+export const ROW_H = 30;
+export const INDENT = 16;
 const HOLD_GRAY = "var(--text-faint)";
 const ACCENT = "var(--interactive-accent)";
 
@@ -37,7 +39,11 @@ export interface GanttViewState {
   showDone: boolean;
   showDoneNotes: boolean;
   collapsed: string[];
+  /** 펼친 task 키. **기본은 접힘** — 최상위 task 만 보인다(1단계) */
+  expanded: string[];
   scrollLeft?: number;
+  /** 타임라인에 쓸 수 있는 폭(px, 저장 안 함) — 창을 화면 폭에 맞춘다 */
+  avail?: number;
 }
 
 export interface GanttViewDeps {
@@ -115,18 +121,32 @@ export function renderGantt(model: GanttModel, d: GanttViewDeps): void {
     const empty = box.createEl("div", { text: "이 기간에 걸친 노트가 없습니다 — ◀ ▶ 로 옮겨 보세요." });
     empty.style.cssText = "padding:8px;font-size:12px;opacity:.6;";
   } else {
-    const sc = makeScale(win[0], win[1], state.zoom);
+    const sc = makeScale(win[0], win[1], state.zoom, state.avail ?? 0);
     const scroller = box.createEl("div");
     scroller.style.cssText =
       "overflow-x:auto;overflow-y:hidden;border:1px solid var(--background-modifier-border);border-radius:4px;";
     const inner = scroller.createEl("div");
     inner.style.cssText = `width:${LABEL_W + sc.width}px;position:relative;`;
 
-    headerRow(inner, sc, today);
+    headerRow(inner, sc, today, state.zoom === "week");
+    const expanded = new Set(state.expanded);
     for (const v of view.groups) {
       const collapsed = d.state.collapsed.includes(v.group.path);
       groupRow(inner, v, sc, today, collapsed, d);
-      if (!collapsed) for (const r of v.rows) taskRow(inner, v.group, r, sc, today, d);
+      if (collapsed) continue;
+      // 노션식 접기 — 전위 순회 목록에서, 접힌 행보다 깊은 행은 건너뛴다
+      let hideBelow = Infinity;
+      v.rows.forEach((r, i) => {
+        if (r.depth > hideBelow) return;
+        hideBelow = Infinity;
+        const next = v.rows[i + 1];
+        const hasKids = !!next && next.depth > r.depth;
+        const open = hasKids && expanded.has(r.key);
+        let kids = 0;
+        if (hasKids) for (let j = i + 1; j < v.rows.length && v.rows[j].depth > r.depth; j++) kids++;
+        taskRow(inner, r, sc, today, d, hasKids ? { open, kids } : null);
+        if (hasKids && !open) hideBelow = r.depth;
+      });
     }
 
     // 창이 컨테이너보다 넓을 때만 스크롤이 생긴다. 처음엔 오늘이 보이게, 다시 그린 것이면 보던 자리 그대로.
@@ -168,10 +188,10 @@ function line(inner: El, h: number, extra = ""): { status: El; label: El; track:
   const left = row.createEl("div");
   left.style.cssText =
     `position:sticky;left:0;z-index:2;flex:0 0 ${LABEL_W}px;width:${LABEL_W}px;box-sizing:border-box;` +
-    "display:flex;align-items:center;overflow:hidden;white-space:nowrap;font-size:12px;" +
+    "display:flex;align-items:center;overflow:hidden;white-space:nowrap;font-size:13px;" +
     "background:var(--background-primary);border-right:1px solid var(--background-modifier-border);";
   const status = left.createEl("div");
-  status.style.cssText = `flex:0 0 ${STATUS_W}px;width:${STATUS_W}px;text-align:center;font-size:11px;`;
+  status.style.cssText = `flex:0 0 ${STATUS_W}px;width:${STATUS_W}px;text-align:center;font-size:12px;`;
   const label = left.createEl("div");
   label.style.cssText = "flex:1 1 auto;min-width:0;padding-right:6px;display:flex;align-items:center;gap:4px;overflow:hidden;";
   const track = row.createEl("div");
@@ -187,8 +207,7 @@ function todayLine(track: El, sc: Scale, today: string): void {
     "border-left:2px solid var(--interactive-accent);opacity:.5;pointer-events:none;";
 }
 
-function headerRow(inner: El, sc: Scale, today: string): void {
-  const weekZoom = sc.dayPx >= 20;
+function headerRow(inner: El, sc: Scale, today: string, weekZoom: boolean): void {
   const { status, label, track } = line(inner, weekZoom ? 36 : 20, "position:sticky;top:0;z-index:3;background:var(--background-secondary);");
   status.parentElement.style.background = "var(--background-secondary)";
   status.setText("상태");
@@ -198,7 +217,7 @@ function headerRow(inner: El, sc: Scale, today: string): void {
     const c = track.createEl("div", { text: m.label });
     c.style.cssText =
       `position:absolute;top:0;height:18px;left:${m.x}px;width:${m.width}px;box-sizing:border-box;` +
-      "padding-left:4px;font-size:11px;font-weight:600;overflow:hidden;white-space:nowrap;" +
+      "padding-left:4px;font-size:12px;font-weight:600;overflow:hidden;white-space:nowrap;" +
       "border-left:1px solid var(--background-modifier-border);";
   }
   if (weekZoom) {
@@ -206,7 +225,7 @@ function headerRow(inner: El, sc: Scale, today: string): void {
       const c = track.createEl("div", { text: t.label });
       const wk = t.weekday === 0 || t.weekday === 6;
       c.style.cssText =
-        `position:absolute;top:18px;height:18px;left:${t.x}px;width:${t.width}px;text-align:center;font-size:10px;` +
+        `position:absolute;top:18px;height:18px;left:${t.x}px;width:${t.width}px;text-align:center;font-size:11px;` +
         (t.iso === today ? "font-weight:700;color:var(--interactive-accent);" : wk ? "opacity:.45;" : "opacity:.7;");
     }
   }
@@ -260,19 +279,19 @@ function groupRow(inner: El, v: VisibleGroup, sc: Scale, today: string, collapse
       : `background:${color};opacity:${si.bar === "done" ? ".2" : ".45"};`;
     const el = track.createEl("div");
     el.style.cssText =
-      `position:absolute;top:8px;height:10px;left:${b.left}px;width:${Math.max(b.width, 3)}px;` +
+      `position:absolute;top:10px;height:12px;left:${b.left}px;width:${Math.max(b.width, 3)}px;` +
       look + "border-radius:3px;cursor:pointer;";
     el.title = groupTooltip(g);
     el.onclick = (e: any) => d.openNote(g.path, e);
-    if (b.clipL) clipMark(track, "L", b.left, 8);
-    if (b.clipR) clipMark(track, "R", b.left + b.width - 10, 8);
+    if (b.clipL) clipMark(track, "L", b.left, 11);
+    if (b.clipR) clipMark(track, "R", b.left + b.width - 10, 11);
     if (s.open && !b.clipR) {
       // 끝이 안 정해진 기간 — 오늘 뒤로 옅게 흘려서 "진행 중" 을 보인다(창 안에서만)
       const w = Math.min(sc.dayPx * 7, sc.width - (b.left + b.width));
       if (w > 0) {
         const f = track.createEl("div");
         f.style.cssText =
-          `position:absolute;top:8px;height:10px;left:${b.left + b.width}px;width:${w}px;` +
+          `position:absolute;top:10px;height:12px;left:${b.left + b.width}px;width:${w}px;` +
           `background:linear-gradient(to right, ${color}, transparent);opacity:.3;border-radius:0 3px 3px 0;pointer-events:none;`;
       }
     }
@@ -283,7 +302,7 @@ function groupRow(inner: El, v: VisibleGroup, sc: Scale, today: string, collapse
     if (o) {
       const x = track.createEl("div");
       x.style.cssText =
-        `position:absolute;top:8px;height:10px;left:${o.left}px;width:${Math.max(o.width, 3)}px;box-sizing:border-box;` +
+        `position:absolute;top:10px;height:12px;left:${o.left}px;width:${Math.max(o.width, 3)}px;box-sizing:border-box;` +
         `border:1px dashed ${OVERDUE_RED};border-radius:0 3px 3px 0;cursor:pointer;`;
       x.title = overrunText(g);
       x.onclick = (e: any) => d.openNote(g.path, e);
@@ -291,41 +310,86 @@ function groupRow(inner: El, v: VisibleGroup, sc: Scale, today: string, collapse
   }
 }
 
-function taskRow(inner: El, g: GanttGroup, r: GanttRow, sc: Scale, today: string, d: GanttViewDeps): void {
+function taskRow(inner: El, r: GanttRow, sc: Scale, today: string, d: GanttViewDeps, tree: { open: boolean; kids: number } | null): void {
   const t = r.task;
   const dim = t.done || t.cancelled;
-  const over = isOverrunRow(g, r);
   const { label, track } = line(inner, ROW_H);
   const click = (e: any) => (d.isMod(e) ? d.openAtLine(t, e) : d.editTask(t));
-  const tip = taskTooltip(r, over ? g.span!.end : null);
+  const tip = taskTooltip(r);
 
+  // 들여쓰기 + ▸/▾ (자식이 있을 때만). 토글 자리는 항상 비워 둬 제목이 깊이별로 줄 맞게 한다.
+  const tog = label.createEl("span", { text: tree ? (tree.open ? "▾" : "▸") : "" });
+  tog.style.cssText =
+    `flex:0 0 14px;width:14px;margin-left:${16 + r.depth * INDENT}px;text-align:center;opacity:.7;` +
+    (tree ? "cursor:pointer;" : "");
+  if (tree) {
+    tog.title = tree.open ? "하위 task 접기" : `하위 task ${tree.kids}개 펼치기`;
+    tog.onclick = () => {
+      const i = d.state.expanded.indexOf(r.key);
+      if (i >= 0) d.state.expanded.splice(i, 1);
+      else d.state.expanded.push(r.key);
+      d.render();
+    };
+  }
   const lab = label.createEl("span", { text: statusMark(t, false) + (t.recurring ? "🔁 " : "") + titleOf(t) });
-  lab.style.cssText = `padding-left:18px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;${dimCss(dim)}`;
+  lab.style.cssText =
+    `cursor:pointer;overflow:hidden;text-overflow:ellipsis;${r.late ? `color:${OVERDUE_RED};` : ""}${dimCss(dim)}`;
   lab.title = tip;
   lab.onclick = click;
+  if (tree && !tree.open) label.createEl("span", { text: `(${tree.kids})` }).style.cssText = "font-size:11px;opacity:.5;";
 
   todayLine(track, sc, today);
   const color = d.catColor(t.cat);
+  let endX = -1; // 막대 오른쪽 끝 — 제목을 바깥에 쓸 자리
   if (r.milestone) {
-    if (r.span[1] < sc.from || r.span[1] > sc.to) return;
-    const m = track.createEl("div", { text: "◆" });
-    m.style.cssText =
-      `position:absolute;top:2px;left:${sc.x(r.span[1]) + sc.dayPx / 2 - 7}px;width:14px;text-align:center;` +
-      `font-size:13px;line-height:16px;color:${over ? OVERDUE_RED : color};cursor:pointer;${dim ? "opacity:.45;" : ""}`;
-    m.title = tip;
-    m.onclick = click;
-    return;
+    if (r.span[1] >= sc.from && r.span[1] <= sc.to) {
+      const cx = sc.x(r.span[1]) + sc.dayPx / 2;
+      const m = track.createEl("div", { text: "◆" });
+      m.style.cssText =
+        `position:absolute;top:6px;left:${cx - 8}px;width:16px;text-align:center;` +
+        `font-size:15px;line-height:18px;color:${r.late ? OVERDUE_RED : color};cursor:pointer;${dim ? "opacity:.45;" : ""}`;
+      m.title = tip;
+      m.onclick = click;
+      endX = cx + 8;
+    }
+  } else {
+    const b = sc.bar(r.span[0], r.span[1]);
+    if (b) {
+      const inside = !r.summary && b.width >= 60;
+      const text = inside ? (b.clipL ? "◀ " : "") + titleOf(t) + (b.clipR ? " ▶" : "") : "";
+      const el = track.createEl("div", { text });
+      el.style.cssText = r.summary
+        ? // 요약 막대(자기 날짜 없음 — 하위 task 구간) = 괄호 모양
+          `position:absolute;top:9px;height:10px;left:${b.left}px;width:${Math.max(b.width, 3)}px;box-sizing:border-box;` +
+          `border:2px solid ${color};border-top:none;border-radius:0 0 3px 3px;cursor:pointer;${dim ? "opacity:.45;" : ""}`
+        : `position:absolute;top:5px;height:20px;left:${b.left}px;width:${Math.max(b.width, 3)}px;box-sizing:border-box;` +
+          `border-radius:4px;font-size:12px;line-height:18px;padding:0 5px;overflow:hidden;white-space:nowrap;cursor:pointer;` +
+          skinCss(color, false, r.late) + dimCss(dim, "0.55");
+      el.title = tip;
+      el.onclick = click;
+      if (!inside) endX = b.left + b.width;
+    }
   }
-  const b = sc.bar(r.span[0], r.span[1]);
-  if (!b) return;
-  const text = b.width >= 40 ? (b.clipL ? "◀ " : "") + titleOf(t) + (b.clipR ? " ▶" : "") : "";
-  const el = track.createEl("div", { text });
-  el.style.cssText =
-    `position:absolute;top:3px;height:16px;left:${b.left}px;width:${Math.max(b.width, 3)}px;box-sizing:border-box;` +
-    `border-radius:3px;font-size:10px;line-height:14px;padding:0 4px;overflow:hidden;white-space:nowrap;cursor:pointer;` +
-    skinCss(color, false, over) + dimCss(dim, "0.55");
-  el.title = tip;
-  el.onclick = click;
+  if (r.overrun) {
+    // 자기 📅 보다 늦게 끝나는 미완료 하위 task — 노트 종료일 초과와 같은 붉은 점선
+    const o = sc.bar(addDays(r.span[1], 1), r.overrun.until);
+    if (o) {
+      const x = track.createEl("div");
+      x.style.cssText =
+        `position:absolute;top:5px;height:20px;left:${o.left}px;width:${Math.max(o.width, 3)}px;box-sizing:border-box;` +
+        `border:1px dashed ${OVERDUE_RED};border-radius:0 4px 4px 0;pointer-events:none;`;
+      if (endX >= 0) endX = Math.max(endX, o.left + o.width);
+    }
+  }
+  if (endX >= 0 && endX < sc.width - 40) {
+    // 막대가 짧아 제목이 안 들어가면 **오른쪽 바깥**에 쓴다
+    const out = track.createEl("div", { text: titleOf(t) });
+    out.style.cssText =
+      `position:absolute;top:5px;left:${endX + 4}px;max-width:${Math.max(0, sc.width - endX - 8)}px;font-size:12px;line-height:20px;` +
+      `white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;opacity:.8;${r.late ? `color:${OVERDUE_RED};` : ""}${dimCss(dim)}`;
+    out.title = tip;
+    out.onclick = click;
+  }
 }
 
 function overrunText(g: GanttGroup): string {
@@ -344,14 +408,16 @@ function groupTooltip(g: GanttGroup): string {
   );
 }
 
-function taskTooltip(r: GanttRow, noteEnd: string | null): string {
+function taskTooltip(r: GanttRow): string {
   const t = r.task;
   return (
-    `${titleOf(t)}\n🛫 ${t.start || "-"}  📅 ${t.due}` +
+    `${titleOf(t)}\n` +
+    (r.summary ? `(날짜 없음 — 하위 task ${r.span[0]} ~ ${r.span[1]})` : `🛫 ${t.start || "-"}  📅 ${t.due}`) +
     (t.tStart !== null ? `  ⏰ ${timeText(t.tStart, t.tEnd!)}` : "") +
     (t.recurring ? "\n🔁 반복" : "") +
     (t.done ? "\n(완료됨)" : t.cancelled ? "\n(취소됨)" : "") +
-    (noteEnd ? `\n⚠ 노트 종료일(${noteEnd})보다 늦음` : "") +
+    (r.late ? "\n⚠ 상위(노트 종료일 또는 상위 task 📅)보다 늦음" : "") +
+    (r.overrun ? `\n⚠ 하위 task ${r.overrun.count}개가 이 task 📅 보다 늦음 — 최대 ${r.overrun.until}` : "") +
     "\n클릭=편집 · Ctrl+클릭=원본 열기"
   );
 }

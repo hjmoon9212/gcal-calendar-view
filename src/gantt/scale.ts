@@ -9,7 +9,10 @@ import { addDays, diffDays } from "../core/dates";
 export type Zoom = "week" | "month" | "quarter";
 export const ZOOMS: Zoom[] = ["week", "month", "quarter"];
 export const ZOOM_LABEL: Record<Zoom, string> = { week: "주", month: "월", quarter: "분기" };
-/** 하루의 폭(px). 주 = 날짜 숫자가 들어가는 폭, 분기 = 1년이 한 화면에 가까운 폭 */
+/**
+ * 하루의 **최소** 폭(px). 실제 폭은 창을 화면 폭에 맞춰 늘린다(0.9.0~, `makeScale` 의 `avail`) —
+ * 이보다 좁아지면 늘리지 않고 가로 스크롤한다. 주 = 날짜 숫자가 들어가는 폭.
+ */
 export const DAY_PX: Record<Zoom, number> = { week: 28, month: 10, quarter: 4 };
 
 export const isZoom = (z: any): z is Zoom => ZOOMS.includes(z);
@@ -75,9 +78,13 @@ export interface Scale {
   bar: (a: string, b: string) => { left: number; width: number; clipL: boolean; clipR: boolean } | null;
 }
 
-export function makeScale(from: string, to: string, zoom: Zoom): Scale {
-  const dayPx = DAY_PX[zoom];
+/**
+ * @param avail 타임라인에 쓸 수 있는 폭(px). 주면 창을 그 폭에 맞춰 하루 폭을 늘린다 —
+ *              넓은 화면에서 3개월 창이 900px 에 갇혀 막대가 안 보이던 것(0.8.x). 0/없음이면 최소 폭.
+ */
+export function makeScale(from: string, to: string, zoom: Zoom, avail = 0): Scale {
   const days = diffDays(to, from) + 1;
+  const dayPx = Math.max(DAY_PX[zoom], avail > 0 ? Math.floor(avail / days) : 0);
   const x = (iso: string) => diffDays(iso, from) * dayPx;
   return {
     from,

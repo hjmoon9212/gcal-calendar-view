@@ -110,7 +110,7 @@
             {
               "tag": "div",
               "style": {
-                "cssText": "width:1200px;position:relative;"
+                "cssText": "width:1260px;position:relative;"
               },
               "children": [
                 {
@@ -122,7 +122,7 @@
                     {
                       "tag": "div",
                       "style": {
-                        "cssText": "position:sticky;left:0;z-index:2;flex:0 0 220px;width:220px;box-sizing:border-box;display:flex;align-items:center;overflow:hidden;white-space:nowrap;font-size:12px;background:var(--background-primary);border-right:1px solid var(--background-modifier-border);",
+                        "cssText": "position:sticky;left:0;z-index:2;flex:0 0 280px;width:280px;box-sizing:border-box;display:flex;align-items:center;overflow:hidden;white-space:nowrap;font-size:13px;background:var(--background-primary);border-right:1px solid var(--background-modifier-border);",
                         "background": "var(--background-secondary)"
                       },
                       "children": [
@@ -130,7 +130,7 @@
                           "tag": "div",
                           "text": "상태",
                           "style": {
-                            "cssText": "flex:0 0 36px;width:36px;text-align:center;font-size:11px;",
+                            "cssText": "flex:0 0 40px;width:40px;text-align:center;font-size:12px;",
                             "opacity": ".5"
                           }
                         },
@@ -161,259 +161,259 @@
                           "tag": "div",
                           "text": "2026년 7월",
                           "style": {
-                            "cssText": "position:absolute;top:0;height:18px;left:0px;width:168px;box-sizing:border-box;padding-left:4px;font-size:11px;font-weight:600;overflow:hidden;white-space:nowrap;border-left:1px solid var(--background-modifier-border);"
+                            "cssText": "position:absolute;top:0;height:18px;left:0px;width:168px;box-sizing:border-box;padding-left:4px;font-size:12px;font-weight:600;overflow:hidden;white-space:nowrap;border-left:1px solid var(--background-modifier-border);"
                           }
                         },
                         {
                           "tag": "div",
                           "text": "8월",
                           "style": {
-                            "cssText": "position:absolute;top:0;height:18px;left:168px;width:812px;box-sizing:border-box;padding-left:4px;font-size:11px;font-weight:600;overflow:hidden;white-space:nowrap;border-left:1px solid var(--background-modifier-border);"
+                            "cssText": "position:absolute;top:0;height:18px;left:168px;width:812px;box-sizing:border-box;padding-left:4px;font-size:12px;font-weight:600;overflow:hidden;white-space:nowrap;border-left:1px solid var(--background-modifier-border);"
                           }
                         },
                         {
                           "tag": "div",
                           "text": "26",
                           "style": {
-                            "cssText": "position:absolute;top:18px;height:18px;left:0px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                            "cssText": "position:absolute;top:18px;height:18px;left:0px;width:28px;text-align:center;font-size:11px;opacity:.45;"
                           }
                         },
                         {
                           "tag": "div",
                           "text": "27",
                           "style": {
-                            "cssText": "position:absolute;top:18px;height:18px;left:28px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                            "cssText": "position:absolute;top:18px;height:18px;left:28px;width:28px;text-align:center;font-size:11px;opacity:.7;"
                           }
                         },
                         {
                           "tag": "div",
                           "text": "28",
                           "style": {
-                            "cssText": "position:absolute;top:18px;height:18px;left:56px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                            "cssText": "position:absolute;top:18px;height:18px;left:56px;width:28px;text-align:center;font-size:11px;opacity:.7;"
                           }
                         },
                         {
                           "tag": "div",
                           "text": "29",
                           "style": {
-                            "cssText": "position:absolute;top:18px;height:18px;left:84px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                            "cssText": "position:absolute;top:18px;height:18px;left:84px;width:28px;text-align:center;font-size:11px;opacity:.7;"
                           }
                         },
                         {
                           "tag": "div",
                           "text": "30",
                           "style": {
-                            "cssText": "position:absolute;top:18px;height:18px;left:112px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                            "cssText": "position:absolute;top:18px;height:18px;left:112px;width:28px;text-align:center;font-size:11px;opacity:.7;"
                           }
                         },
                         {
                           "tag": "div",
                           "text": "31",
                           "style": {
-                            "cssText": "position:absolute;top:18px;height:18px;left:140px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                            "cssText": "position:absolute;top:18px;height:18px;left:140px;width:28px;text-align:center;font-size:11px;opacity:.7;"
                           }
                         },
                         {
                           "tag": "div",
                           "text": "1",
                           "style": {
-                            "cssText": "position:absolute;top:18px;height:18px;left:168px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                            "cssText": "position:absolute;top:18px;height:18px;left:168px;width:28px;text-align:center;font-size:11px;opacity:.45;"
                           }
                         },
                         {
                           "tag": "div",
                           "text": "2",
                           "style": {
-                            "cssText": "position:absolute;top:18px;height:18px;left:196px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                            "cssText": "position:absolute;top:18px;height:18px;left:196px;width:28px;text-align:center;font-size:11px;opacity:.45;"
                           }
                         },
                         {
                           "tag": "div",
                           "text": "3",
                           "style": {
-                            "cssText": "position:absolute;top:18px;height:18px;left:224px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                            "cssText": "position:absolute;top:18px;height:18px;left:224px;width:28px;text-align:center;font-size:11px;opacity:.7;"
                           }
                         },
                         {
                           "tag": "div",
                           "text": "4",
                           "style": {
-                            "cssText": "position:absolute;top:18px;height:18px;left:252px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                            "cssText": "position:absolute;top:18px;height:18px;left:252px;width:28px;text-align:center;font-size:11px;opacity:.7;"
                           }
                         },
                         {
                           "tag": "div",
                           "text": "5",
                           "style": {
-                            "cssText": "position:absolute;top:18px;height:18px;left:280px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                            "cssText": "position:absolute;top:18px;height:18px;left:280px;width:28px;text-align:center;font-size:11px;opacity:.7;"
                           }
                         },
                         {
                           "tag": "div",
                           "text": "6",
                           "style": {
-                            "cssText": "position:absolute;top:18px;height:18px;left:308px;width:28px;text-align:center;font-size:10px;font-weight:700;color:var(--interactive-accent);"
+                            "cssText": "position:absolute;top:18px;height:18px;left:308px;width:28px;text-align:center;font-size:11px;font-weight:700;color:var(--interactive-accent);"
                           }
                         },
                         {
                           "tag": "div",
                           "text": "7",
                           "style": {
-                            "cssText": "position:absolute;top:18px;height:18px;left:336px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                            "cssText": "position:absolute;top:18px;height:18px;left:336px;width:28px;text-align:center;font-size:11px;opacity:.7;"
                           }
                         },
                         {
                           "tag": "div",
                           "text": "8",
                           "style": {
-                            "cssText": "position:absolute;top:18px;height:18px;left:364px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                            "cssText": "position:absolute;top:18px;height:18px;left:364px;width:28px;text-align:center;font-size:11px;opacity:.45;"
                           }
                         },
                         {
                           "tag": "div",
                           "text": "9",
                           "style": {
-                            "cssText": "position:absolute;top:18px;height:18px;left:392px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                            "cssText": "position:absolute;top:18px;height:18px;left:392px;width:28px;text-align:center;font-size:11px;opacity:.45;"
                           }
                         },
                         {
                           "tag": "div",
                           "text": "10",
                           "style": {
-                            "cssText": "position:absolute;top:18px;height:18px;left:420px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                            "cssText": "position:absolute;top:18px;height:18px;left:420px;width:28px;text-align:center;font-size:11px;opacity:.7;"
                           }
                         },
                         {
                           "tag": "div",
                           "text": "11",
                           "style": {
-                            "cssText": "position:absolute;top:18px;height:18px;left:448px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                            "cssText": "position:absolute;top:18px;height:18px;left:448px;width:28px;text-align:center;font-size:11px;opacity:.7;"
                           }
                         },
                         {
                           "tag": "div",
                           "text": "12",
                           "style": {
-                            "cssText": "position:absolute;top:18px;height:18px;left:476px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                            "cssText": "position:absolute;top:18px;height:18px;left:476px;width:28px;text-align:center;font-size:11px;opacity:.7;"
                           }
                         },
                         {
                           "tag": "div",
                           "text": "13",
                           "style": {
-                            "cssText": "position:absolute;top:18px;height:18px;left:504px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                            "cssText": "position:absolute;top:18px;height:18px;left:504px;width:28px;text-align:center;font-size:11px;opacity:.7;"
                           }
                         },
                         {
                           "tag": "div",
                           "text": "14",
                           "style": {
-                            "cssText": "position:absolute;top:18px;height:18px;left:532px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                            "cssText": "position:absolute;top:18px;height:18px;left:532px;width:28px;text-align:center;font-size:11px;opacity:.7;"
                           }
                         },
                         {
                           "tag": "div",
                           "text": "15",
                           "style": {
-                            "cssText": "position:absolute;top:18px;height:18px;left:560px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                            "cssText": "position:absolute;top:18px;height:18px;left:560px;width:28px;text-align:center;font-size:11px;opacity:.45;"
                           }
                         },
                         {
                           "tag": "div",
                           "text": "16",
                           "style": {
-                            "cssText": "position:absolute;top:18px;height:18px;left:588px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                            "cssText": "position:absolute;top:18px;height:18px;left:588px;width:28px;text-align:center;font-size:11px;opacity:.45;"
                           }
                         },
                         {
                           "tag": "div",
                           "text": "17",
                           "style": {
-                            "cssText": "position:absolute;top:18px;height:18px;left:616px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                            "cssText": "position:absolute;top:18px;height:18px;left:616px;width:28px;text-align:center;font-size:11px;opacity:.7;"
                           }
                         },
                         {
                           "tag": "div",
                           "text": "18",
                           "style": {
-                            "cssText": "position:absolute;top:18px;height:18px;left:644px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                            "cssText": "position:absolute;top:18px;height:18px;left:644px;width:28px;text-align:center;font-size:11px;opacity:.7;"
                           }
                         },
                         {
                           "tag": "div",
                           "text": "19",
                           "style": {
-                            "cssText": "position:absolute;top:18px;height:18px;left:672px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                            "cssText": "position:absolute;top:18px;height:18px;left:672px;width:28px;text-align:center;font-size:11px;opacity:.7;"
                           }
                         },
                         {
                           "tag": "div",
                           "text": "20",
                           "style": {
-                            "cssText": "position:absolute;top:18px;height:18px;left:700px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                            "cssText": "position:absolute;top:18px;height:18px;left:700px;width:28px;text-align:center;font-size:11px;opacity:.7;"
                           }
                         },
                         {
                           "tag": "div",
                           "text": "21",
                           "style": {
-                            "cssText": "position:absolute;top:18px;height:18px;left:728px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                            "cssText": "position:absolute;top:18px;height:18px;left:728px;width:28px;text-align:center;font-size:11px;opacity:.7;"
                           }
                         },
                         {
                           "tag": "div",
                           "text": "22",
                           "style": {
-                            "cssText": "position:absolute;top:18px;height:18px;left:756px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                            "cssText": "position:absolute;top:18px;height:18px;left:756px;width:28px;text-align:center;font-size:11px;opacity:.45;"
                           }
                         },
                         {
                           "tag": "div",
                           "text": "23",
                           "style": {
-                            "cssText": "position:absolute;top:18px;height:18px;left:784px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                            "cssText": "position:absolute;top:18px;height:18px;left:784px;width:28px;text-align:center;font-size:11px;opacity:.45;"
                           }
                         },
                         {
                           "tag": "div",
                           "text": "24",
                           "style": {
-                            "cssText": "position:absolute;top:18px;height:18px;left:812px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                            "cssText": "position:absolute;top:18px;height:18px;left:812px;width:28px;text-align:center;font-size:11px;opacity:.7;"
                           }
                         },
                         {
                           "tag": "div",
                           "text": "25",
                           "style": {
-                            "cssText": "position:absolute;top:18px;height:18px;left:840px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                            "cssText": "position:absolute;top:18px;height:18px;left:840px;width:28px;text-align:center;font-size:11px;opacity:.7;"
                           }
                         },
                         {
                           "tag": "div",
                           "text": "26",
                           "style": {
-                            "cssText": "position:absolute;top:18px;height:18px;left:868px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                            "cssText": "position:absolute;top:18px;height:18px;left:868px;width:28px;text-align:center;font-size:11px;opacity:.7;"
                           }
                         },
                         {
                           "tag": "div",
                           "text": "27",
                           "style": {
-                            "cssText": "position:absolute;top:18px;height:18px;left:896px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                            "cssText": "position:absolute;top:18px;height:18px;left:896px;width:28px;text-align:center;font-size:11px;opacity:.7;"
                           }
                         },
                         {
                           "tag": "div",
                           "text": "28",
                           "style": {
-                            "cssText": "position:absolute;top:18px;height:18px;left:924px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                            "cssText": "position:absolute;top:18px;height:18px;left:924px;width:28px;text-align:center;font-size:11px;opacity:.7;"
                           }
                         },
                         {
                           "tag": "div",
                           "text": "29",
                           "style": {
-                            "cssText": "position:absolute;top:18px;height:18px;left:952px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                            "cssText": "position:absolute;top:18px;height:18px;left:952px;width:28px;text-align:center;font-size:11px;opacity:.45;"
                           }
                         }
                       ]
@@ -423,19 +423,19 @@
                 {
                   "tag": "div",
                   "style": {
-                    "cssText": "display:flex;height:26px;border-bottom:1px solid var(--background-modifier-border-hover);"
+                    "cssText": "display:flex;height:32px;border-bottom:1px solid var(--background-modifier-border-hover);"
                   },
                   "children": [
                     {
                       "tag": "div",
                       "style": {
-                        "cssText": "position:sticky;left:0;z-index:2;flex:0 0 220px;width:220px;box-sizing:border-box;display:flex;align-items:center;overflow:hidden;white-space:nowrap;font-size:12px;background:var(--background-primary);border-right:1px solid var(--background-modifier-border);"
+                        "cssText": "position:sticky;left:0;z-index:2;flex:0 0 280px;width:280px;box-sizing:border-box;display:flex;align-items:center;overflow:hidden;white-space:nowrap;font-size:13px;background:var(--background-primary);border-right:1px solid var(--background-modifier-border);"
                       },
                       "children": [
                         {
                           "tag": "div",
                           "style": {
-                            "cssText": "flex:0 0 36px;width:36px;text-align:center;font-size:11px;",
+                            "cssText": "flex:0 0 40px;width:40px;text-align:center;font-size:12px;",
                             "color": "inherit"
                           }
                         },
@@ -482,7 +482,7 @@
                         {
                           "tag": "div",
                           "style": {
-                            "cssText": "position:absolute;top:8px;height:10px;left:0px;width:980px;background:var(--interactive-accent);opacity:.45;border-radius:3px;cursor:pointer;"
+                            "cssText": "position:absolute;top:10px;height:12px;left:0px;width:980px;background:var(--interactive-accent);opacity:.45;border-radius:3px;cursor:pointer;"
                           },
                           "title": "Hub\n2026-04-01 ~ 2026-12-09\n클릭=노트 열기 · Ctrl+클릭=새 탭",
                           "handlers": [
@@ -493,14 +493,14 @@
                           "tag": "div",
                           "text": "◀",
                           "style": {
-                            "cssText": "position:absolute;top:8px;left:0px;width:10px;font-size:8px;line-height:10px;opacity:.6;pointer-events:none;"
+                            "cssText": "position:absolute;top:11px;left:0px;width:10px;font-size:8px;line-height:10px;opacity:.6;pointer-events:none;"
                           }
                         },
                         {
                           "tag": "div",
                           "text": "▶",
                           "style": {
-                            "cssText": "position:absolute;top:8px;left:970px;width:10px;font-size:8px;line-height:10px;opacity:.6;pointer-events:none;"
+                            "cssText": "position:absolute;top:11px;left:970px;width:10px;font-size:8px;line-height:10px;opacity:.6;pointer-events:none;"
                           }
                         }
                       ]
@@ -510,20 +510,20 @@
                 {
                   "tag": "div",
                   "style": {
-                    "cssText": "display:flex;height:26px;border-bottom:1px solid var(--background-modifier-border-hover);"
+                    "cssText": "display:flex;height:32px;border-bottom:1px solid var(--background-modifier-border-hover);"
                   },
                   "children": [
                     {
                       "tag": "div",
                       "style": {
-                        "cssText": "position:sticky;left:0;z-index:2;flex:0 0 220px;width:220px;box-sizing:border-box;display:flex;align-items:center;overflow:hidden;white-space:nowrap;font-size:12px;background:var(--background-primary);border-right:1px solid var(--background-modifier-border);"
+                        "cssText": "position:sticky;left:0;z-index:2;flex:0 0 280px;width:280px;box-sizing:border-box;display:flex;align-items:center;overflow:hidden;white-space:nowrap;font-size:13px;background:var(--background-primary);border-right:1px solid var(--background-modifier-border);"
                       },
                       "children": [
                         {
                           "tag": "div",
                           "text": "보류",
                           "style": {
-                            "cssText": "flex:0 0 36px;width:36px;text-align:center;font-size:11px;",
+                            "cssText": "flex:0 0 40px;width:40px;text-align:center;font-size:12px;",
                             "color": "var(--text-faint)"
                           },
                           "title": "Status: Hold"
@@ -571,7 +571,7 @@
                         {
                           "tag": "div",
                           "style": {
-                            "cssText": "position:absolute;top:8px;height:10px;left:0px;width:168px;background:var(--text-faint);opacity:.45;border-radius:3px;cursor:pointer;"
+                            "cssText": "position:absolute;top:10px;height:12px;left:0px;width:168px;background:var(--text-faint);opacity:.45;border-radius:3px;cursor:pointer;"
                           },
                           "title": "보류\n2026-07-01 ~ 2026-07-31\nStatus: Hold\n클릭=노트 열기 · Ctrl+클릭=새 탭",
                           "handlers": [
@@ -582,7 +582,7 @@
                           "tag": "div",
                           "text": "◀",
                           "style": {
-                            "cssText": "position:absolute;top:8px;left:0px;width:10px;font-size:8px;line-height:10px;opacity:.6;pointer-events:none;"
+                            "cssText": "position:absolute;top:11px;left:0px;width:10px;font-size:8px;line-height:10px;opacity:.6;pointer-events:none;"
                           }
                         }
                       ]
@@ -592,19 +592,19 @@
                 {
                   "tag": "div",
                   "style": {
-                    "cssText": "display:flex;height:26px;border-bottom:1px solid var(--background-modifier-border-hover);"
+                    "cssText": "display:flex;height:32px;border-bottom:1px solid var(--background-modifier-border-hover);"
                   },
                   "children": [
                     {
                       "tag": "div",
                       "style": {
-                        "cssText": "position:sticky;left:0;z-index:2;flex:0 0 220px;width:220px;box-sizing:border-box;display:flex;align-items:center;overflow:hidden;white-space:nowrap;font-size:12px;background:var(--background-primary);border-right:1px solid var(--background-modifier-border);"
+                        "cssText": "position:sticky;left:0;z-index:2;flex:0 0 280px;width:280px;box-sizing:border-box;display:flex;align-items:center;overflow:hidden;white-space:nowrap;font-size:13px;background:var(--background-primary);border-right:1px solid var(--background-modifier-border);"
                       },
                       "children": [
                         {
                           "tag": "div",
                           "style": {
-                            "cssText": "flex:0 0 36px;width:36px;text-align:center;font-size:11px;",
+                            "cssText": "flex:0 0 40px;width:40px;text-align:center;font-size:12px;",
                             "color": "inherit"
                           }
                         },
@@ -638,7 +638,7 @@
                             },
                             {
                               "tag": "span",
-                              "text": "+1 날짜 없음",
+                              "text": "+2 기간 밖 · +1 날짜 없음",
                               "style": {
                                 "cssText": "font-size:10px;opacity:.45;"
                               }
@@ -662,7 +662,7 @@
                         {
                           "tag": "div",
                           "style": {
-                            "cssText": "position:absolute;top:8px;height:10px;left:0px;width:728px;background:var(--interactive-accent);opacity:.45;border-radius:3px;cursor:pointer;"
+                            "cssText": "position:absolute;top:10px;height:12px;left:0px;width:728px;background:var(--interactive-accent);opacity:.45;border-radius:3px;cursor:pointer;"
                           },
                           "title": "알림톡\n2026-07-20 ~ 2026-08-20\n클릭=노트 열기 · Ctrl+클릭=새 탭",
                           "handlers": [
@@ -673,7 +673,7 @@
                           "tag": "div",
                           "text": "◀",
                           "style": {
-                            "cssText": "position:absolute;top:8px;left:0px;width:10px;font-size:8px;line-height:10px;opacity:.6;pointer-events:none;"
+                            "cssText": "position:absolute;top:11px;left:0px;width:10px;font-size:8px;line-height:10px;opacity:.6;pointer-events:none;"
                           }
                         }
                       ]
@@ -683,19 +683,19 @@
                 {
                   "tag": "div",
                   "style": {
-                    "cssText": "display:flex;height:22px;border-bottom:1px solid var(--background-modifier-border-hover);"
+                    "cssText": "display:flex;height:30px;border-bottom:1px solid var(--background-modifier-border-hover);"
                   },
                   "children": [
                     {
                       "tag": "div",
                       "style": {
-                        "cssText": "position:sticky;left:0;z-index:2;flex:0 0 220px;width:220px;box-sizing:border-box;display:flex;align-items:center;overflow:hidden;white-space:nowrap;font-size:12px;background:var(--background-primary);border-right:1px solid var(--background-modifier-border);"
+                        "cssText": "position:sticky;left:0;z-index:2;flex:0 0 280px;width:280px;box-sizing:border-box;display:flex;align-items:center;overflow:hidden;white-space:nowrap;font-size:13px;background:var(--background-primary);border-right:1px solid var(--background-modifier-border);"
                       },
                       "children": [
                         {
                           "tag": "div",
                           "style": {
-                            "cssText": "flex:0 0 36px;width:36px;text-align:center;font-size:11px;"
+                            "cssText": "flex:0 0 40px;width:40px;text-align:center;font-size:12px;"
                           }
                         },
                         {
@@ -706,14 +706,32 @@
                           "children": [
                             {
                               "tag": "span",
+                              "text": "▸",
+                              "style": {
+                                "cssText": "flex:0 0 14px;width:14px;margin-left:16px;text-align:center;opacity:.7;cursor:pointer;"
+                              },
+                              "title": "하위 task 1개 펼치기",
+                              "handlers": [
+                                "onclick"
+                              ]
+                            },
+                            {
+                              "tag": "span",
                               "text": "템플릿 API",
                               "style": {
-                                "cssText": "padding-left:18px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;"
+                                "cssText": "cursor:pointer;overflow:hidden;text-overflow:ellipsis;"
                               },
                               "title": "템플릿 API\n🛫 2026-07-22  📅 2026-08-05\n클릭=편집 · Ctrl+클릭=원본 열기",
                               "handlers": [
                                 "onclick"
                               ]
+                            },
+                            {
+                              "tag": "span",
+                              "text": "(1)",
+                              "style": {
+                                "cssText": "font-size:11px;opacity:.5;"
+                              }
                             }
                           ]
                         }
@@ -735,7 +753,7 @@
                           "tag": "div",
                           "text": "◀ 템플릿 API",
                           "style": {
-                            "cssText": "position:absolute;top:3px;height:16px;left:0px;width:308px;box-sizing:border-box;border-radius:3px;font-size:10px;line-height:14px;padding:0 4px;overflow:hidden;white-space:nowrap;cursor:pointer;background:#3f51b52b;border:1px solid #3f51b5;border-left:4px solid #3f51b5;"
+                            "cssText": "position:absolute;top:5px;height:20px;left:0px;width:308px;box-sizing:border-box;border-radius:4px;font-size:12px;line-height:18px;padding:0 5px;overflow:hidden;white-space:nowrap;cursor:pointer;background:#3f51b52b;border:1px solid #3f51b5;border-left:4px solid #3f51b5;"
                           },
                           "title": "템플릿 API\n🛫 2026-07-22  📅 2026-08-05\n클릭=편집 · Ctrl+클릭=원본 열기",
                           "handlers": [
@@ -749,19 +767,19 @@
                 {
                   "tag": "div",
                   "style": {
-                    "cssText": "display:flex;height:22px;border-bottom:1px solid var(--background-modifier-border-hover);"
+                    "cssText": "display:flex;height:30px;border-bottom:1px solid var(--background-modifier-border-hover);"
                   },
                   "children": [
                     {
                       "tag": "div",
                       "style": {
-                        "cssText": "position:sticky;left:0;z-index:2;flex:0 0 220px;width:220px;box-sizing:border-box;display:flex;align-items:center;overflow:hidden;white-space:nowrap;font-size:12px;background:var(--background-primary);border-right:1px solid var(--background-modifier-border);"
+                        "cssText": "position:sticky;left:0;z-index:2;flex:0 0 280px;width:280px;box-sizing:border-box;display:flex;align-items:center;overflow:hidden;white-space:nowrap;font-size:13px;background:var(--background-primary);border-right:1px solid var(--background-modifier-border);"
                       },
                       "children": [
                         {
                           "tag": "div",
                           "style": {
-                            "cssText": "flex:0 0 36px;width:36px;text-align:center;font-size:11px;"
+                            "cssText": "flex:0 0 40px;width:40px;text-align:center;font-size:12px;"
                           }
                         },
                         {
@@ -772,9 +790,15 @@
                           "children": [
                             {
                               "tag": "span",
+                              "style": {
+                                "cssText": "flex:0 0 14px;width:14px;margin-left:16px;text-align:center;opacity:.7;"
+                              }
+                            },
+                            {
+                              "tag": "span",
                               "text": "✓ 발송 이력",
                               "style": {
-                                "cssText": "padding-left:18px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;opacity:.55;text-decoration:line-through;"
+                                "cssText": "cursor:pointer;overflow:hidden;text-overflow:ellipsis;opacity:.55;text-decoration:line-through;"
                               },
                               "title": "발송 이력\n🛫 2026-07-27  📅 2026-07-30\n(완료됨)\n클릭=편집 · Ctrl+클릭=원본 열기",
                               "handlers": [
@@ -801,7 +825,7 @@
                           "tag": "div",
                           "text": "발송 이력",
                           "style": {
-                            "cssText": "position:absolute;top:3px;height:16px;left:28px;width:112px;box-sizing:border-box;border-radius:3px;font-size:10px;line-height:14px;padding:0 4px;overflow:hidden;white-space:nowrap;cursor:pointer;background:#3f51b52b;border:1px solid #3f51b5;border-left:4px solid #3f51b5;opacity:0.55;text-decoration:line-through;"
+                            "cssText": "position:absolute;top:5px;height:20px;left:28px;width:112px;box-sizing:border-box;border-radius:4px;font-size:12px;line-height:18px;padding:0 5px;overflow:hidden;white-space:nowrap;cursor:pointer;background:#3f51b52b;border:1px solid #3f51b5;border-left:4px solid #3f51b5;opacity:0.55;text-decoration:line-through;"
                           },
                           "title": "발송 이력\n🛫 2026-07-27  📅 2026-07-30\n(완료됨)\n클릭=편집 · Ctrl+클릭=원본 열기",
                           "handlers": [
@@ -815,19 +839,19 @@
                 {
                   "tag": "div",
                   "style": {
-                    "cssText": "display:flex;height:22px;border-bottom:1px solid var(--background-modifier-border-hover);"
+                    "cssText": "display:flex;height:30px;border-bottom:1px solid var(--background-modifier-border-hover);"
                   },
                   "children": [
                     {
                       "tag": "div",
                       "style": {
-                        "cssText": "position:sticky;left:0;z-index:2;flex:0 0 220px;width:220px;box-sizing:border-box;display:flex;align-items:center;overflow:hidden;white-space:nowrap;font-size:12px;background:var(--background-primary);border-right:1px solid var(--background-modifier-border);"
+                        "cssText": "position:sticky;left:0;z-index:2;flex:0 0 280px;width:280px;box-sizing:border-box;display:flex;align-items:center;overflow:hidden;white-space:nowrap;font-size:13px;background:var(--background-primary);border-right:1px solid var(--background-modifier-border);"
                       },
                       "children": [
                         {
                           "tag": "div",
                           "style": {
-                            "cssText": "flex:0 0 36px;width:36px;text-align:center;font-size:11px;"
+                            "cssText": "flex:0 0 40px;width:40px;text-align:center;font-size:12px;"
                           }
                         },
                         {
@@ -838,9 +862,15 @@
                           "children": [
                             {
                               "tag": "span",
+                              "style": {
+                                "cssText": "flex:0 0 14px;width:14px;margin-left:16px;text-align:center;opacity:.7;"
+                              }
+                            },
+                            {
+                              "tag": "span",
                               "text": "리뷰",
                               "style": {
-                                "cssText": "padding-left:18px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;"
+                                "cssText": "cursor:pointer;overflow:hidden;text-overflow:ellipsis;"
                               },
                               "title": "리뷰\n🛫 -  📅 2026-08-18\n클릭=편집 · Ctrl+클릭=원본 열기",
                               "handlers": [
@@ -867,7 +897,18 @@
                           "tag": "div",
                           "text": "◆",
                           "style": {
-                            "cssText": "position:absolute;top:2px;left:651px;width:14px;text-align:center;font-size:13px;line-height:16px;color:#3f51b5;cursor:pointer;"
+                            "cssText": "position:absolute;top:6px;left:650px;width:16px;text-align:center;font-size:15px;line-height:18px;color:#3f51b5;cursor:pointer;"
+                          },
+                          "title": "리뷰\n🛫 -  📅 2026-08-18\n클릭=편집 · Ctrl+클릭=원본 열기",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        },
+                        {
+                          "tag": "div",
+                          "text": "리뷰",
+                          "style": {
+                            "cssText": "position:absolute;top:5px;left:670px;max-width:306px;font-size:12px;line-height:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;opacity:.8;"
                           },
                           "title": "리뷰\n🛫 -  📅 2026-08-18\n클릭=편집 · Ctrl+클릭=원본 열기",
                           "handlers": [
@@ -881,20 +922,20 @@
                 {
                   "tag": "div",
                   "style": {
-                    "cssText": "display:flex;height:26px;border-bottom:1px solid var(--background-modifier-border-hover);"
+                    "cssText": "display:flex;height:32px;border-bottom:1px solid var(--background-modifier-border-hover);"
                   },
                   "children": [
                     {
                       "tag": "div",
                       "style": {
-                        "cssText": "position:sticky;left:0;z-index:2;flex:0 0 220px;width:220px;box-sizing:border-box;display:flex;align-items:center;overflow:hidden;white-space:nowrap;font-size:12px;background:var(--background-primary);border-right:1px solid var(--background-modifier-border);"
+                        "cssText": "position:sticky;left:0;z-index:2;flex:0 0 280px;width:280px;box-sizing:border-box;display:flex;align-items:center;overflow:hidden;white-space:nowrap;font-size:13px;background:var(--background-primary);border-right:1px solid var(--background-modifier-border);"
                       },
                       "children": [
                         {
                           "tag": "div",
                           "text": "진행",
                           "style": {
-                            "cssText": "flex:0 0 36px;width:36px;text-align:center;font-size:11px;",
+                            "cssText": "flex:0 0 40px;width:40px;text-align:center;font-size:12px;",
                             "color": "var(--interactive-accent)"
                           },
                           "title": "Status: InProgress"
@@ -942,7 +983,7 @@
                         {
                           "tag": "div",
                           "style": {
-                            "cssText": "position:absolute;top:8px;height:10px;left:56px;width:280px;background:var(--interactive-accent);opacity:.45;border-radius:3px;cursor:pointer;"
+                            "cssText": "position:absolute;top:10px;height:12px;left:56px;width:280px;background:var(--interactive-accent);opacity:.45;border-radius:3px;cursor:pointer;"
                           },
                           "title": "오리엔트\n2026-07-28 ~ (종료일 없음)\nStatus: InProgress\n클릭=노트 열기 · Ctrl+클릭=새 탭",
                           "handlers": [
@@ -952,7 +993,7 @@
                         {
                           "tag": "div",
                           "style": {
-                            "cssText": "position:absolute;top:8px;height:10px;left:336px;width:196px;background:linear-gradient(to right, var(--interactive-accent), transparent);opacity:.3;border-radius:0 3px 3px 0;pointer-events:none;"
+                            "cssText": "position:absolute;top:10px;height:12px;left:336px;width:196px;background:linear-gradient(to right, var(--interactive-accent), transparent);opacity:.3;border-radius:0 3px 3px 0;pointer-events:none;"
                           }
                         }
                       ]
@@ -962,20 +1003,20 @@
                 {
                   "tag": "div",
                   "style": {
-                    "cssText": "display:flex;height:26px;border-bottom:1px solid var(--background-modifier-border-hover);"
+                    "cssText": "display:flex;height:32px;border-bottom:1px solid var(--background-modifier-border-hover);"
                   },
                   "children": [
                     {
                       "tag": "div",
                       "style": {
-                        "cssText": "position:sticky;left:0;z-index:2;flex:0 0 220px;width:220px;box-sizing:border-box;display:flex;align-items:center;overflow:hidden;white-space:nowrap;font-size:12px;background:var(--background-primary);border-right:1px solid var(--background-modifier-border);"
+                        "cssText": "position:sticky;left:0;z-index:2;flex:0 0 280px;width:280px;box-sizing:border-box;display:flex;align-items:center;overflow:hidden;white-space:nowrap;font-size:13px;background:var(--background-primary);border-right:1px solid var(--background-modifier-border);"
                       },
                       "children": [
                         {
                           "tag": "div",
                           "text": "계획",
                           "style": {
-                            "cssText": "flex:0 0 36px;width:36px;text-align:center;font-size:11px;",
+                            "cssText": "flex:0 0 40px;width:40px;text-align:center;font-size:12px;",
                             "color": "var(--text-muted)"
                           },
                           "title": "Status: Planning"
@@ -1034,7 +1075,7 @@
                         {
                           "tag": "div",
                           "style": {
-                            "cssText": "position:absolute;top:8px;height:10px;left:420px;width:560px;border:1px dashed var(--interactive-accent);box-sizing:border-box;border-radius:3px;cursor:pointer;"
+                            "cssText": "position:absolute;top:10px;height:12px;left:420px;width:560px;border:1px dashed var(--interactive-accent);box-sizing:border-box;border-radius:3px;cursor:pointer;"
                           },
                           "title": "매장음악\n2026-08-10 ~ 2026-09-10\nStatus: Planning\n⚠ 종료일(2026-09-10)보다 늦은 task 1개 — 최대 2026-09-20\n클릭=노트 열기 · Ctrl+클릭=새 탭",
                           "handlers": [
@@ -1045,7 +1086,7 @@
                           "tag": "div",
                           "text": "▶",
                           "style": {
-                            "cssText": "position:absolute;top:8px;left:970px;width:10px;font-size:8px;line-height:10px;opacity:.6;pointer-events:none;"
+                            "cssText": "position:absolute;top:11px;left:970px;width:10px;font-size:8px;line-height:10px;opacity:.6;pointer-events:none;"
                           }
                         }
                       ]
@@ -1055,19 +1096,19 @@
                 {
                   "tag": "div",
                   "style": {
-                    "cssText": "display:flex;height:22px;border-bottom:1px solid var(--background-modifier-border-hover);"
+                    "cssText": "display:flex;height:30px;border-bottom:1px solid var(--background-modifier-border-hover);"
                   },
                   "children": [
                     {
                       "tag": "div",
                       "style": {
-                        "cssText": "position:sticky;left:0;z-index:2;flex:0 0 220px;width:220px;box-sizing:border-box;display:flex;align-items:center;overflow:hidden;white-space:nowrap;font-size:12px;background:var(--background-primary);border-right:1px solid var(--background-modifier-border);"
+                        "cssText": "position:sticky;left:0;z-index:2;flex:0 0 280px;width:280px;box-sizing:border-box;display:flex;align-items:center;overflow:hidden;white-space:nowrap;font-size:13px;background:var(--background-primary);border-right:1px solid var(--background-modifier-border);"
                       },
                       "children": [
                         {
                           "tag": "div",
                           "style": {
-                            "cssText": "flex:0 0 36px;width:36px;text-align:center;font-size:11px;"
+                            "cssText": "flex:0 0 40px;width:40px;text-align:center;font-size:12px;"
                           }
                         },
                         {
@@ -1078,9 +1119,15 @@
                           "children": [
                             {
                               "tag": "span",
+                              "style": {
+                                "cssText": "flex:0 0 14px;width:14px;margin-left:16px;text-align:center;opacity:.7;"
+                              }
+                            },
+                            {
+                              "tag": "span",
                               "text": "요건 확인",
                               "style": {
-                                "cssText": "padding-left:18px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;"
+                                "cssText": "cursor:pointer;overflow:hidden;text-overflow:ellipsis;"
                               },
                               "title": "요건 확인\n🛫 -  📅 2026-08-12\n클릭=편집 · Ctrl+클릭=원본 열기",
                               "handlers": [
@@ -1107,7 +1154,18 @@
                           "tag": "div",
                           "text": "◆",
                           "style": {
-                            "cssText": "position:absolute;top:2px;left:483px;width:14px;text-align:center;font-size:13px;line-height:16px;color:#0b8043;cursor:pointer;"
+                            "cssText": "position:absolute;top:6px;left:482px;width:16px;text-align:center;font-size:15px;line-height:18px;color:#0b8043;cursor:pointer;"
+                          },
+                          "title": "요건 확인\n🛫 -  📅 2026-08-12\n클릭=편집 · Ctrl+클릭=원본 열기",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        },
+                        {
+                          "tag": "div",
+                          "text": "요건 확인",
+                          "style": {
+                            "cssText": "position:absolute;top:5px;left:502px;max-width:474px;font-size:12px;line-height:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;opacity:.8;"
                           },
                           "title": "요건 확인\n🛫 -  📅 2026-08-12\n클릭=편집 · Ctrl+클릭=원본 열기",
                           "handlers": [
