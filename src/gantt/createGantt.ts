@@ -42,13 +42,18 @@ export function createGantt(a: GanttArgs) {
   const saved = (plugin.store.state[key] = plugin.store.state[key] || {});
   const state: GanttViewState = {
     zoom: isZoom(saved.zoom) ? saved.zoom : "month",
+    // 창의 기준일은 **저장하지 않는다** — 열 때마다 오늘 기준(캘린더 0.6.0~ 과 같은 원칙).
+    // 줌·필터는 "무엇을 보는가" 라 기억한다.
+    anchor: L.now().toISODate(),
     showDone: saved.showDone !== false,
+    showDoneNotes: saved.showDoneNotes !== false,
     collapsed: Array.isArray(saved.collapsed) ? saved.collapsed : [],
-    scrollLeft: undefined, // 열 때마다 오늘로 — 캘린더(0.6.0~)와 같은 원칙
+    scrollLeft: undefined,
   };
   const save = () => {
     saved.zoom = state.zoom;
     saved.showDone = state.showDone;
+    saved.showDoneNotes = state.showDoneNotes;
     saved.collapsed = state.collapsed;
   };
 

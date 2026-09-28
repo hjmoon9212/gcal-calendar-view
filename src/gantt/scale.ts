@@ -12,35 +12,56 @@ export const ZOOM_LABEL: Record<Zoom, string> = { week: "주", month: "월", qua
 /** 하루의 폭(px). 주 = 날짜 숫자가 들어가는 폭, 분기 = 1년이 한 화면에 가까운 폭 */
 export const DAY_PX: Record<Zoom, number> = { week: 28, month: 10, quarter: 4 };
 
-/** 전체 구간 앞뒤 여유(일) — 막대가 가장자리에 붙어 잘려 보이지 않게 */
-export const PAD_DAYS = 7;
-/** 이보다 긴 구간은 오늘 기준으로 자른다 — 몇 년짜리 옛 노트 하나가 축을 끝없이 늘리지 않게 */
-export const MAX_DAYS = 1096;
-export const CLIP_HALF = 548;
-
 export const isZoom = (z: any): z is Zoom => ZOOMS.includes(z);
 
-/**
- * 그릴 구간 [from, to]. 모든 막대 + 오늘을 덮고 앞뒤로 PAD_DAYS 를 붙인다.
- * MAX_DAYS 를 넘으면 오늘 ±CLIP_HALF 로 자른다(잘린 막대는 가장자리에서 끊겨 보인다).
- */
-export function timelineRange(spans: [string, string][], today: string): [string, string] {
-  let from = today;
-  let to = today;
-  for (const [a, b] of spans) {
-    if (a < from) from = a;
-    if (b > to) to = b;
-  }
-  from = addDays(from, -PAD_DAYS);
-  to = addDays(to, PAD_DAYS);
-  if (diffDays(to, from) + 1 > MAX_DAYS) {
-    const lo = addDays(today, -CLIP_HALF);
-    const hi = addDays(today, CLIP_HALF);
-    if (from < lo) from = lo;
-    if (to > hi) to = hi;
-  }
-  return [from, to];
+const pad2 = (n: number) => String(n).padStart(2, "0");
+
+/** 그 달 1일에서 n 개월 옮긴 달의 1일. */
+export function addMonths(iso: string, n: number): string {
+  const y = Number(iso.slice(0, 4));
+  const m = Number(iso.slice(5, 7)) - 1 + n;
+  const yy = y + Math.floor(m / 12);
+  const mm = ((m % 12) + 12) % 12;
+  return `${yy}-${pad2(mm + 1)}-01`;
 }
+
+const monthStart = (iso: string) => iso.slice(0, 8) + "01";
+
+/**
+ * 보기 기간(창). **줌이 곧 창의 크기**다 — 캘린더의 월간·주간과 같은 감각.
+ *   주   = 기준 주 일요일 -1주 ~ +3주 (5주)
+ *   월   = 지난달 1일 ~ 다음 달 말 (3개월)
+ *   분기 = 기준 분기 1일 ~ 12개월
+ */
+export function viewWindow(zoom: Zoom, anchor: string): [string, string] {
+  if (zoom === "week") {
+    const wd = new Date(anchor + "T00:00:00Z").getUTCDay();
+    const from = addDays(anchor, -wd - 7);
+    return [from, addDays(from, 34)];
+  }
+  if (zoom === "month") {
+    const m0 = monthStart(anchor);
+    return [addMonths(m0, -1), addDays(addMonths(m0, 2), -1)];
+  }
+  const m = Number(anchor.slice(5, 7));
+  const q0 = `${anchor.slice(0, 4)}-${pad2(m - ((m - 1) % 3))}-01`;
+  return [q0, addDays(addMonths(q0, 12), -1)];
+}
+
+/** ◀ ▶ 한 번 — 주 = 1주, 월 = 1개월, 분기 = 3개월. */
+export function stepAnchor(zoom: Zoom, anchor: string, dir: 1 | -1): string {
+  if (zoom === "week") return addDays(anchor, 7 * dir);
+  return addMonths(monthStart(anchor), (zoom === "month" ? 1 : 3) * dir);
+}
+
+/** 창 제목 — `2026.08 ~ 2026.10`, 주 줌은 `08.02 ~ 09.05` */
+export function windowLabel(zoom: Zoom, [from, to]: [string, string]): string {
+  if (zoom === "week") return `${from.slice(5).replace("-", ".")} ~ ${to.slice(5).replace("-", ".")}`;
+  return `${from.slice(0, 7).replace("-", ".")} ~ ${to.slice(0, 7).replace("-", ".")}`;
+}
+
+/** [a, b] 가 [from, to] 와 겹치는가 */
+export const overlaps = (a: string, b: string, from: string, to: string): boolean => a <= to && b >= from;
 
 export interface Scale {
   from: string;

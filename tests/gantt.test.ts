@@ -12,8 +12,9 @@ import { golden } from "./helpers/golden";
 import { serializeEl, FakeEl } from "./helpers/fakeDom";
 import { installDom, makeHarness } from "./helpers/renderHarness";
 import { toISODate, getProp, firstDate, noteSpan } from "../src/gantt/noteDates";
-import { timelineRange, makeScale, monthTicks, dayTicks } from "../src/gantt/scale";
-import { buildGantt } from "../src/gantt/rows";
+import { viewWindow, stepAnchor, addMonths, windowLabel, makeScale, monthTicks, dayTicks } from "../src/gantt/scale";
+import { buildGantt, filterToWindow, reachEnd, isOverrunRow } from "../src/gantt/rows";
+import { statusInfo } from "../src/gantt/status";
 import { resolveSource, normalizePath } from "../src/core/blockOptions";
 
 installDom();
@@ -54,9 +55,31 @@ eq(noteSpan(null, null, [], TODAY), null, "아무 날짜도 없음 → null");
 eq(noteSpan("2026-09-30", "2026-09-10", [], TODAY), { start: "2026-09-10", end: "2026-09-30", open: false }, "시작 > 끝이면 뒤집는다");
 
 // ── scale ──
-eq(timelineRange([["2026-08-01", "2026-08-20"]], TODAY), ["2026-07-25", "2026-08-27"], "구간 ± 7일");
-eq(timelineRange([], TODAY), ["2026-07-30", "2026-08-13"], "비어도 오늘 ± 7일");
-eq(timelineRange([["2020-01-01", "2026-08-10"]], TODAY), ["2025-02-04", "2026-08-17"], "3년 초과면 오늘 -548일로 자른다");
+// 창: 주 = 5주(지난주 일요일부터) · 월 = 3개월(지난달~다음 달) · 분기 = 이번 분기부터 12개월
+eq(viewWindow("week", TODAY), ["2026-07-26", "2026-08-29"], "주 창 — 오늘(목)이 든 주의 일요일 -1주 ~ +3주");
+eq(viewWindow("week", "2026-08-09"), ["2026-08-02", "2026-09-05"], "일요일이면 그 주가 둘째 주");
+eq(viewWindow("month", TODAY), ["2026-07-01", "2026-09-30"], "월 창 — 지난달 1일 ~ 다음 달 말");
+eq(viewWindow("month", "2026-01-15"), ["2025-12-01", "2026-02-28"], "월 창 — 연도 경계 · 2월 말");
+eq(viewWindow("month", "2028-02-10"), ["2028-01-01", "2028-03-31"], "윤년");
+eq(viewWindow("quarter", TODAY), ["2026-07-01", "2027-06-30"], "분기 창 — 이번 분기 1일 ~ 12개월");
+eq(viewWindow("quarter", "2026-12-31"), ["2026-10-01", "2027-09-30"], "분기 창 — 4분기");
+eq(stepAnchor("week", TODAY, 1), "2026-08-13", "◀▶ 주 = 7일");
+eq(stepAnchor("month", "2026-01-31", 1), "2026-02-01", "◀▶ 월 = 다음 달 1일(월말 넘침 없음)");
+eq(stepAnchor("month", "2026-01-15", -1), "2025-12-01", "◀ 월 = 연도 경계");
+eq(stepAnchor("quarter", TODAY, -1), "2026-05-01", "◀▶ 분기 = 3개월");
+eq(addMonths("2026-11-01", 3), "2027-02-01", "addMonths 연도 넘김");
+eq(windowLabel("month", ["2026-07-01", "2026-09-30"]), "2026.07 ~ 2026.09", "창 제목 — 월");
+eq(windowLabel("week", ["2026-07-26", "2026-08-29"]), "07.26 ~ 08.29", "창 제목 — 주");
+
+// ── statusInfo ──
+eq(statusInfo("InProgress"), { label: "진행", color: "var(--interactive-accent)", bar: "active" }, "InProgress");
+eq(statusInfo("planning").bar, "planned", "대소문자 무시");
+eq(statusInfo("In Progress").label, "진행", "공백·하이픈 무시");
+eq(statusInfo("Hold").bar, "hold", "Hold");
+eq(statusInfo("Done"), { label: "완료", color: "#2e9d5b", bar: "done" }, "Done");
+eq(statusInfo(""), { label: "", color: "inherit", bar: "active" }, "없음 → 빈 칸");
+eq(statusInfo("Review").label, "Re", "모르는 값 → 앞 2글자");
+eq(statusInfo("검토중").label, "검토", "한글도 2글자");
 {
   const sc = makeScale("2026-07-25", "2026-08-27", "month");
   eq(sc.width, 34 * 10, "폭 = 일수 × 10px");
@@ -92,6 +115,8 @@ const FM: Record<string, Record<string, any>> = {
   "P/이슈/미정.md": { Type: "Issue", DueDate: "" },
   "P/이슈/보류.md": { Type: "Issue", Status: "Hold", StartDate: "2026-07-01", DueDate: "2026-07-31" },
   "P/메모.md": {},
+  "P/옛날.md": { Type: "Module", Status: "Done", StartDate: "2025-01-01", DueDate: "2025-02-01" },
+  "P/지난모듈.md": { Type: "Module", Status: "InProgress", StartDate: "2026-05-01", DueDate: "2026-06-15" },
 };
 const FILES: Record<string, string> = {
   "P/모듈/알림톡.md": [
@@ -101,12 +126,18 @@ const FILES: Record<string, string> = {
     "- [ ] #task #gcal/work 리뷰 📅 2026-08-18",
     "- [ ] #task #gcal/work 날짜 미정",
   ].join("\n"),
-  "P/모듈/매장음악.md": "- [ ] #task #gcal/growth 요건 확인 📅 2026-08-12",
+  "P/모듈/매장음악.md": [
+    "- [ ] #task #gcal/growth 요건 확인 📅 2026-08-12",
+    "- [ ] #task #gcal/growth 추가 검수 🛫 2026-09-05 📅 2026-09-20",
+    "- [x] #task #gcal/growth 끝난 검수 📅 2026-09-25 ✅ 2026-09-25",
+  ].join("\n"),
   "P/Hub.md": "",
   "P/책/오리엔트.md": "",
   "P/이슈/미정.md": "- [ ] #task 논의 필요",
   "P/이슈/보류.md": "",
   "P/메모.md": "그냥 메모",
+  "P/옛날.md": "",
+  "P/지난모듈.md": "- [ ] #task #gcal/work 밀린 연동 📅 2026-07-10",
 };
 
 {
@@ -120,11 +151,14 @@ const FILES: Record<string, string> = {
     t("P/모듈/알림톡.md", 3, "리뷰", null, "2026-08-18"),
     t("P/모듈/알림톡.md", 4, "날짜 미정", null, null),
     t("P/모듈/매장음악.md", 0, "요건 확인", null, "2026-08-12"),
+    t("P/모듈/매장음악.md", 1, "추가 검수", "2026-09-05", "2026-09-20"),
+    t("P/모듈/매장음악.md", 2, "끝난 검수", null, "2026-09-25", true),
+    t("P/지난모듈.md", 0, "밀린 연동", null, "2026-07-10"),
     t("P/이슈/미정.md", 0, "논의 필요", null, null),
   ];
   const O = { startProp: "StartDate", endProps: ["EndDate", "DueDate"], excludeTypes: [], today: TODAY, showDone: true };
   const m = buildGantt(pages as any, tasks, O);
-  eq(m.groups.map((g) => g.name), ["Hub", "보류", "알림톡", "오리엔트", "매장음악"], "시작일순 정렬 · 메모(날짜도 task도 없음)는 빠진다");
+  eq(m.groups.map((g) => g.name), ["옛날", "Hub", "지난모듈", "보류", "알림톡", "오리엔트", "매장음악"], "시작일순 정렬 · 메모(날짜도 task도 없음)는 빠진다");
   eq(m.undated.map((g) => g.name), ["미정"], "날짜 없는 노트는 따로");
   const al = m.groups.find((g) => g.name === "알림톡")!;
   eq(al.rows.map((r) => [r.task.title, r.milestone]), [["템플릿 API", false], ["발송 이력", false], ["리뷰", true]], "task 행: 시작일순 · 📅만 = 마일스톤");
@@ -133,9 +167,31 @@ const FILES: Record<string, string> = {
   eq(m.groups.find((g) => g.name === "보류")!.status, "Hold", "Status 원문");
 
   const m2 = buildGantt(pages as any, tasks, { ...O, showDone: false, excludeTypes: ["project-hub"] });
-  eq(m2.groups.map((g) => g.name), ["보류", "알림톡", "오리엔트", "매장음악"], "exclude-type 은 대소문자 무시");
+  eq(m2.groups.map((g) => g.name), ["옛날", "지난모듈", "보류", "알림톡", "오리엔트", "매장음악"], "exclude-type 은 대소문자 무시");
   eq(m2.groups.find((g) => g.name === "알림톡")!.rows.map((r) => r.task.title), ["템플릿 API", "리뷰"], "완료 숨김은 행에서만");
   eq(m2.groups.find((g) => g.name === "알림톡")!.span, { start: "2026-07-20", end: "2026-08-20", open: false }, "구간은 프로퍼티 그대로");
+
+  // ── 종료일 초과 ──
+  const ms = m.groups.find((g) => g.name === "매장음악")!;
+  eq(ms.overrun, { until: "2026-09-20", count: 1 }, "종료일(09-10)보다 늦은 미완료 task 만 — 완료된 09-25 는 제외");
+  eq(ms.rows.map((r) => isOverrunRow(ms, r)), [false, true, false], "초과 행 표시는 미완료 + 📅 > 종료일");
+  eq(reachEnd(ms), "2026-09-20", "차지하는 끝 = 초과분까지");
+  eq(al.overrun, null, "초과 없음");
+  eq(m.groups.find((g) => g.name === "오리엔트")!.overrun, null, "열린 기간은 초과가 없다");
+  {
+    const pg = [{ file: { path: "X.md", frontmatter: { StartDate: "2026-08-01" } } }];
+    const m3 = buildGantt(pg as any, [t("X.md", 0, "a", null, "2026-08-20"), t("X.md", 1, "b", null, "2026-08-25")], O);
+    eq(m3.groups[0].overrun, null, "끝을 task 로 메웠으면 초과가 없다");
+  }
+
+  // ── 창 필터 ──
+  const w = filterToWindow(m, "2026-07-01", "2026-09-30", true);
+  eq(w.groups.map((v) => v.group.name), ["Hub", "지난모듈", "보류", "알림톡", "오리엔트", "매장음악"], "창 밖(옛날)은 빠진다 · 지난모듈은 초과분(07-10)으로 창에 걸려 남는다");
+  eq(w.total, 7, "전체 수는 필터 전");
+  const w2 = filterToWindow(m, "2026-08-01", "2026-08-31", true);
+  const al2 = w2.groups.find((v) => v.group.name === "알림톡")!;
+  eq([al2.rows.map((r) => r.task.title), al2.outside], [["템플릿 API", "리뷰"], 1], "창 밖 task 행은 숨기고 수를 센다");
+  eq(filterToWindow(m, "2024-01-01", "2027-12-31", false).groups.map((v) => v.group.name).includes("옛날"), false, "완료 노트 숨김");
 }
 
 // ── 화면 · 조작 ──
@@ -178,7 +234,7 @@ function find(root: FakeEl, pred: (e: FakeEl) => boolean): FakeEl[] {
   // 접기 — 행이 사라지고 개수가 붙는다
   {
     const c = open({ excludeTypes: ["Project-Hub"] });
-    const tog = find(c.container, (e) => e.text === "▾")[0];
+    const tog = find(c.container, (e) => e.text === "▾" && !!e.parent?.children.some((x) => x.text === "📄 알림톡"))[0];
     tog.onclick!();
     await tick();
     ok(find(c.container, (e) => e.text === "템플릿 API").length === 0, "접으면 task 행이 사라진다");
@@ -207,6 +263,39 @@ function find(root: FakeEl, pred: (e: FakeEl) => boolean): FakeEl[] {
     await find(c.container, (e) => e.text === "📄 매장음악")[0].onclick!({});
     await tick();
     eq(c.calls.opened[1].path, "P/모듈/매장음악.md", "노트 이름 = 노트 열기");
+  }
+
+  // 상태 칸 · 종료일 초과 표시
+  {
+    const c = open();
+    ok(find(c.container, (e) => e.text === "계획").length === 1, "Planning → 상태 칸 「계획」");
+    ok(find(c.container, (e) => e.text === "진행").length === 2, "InProgress 노트 둘");
+    const name = find(c.container, (e) => e.text === "📄 매장음악")[0];
+    ok(name.style.cssText.includes("color:#e05a7a"), "초과 노트 이름은 붉게");
+    ok(find(c.container, (e) => (e.title || "").startsWith("⚠ 종료일(2026-09-10)보다 늦은 task 1개")).length === 1, "붉은 점선 연장 + 툴팁");
+    ok(!find(c.container, (e) => e.text === "📄 알림톡")[0].style.cssText.includes("#e05a7a"), "초과 없는 노트는 그대로");
+    ok(find(c.container, (e) => e.text === "📄 옛날").length === 0, "창 밖 노트는 안 보인다");
+    ok(find(c.container, (e) => e.text === "노트 6/7개").length === 1, "보이는 수/전체");
+  }
+
+  // ◀ ▶ · 오늘 · 완료 노트
+  {
+    const c = open();
+    const btn = (t: string) => find(c.container, (e) => e.tag === "button" && e.text === t)[0];
+    ok(find(c.container, (e) => e.text === "2026.07 ~ 2026.09").length === 1, "월 창 제목");
+    for (let i = 0; i < 18; i++) {
+      await btn("◀").onclick!();
+      await tick();
+    }
+    ok(find(c.container, (e) => e.text === "2025.01 ~ 2025.03").length === 1, "◀ 18번 = 18개월 전");
+    ok(find(c.container, (e) => e.text === "📄 옛날").length === 1, "그 창에서는 옛 노트가 보인다");
+    await btn("완료 노트 ✓").onclick!();
+    await tick();
+    ok(find(c.container, (e) => e.text === "📄 옛날").length === 0, "완료 노트 숨김");
+    eq(c.plugin.store.state["gantt:!\"Template\""].showDoneNotes, false, "완료 노트 토글은 기억한다");
+    await btn("오늘").onclick!();
+    await tick();
+    ok(find(c.container, (e) => e.text === "2026.07 ~ 2026.09").length === 1, "오늘 = 창을 되돌린다");
   }
 
   // 날짜 없는 노트 줄 · note:

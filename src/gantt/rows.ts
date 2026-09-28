@@ -7,6 +7,8 @@
 import type { TaskItem } from "../data/gather";
 import { spanOf } from "../core/dates";
 import { firstDate, getProp, noteSpan, NoteSpan } from "./noteDates";
+import { overlaps } from "./scale";
+import { isDoneStatus } from "./status";
 
 export interface GanttPage {
   file: { path: string; name?: string; frontmatter?: Record<string, any> };
@@ -31,6 +33,11 @@ export interface GanttGroup {
   rows: GanttRow[];
   /** 날짜가 없어 행으로 못 그린 task 수 */
   undated: number;
+  /**
+   * 종료일 초과 — 프로퍼티 종료일보다 📅 가 늦은 **미완료** task. 없으면 null.
+   * 끝을 task 로 메웠거나 열린 기간이면 정의상 초과가 없다.
+   */
+  overrun: { until: string; count: number } | null;
 }
 
 export interface GanttOptions {
@@ -108,6 +115,15 @@ export function buildGantt(pages: GanttPage[], tasks: TaskItem[], o: GanttOption
       all.push({ task: t, span: s, milestone: !t.start });
     }
     const span = noteSpan(pStart, pEnd, all.map((r) => r.span), o.today);
+    let overrun: GanttGroup["overrun"] = null;
+    if (span && pEnd && !span.open) {
+      for (const r of all) {
+        if (r.task.done || r.task.cancelled || r.span[1] <= span.end) continue;
+        if (!overrun) overrun = { until: r.span[1], count: 0 };
+        overrun.count++;
+        if (r.span[1] > overrun.until) overrun.until = r.span[1];
+      }
+    }
     const rows = (o.showDone ? all : all.filter((r) => !r.task.done && !r.task.cancelled)).sort(byTask);
     const g: GanttGroup = {
       path,
@@ -117,6 +133,7 @@ export function buildGantt(pages: GanttPage[], tasks: TaskItem[], o: GanttOption
       status: propText(p, "Status"),
       rows,
       undated: undatedCount,
+      overrun,
     };
     (span ? groups : undated).push(g);
   }
@@ -125,12 +142,38 @@ export function buildGantt(pages: GanttPage[], tasks: TaskItem[], o: GanttOption
   return { groups, undated };
 }
 
-/** 축을 정할 때 덮어야 하는 모든 구간(그룹 막대 + 보이는 task 막대). */
-export function allSpans(m: GanttModel): [string, string][] {
-  const out: [string, string][] = [];
+/** 이 task 가 노트 종료일을 넘긴 미완료 task 인가(붉은 테두리). */
+export const isOverrunRow = (g: GanttGroup, r: GanttRow): boolean =>
+  !!g.overrun && !r.task.done && !r.task.cancelled && r.span[1] > g.span!.end;
+
+/** 노트가 **차지하는** 끝 — 초과분까지. 창 판정에 쓴다(종료일은 지났어도 task 가 남은 노트가 사라지지 않게). */
+export const reachEnd = (g: GanttGroup): string =>
+  g.overrun && g.overrun.until > g.span!.end ? g.overrun.until : g.span!.end;
+
+export interface VisibleGroup {
+  group: GanttGroup;
+  rows: GanttRow[];
+  /** 창 밖이라 숨긴 task 행 수 */
+  outside: number;
+}
+
+export interface WindowView {
+  groups: VisibleGroup[];
+  /** 날짜가 있는 노트 전체 수(창·완료 노트 필터 전) */
+  total: number;
+}
+
+/**
+ * 보기 기간(창)과 겹치는 노트만, 그 안에서도 창과 겹치는 task 행만.
+ * `showDoneNotes` 가 false 면 Status 가 Done 인 노트를 뺀다.
+ */
+export function filterToWindow(m: GanttModel, from: string, to: string, showDoneNotes: boolean): WindowView {
+  const groups: VisibleGroup[] = [];
   for (const g of m.groups) {
-    out.push([g.span!.start, g.span!.end]);
-    for (const r of g.rows) out.push(r.span);
+    if (!showDoneNotes && isDoneStatus(g.status)) continue;
+    if (!overlaps(g.span!.start, reachEnd(g), from, to)) continue;
+    const rows = g.rows.filter((r) => overlaps(r.span[0], r.span[1], from, to));
+    groups.push({ group: g, rows, outside: g.rows.length - rows.length });
   }
-  return out;
+  return { groups, total: m.groups.length };
 }
