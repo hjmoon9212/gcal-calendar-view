@@ -1,0 +1,2597 @@
+{
+  "tag": "div",
+  "children": [
+    {
+      "tag": "div",
+      "cls": "gcal-gantt",
+      "style": {
+        "width": "100%"
+      },
+      "children": [
+        {
+          "tag": "div",
+          "style": {
+            "cssText": "display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;"
+          },
+          "children": [
+            {
+              "tag": "button",
+              "text": "주",
+              "style": {
+                "cssText": "font-size:11px;padding:2px 9px;border-radius:10px;cursor:pointer;border:1px solid var(--interactive-accent);font-weight:700;"
+              },
+              "handlers": [
+                "onclick"
+              ]
+            },
+            {
+              "tag": "button",
+              "text": "월",
+              "style": {
+                "cssText": "font-size:11px;padding:2px 9px;border-radius:10px;cursor:pointer;opacity:.6;"
+              },
+              "handlers": [
+                "onclick"
+              ]
+            },
+            {
+              "tag": "button",
+              "text": "분기",
+              "style": {
+                "cssText": "font-size:11px;padding:2px 9px;border-radius:10px;cursor:pointer;opacity:.6;"
+              },
+              "handlers": [
+                "onclick"
+              ]
+            },
+            {
+              "tag": "button",
+              "text": "오늘",
+              "handlers": [
+                "onclick"
+              ]
+            },
+            {
+              "tag": "button",
+              "text": "완료 ✓",
+              "title": "완료·취소 task 행 표시/숨김 (노트 막대의 구간 계산에는 항상 포함)",
+              "handlers": [
+                "onclick"
+              ]
+            },
+            {
+              "tag": "span",
+              "text": "노트 5개",
+              "style": {
+                "cssText": "font-size:11px;opacity:.6;"
+              }
+            }
+          ]
+        },
+        {
+          "tag": "div",
+          "style": {
+            "cssText": "overflow-x:auto;overflow-y:hidden;border:1px solid var(--background-modifier-border);border-radius:4px;"
+          },
+          "handlers": [
+            "on:scroll"
+          ],
+          "children": [
+            {
+              "tag": "div",
+              "style": {
+                "cssText": "width:7696px;position:relative;"
+              },
+              "children": [
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "display:flex;height:36px;border-bottom:1px solid var(--background-modifier-border-hover);position:sticky;top:0;z-index:3;background:var(--background-secondary);"
+                  },
+                  "children": [
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:sticky;left:0;z-index:2;flex:0 0 220px;width:220px;box-sizing:border-box;padding:0 6px;display:flex;align-items:center;gap:4px;overflow:hidden;white-space:nowrap;font-size:12px;background:var(--background-primary);border-right:1px solid var(--background-modifier-border);",
+                        "background": "var(--background-secondary)"
+                      }
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:relative;flex:1 0 auto;height:100%;"
+                      },
+                      "children": [
+                        {
+                          "tag": "div",
+                          "text": "2026년 3월",
+                          "style": {
+                            "cssText": "position:absolute;top:0;height:18px;left:0px;width:196px;box-sizing:border-box;padding-left:4px;font-size:11px;font-weight:600;overflow:hidden;white-space:nowrap;border-left:1px solid var(--background-modifier-border);"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "4월",
+                          "style": {
+                            "cssText": "position:absolute;top:0;height:18px;left:196px;width:840px;box-sizing:border-box;padding-left:4px;font-size:11px;font-weight:600;overflow:hidden;white-space:nowrap;border-left:1px solid var(--background-modifier-border);"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "5월",
+                          "style": {
+                            "cssText": "position:absolute;top:0;height:18px;left:1036px;width:868px;box-sizing:border-box;padding-left:4px;font-size:11px;font-weight:600;overflow:hidden;white-space:nowrap;border-left:1px solid var(--background-modifier-border);"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "6월",
+                          "style": {
+                            "cssText": "position:absolute;top:0;height:18px;left:1904px;width:840px;box-sizing:border-box;padding-left:4px;font-size:11px;font-weight:600;overflow:hidden;white-space:nowrap;border-left:1px solid var(--background-modifier-border);"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "7월",
+                          "style": {
+                            "cssText": "position:absolute;top:0;height:18px;left:2744px;width:868px;box-sizing:border-box;padding-left:4px;font-size:11px;font-weight:600;overflow:hidden;white-space:nowrap;border-left:1px solid var(--background-modifier-border);"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "8월",
+                          "style": {
+                            "cssText": "position:absolute;top:0;height:18px;left:3612px;width:868px;box-sizing:border-box;padding-left:4px;font-size:11px;font-weight:600;overflow:hidden;white-space:nowrap;border-left:1px solid var(--background-modifier-border);"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "9월",
+                          "style": {
+                            "cssText": "position:absolute;top:0;height:18px;left:4480px;width:840px;box-sizing:border-box;padding-left:4px;font-size:11px;font-weight:600;overflow:hidden;white-space:nowrap;border-left:1px solid var(--background-modifier-border);"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "10월",
+                          "style": {
+                            "cssText": "position:absolute;top:0;height:18px;left:5320px;width:868px;box-sizing:border-box;padding-left:4px;font-size:11px;font-weight:600;overflow:hidden;white-space:nowrap;border-left:1px solid var(--background-modifier-border);"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "11월",
+                          "style": {
+                            "cssText": "position:absolute;top:0;height:18px;left:6188px;width:840px;box-sizing:border-box;padding-left:4px;font-size:11px;font-weight:600;overflow:hidden;white-space:nowrap;border-left:1px solid var(--background-modifier-border);"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "12월",
+                          "style": {
+                            "cssText": "position:absolute;top:0;height:18px;left:7028px;width:448px;box-sizing:border-box;padding-left:4px;font-size:11px;font-weight:600;overflow:hidden;white-space:nowrap;border-left:1px solid var(--background-modifier-border);"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "25",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:0px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "26",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:28px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "27",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:56px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "28",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:84px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "29",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:112px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "30",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:140px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "31",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:168px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "1",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:196px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "2",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:224px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "3",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:252px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "4",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:280px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "5",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:308px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "6",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:336px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "7",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:364px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "8",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:392px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "9",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:420px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "10",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:448px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "11",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:476px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "12",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:504px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "13",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:532px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "14",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:560px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "15",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:588px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "16",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:616px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "17",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:644px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "18",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:672px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "19",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:700px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "20",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:728px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "21",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:756px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "22",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:784px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "23",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:812px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "24",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:840px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "25",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:868px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "26",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:896px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "27",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:924px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "28",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:952px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "29",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:980px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "30",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:1008px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "1",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:1036px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "2",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:1064px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "3",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:1092px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "4",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:1120px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "5",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:1148px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "6",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:1176px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "7",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:1204px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "8",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:1232px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "9",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:1260px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "10",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:1288px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "11",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:1316px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "12",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:1344px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "13",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:1372px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "14",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:1400px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "15",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:1428px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "16",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:1456px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "17",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:1484px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "18",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:1512px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "19",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:1540px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "20",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:1568px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "21",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:1596px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "22",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:1624px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "23",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:1652px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "24",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:1680px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "25",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:1708px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "26",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:1736px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "27",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:1764px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "28",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:1792px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "29",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:1820px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "30",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:1848px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "31",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:1876px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "1",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:1904px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "2",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:1932px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "3",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:1960px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "4",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:1988px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "5",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:2016px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "6",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:2044px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "7",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:2072px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "8",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:2100px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "9",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:2128px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "10",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:2156px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "11",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:2184px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "12",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:2212px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "13",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:2240px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "14",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:2268px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "15",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:2296px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "16",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:2324px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "17",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:2352px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "18",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:2380px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "19",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:2408px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "20",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:2436px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "21",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:2464px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "22",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:2492px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "23",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:2520px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "24",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:2548px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "25",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:2576px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "26",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:2604px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "27",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:2632px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "28",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:2660px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "29",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:2688px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "30",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:2716px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "1",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:2744px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "2",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:2772px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "3",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:2800px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "4",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:2828px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "5",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:2856px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "6",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:2884px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "7",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:2912px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "8",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:2940px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "9",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:2968px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "10",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:2996px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "11",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:3024px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "12",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:3052px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "13",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:3080px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "14",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:3108px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "15",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:3136px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "16",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:3164px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "17",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:3192px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "18",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:3220px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "19",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:3248px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "20",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:3276px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "21",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:3304px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "22",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:3332px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "23",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:3360px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "24",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:3388px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "25",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:3416px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "26",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:3444px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "27",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:3472px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "28",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:3500px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "29",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:3528px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "30",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:3556px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "31",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:3584px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "1",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:3612px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "2",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:3640px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "3",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:3668px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "4",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:3696px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "5",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:3724px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "6",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:3752px;width:28px;text-align:center;font-size:10px;font-weight:700;color:var(--interactive-accent);"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "7",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:3780px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "8",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:3808px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "9",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:3836px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "10",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:3864px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "11",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:3892px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "12",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:3920px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "13",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:3948px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "14",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:3976px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "15",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:4004px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "16",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:4032px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "17",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:4060px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "18",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:4088px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "19",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:4116px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "20",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:4144px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "21",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:4172px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "22",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:4200px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "23",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:4228px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "24",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:4256px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "25",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:4284px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "26",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:4312px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "27",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:4340px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "28",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:4368px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "29",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:4396px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "30",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:4424px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "31",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:4452px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "1",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:4480px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "2",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:4508px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "3",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:4536px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "4",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:4564px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "5",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:4592px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "6",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:4620px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "7",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:4648px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "8",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:4676px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "9",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:4704px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "10",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:4732px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "11",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:4760px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "12",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:4788px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "13",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:4816px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "14",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:4844px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "15",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:4872px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "16",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:4900px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "17",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:4928px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "18",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:4956px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "19",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:4984px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "20",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:5012px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "21",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:5040px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "22",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:5068px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "23",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:5096px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "24",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:5124px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "25",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:5152px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "26",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:5180px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "27",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:5208px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "28",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:5236px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "29",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:5264px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "30",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:5292px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "1",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:5320px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "2",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:5348px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "3",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:5376px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "4",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:5404px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "5",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:5432px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "6",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:5460px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "7",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:5488px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "8",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:5516px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "9",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:5544px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "10",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:5572px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "11",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:5600px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "12",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:5628px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "13",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:5656px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "14",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:5684px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "15",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:5712px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "16",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:5740px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "17",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:5768px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "18",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:5796px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "19",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:5824px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "20",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:5852px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "21",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:5880px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "22",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:5908px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "23",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:5936px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "24",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:5964px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "25",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:5992px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "26",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:6020px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "27",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:6048px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "28",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:6076px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "29",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:6104px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "30",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:6132px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "31",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:6160px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "1",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:6188px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "2",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:6216px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "3",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:6244px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "4",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:6272px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "5",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:6300px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "6",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:6328px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "7",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:6356px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "8",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:6384px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "9",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:6412px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "10",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:6440px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "11",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:6468px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "12",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:6496px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "13",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:6524px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "14",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:6552px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "15",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:6580px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "16",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:6608px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "17",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:6636px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "18",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:6664px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "19",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:6692px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "20",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:6720px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "21",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:6748px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "22",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:6776px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "23",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:6804px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "24",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:6832px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "25",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:6860px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "26",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:6888px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "27",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:6916px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "28",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:6944px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "29",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:6972px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "30",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:7000px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "1",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:7028px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "2",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:7056px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "3",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:7084px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "4",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:7112px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "5",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:7140px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "6",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:7168px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "7",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:7196px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "8",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:7224px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "9",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:7252px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "10",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:7280px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "11",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:7308px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "12",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:7336px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "13",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:7364px;width:28px;text-align:center;font-size:10px;opacity:.45;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "14",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:7392px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "15",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:7420px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "16",
+                          "style": {
+                            "cssText": "position:absolute;top:18px;height:18px;left:7448px;width:28px;text-align:center;font-size:10px;opacity:.7;"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "display:flex;height:26px;border-bottom:1px solid var(--background-modifier-border-hover);"
+                  },
+                  "children": [
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:sticky;left:0;z-index:2;flex:0 0 220px;width:220px;box-sizing:border-box;padding:0 6px;display:flex;align-items:center;gap:4px;overflow:hidden;white-space:nowrap;font-size:12px;background:var(--background-primary);border-right:1px solid var(--background-modifier-border);"
+                      },
+                      "children": [
+                        {
+                          "tag": "span",
+                          "text": "·",
+                          "style": {
+                            "cssText": "cursor:pointer;width:12px;text-align:center;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "span",
+                          "text": "📄 Hub",
+                          "style": {
+                            "cssText": "cursor:pointer;font-weight:600;overflow:hidden;text-overflow:ellipsis;"
+                          },
+                          "title": "Hub\n2026-04-01 ~ 2026-12-09\n클릭=노트 열기 · Ctrl+클릭=새 탭",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:relative;flex:1 0 auto;height:100%;"
+                      },
+                      "children": [
+                        {
+                          "tag": "div",
+                          "style": {
+                            "cssText": "position:absolute;top:0;bottom:0;left:3766px;width:0;border-left:2px solid var(--interactive-accent);opacity:.5;pointer-events:none;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "style": {
+                            "cssText": "position:absolute;top:8px;height:10px;left:196px;width:7084px;background:var(--interactive-accent);opacity:.45;border-radius:3px;cursor:pointer;"
+                          },
+                          "title": "Hub\n2026-04-01 ~ 2026-12-09\n클릭=노트 열기 · Ctrl+클릭=새 탭",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "display:flex;height:26px;border-bottom:1px solid var(--background-modifier-border-hover);"
+                  },
+                  "children": [
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:sticky;left:0;z-index:2;flex:0 0 220px;width:220px;box-sizing:border-box;padding:0 6px;display:flex;align-items:center;gap:4px;overflow:hidden;white-space:nowrap;font-size:12px;background:var(--background-primary);border-right:1px solid var(--background-modifier-border);"
+                      },
+                      "children": [
+                        {
+                          "tag": "span",
+                          "text": "·",
+                          "style": {
+                            "cssText": "cursor:pointer;width:12px;text-align:center;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "span",
+                          "text": "📄 보류",
+                          "style": {
+                            "cssText": "cursor:pointer;font-weight:600;overflow:hidden;text-overflow:ellipsis;"
+                          },
+                          "title": "보류\n2026-07-01 ~ 2026-07-31\nStatus: Hold\n클릭=노트 열기 · Ctrl+클릭=새 탭",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:relative;flex:1 0 auto;height:100%;"
+                      },
+                      "children": [
+                        {
+                          "tag": "div",
+                          "style": {
+                            "cssText": "position:absolute;top:0;bottom:0;left:3766px;width:0;border-left:2px solid var(--interactive-accent);opacity:.5;pointer-events:none;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "style": {
+                            "cssText": "position:absolute;top:8px;height:10px;left:2744px;width:868px;background:var(--text-faint);opacity:.45;border-radius:3px;cursor:pointer;"
+                          },
+                          "title": "보류\n2026-07-01 ~ 2026-07-31\nStatus: Hold\n클릭=노트 열기 · Ctrl+클릭=새 탭",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "display:flex;height:26px;border-bottom:1px solid var(--background-modifier-border-hover);"
+                  },
+                  "children": [
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:sticky;left:0;z-index:2;flex:0 0 220px;width:220px;box-sizing:border-box;padding:0 6px;display:flex;align-items:center;gap:4px;overflow:hidden;white-space:nowrap;font-size:12px;background:var(--background-primary);border-right:1px solid var(--background-modifier-border);"
+                      },
+                      "children": [
+                        {
+                          "tag": "span",
+                          "text": "▾",
+                          "style": {
+                            "cssText": "cursor:pointer;width:12px;text-align:center;opacity:.7;"
+                          },
+                          "title": "접기",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        },
+                        {
+                          "tag": "span",
+                          "text": "📄 알림톡",
+                          "style": {
+                            "cssText": "cursor:pointer;font-weight:600;overflow:hidden;text-overflow:ellipsis;"
+                          },
+                          "title": "알림톡\n2026-07-20 ~ 2026-08-20\n클릭=노트 열기 · Ctrl+클릭=새 탭",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        },
+                        {
+                          "tag": "span",
+                          "text": "+1 날짜 없음",
+                          "style": {
+                            "cssText": "font-size:10px;opacity:.45;"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:relative;flex:1 0 auto;height:100%;"
+                      },
+                      "children": [
+                        {
+                          "tag": "div",
+                          "style": {
+                            "cssText": "position:absolute;top:0;bottom:0;left:3766px;width:0;border-left:2px solid var(--interactive-accent);opacity:.5;pointer-events:none;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "style": {
+                            "cssText": "position:absolute;top:8px;height:10px;left:3276px;width:896px;background:var(--interactive-accent);opacity:.45;border-radius:3px;cursor:pointer;"
+                          },
+                          "title": "알림톡\n2026-07-20 ~ 2026-08-20\n클릭=노트 열기 · Ctrl+클릭=새 탭",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "display:flex;height:22px;border-bottom:1px solid var(--background-modifier-border-hover);"
+                  },
+                  "children": [
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:sticky;left:0;z-index:2;flex:0 0 220px;width:220px;box-sizing:border-box;padding:0 6px;display:flex;align-items:center;gap:4px;overflow:hidden;white-space:nowrap;font-size:12px;background:var(--background-primary);border-right:1px solid var(--background-modifier-border);"
+                      },
+                      "children": [
+                        {
+                          "tag": "span",
+                          "text": "템플릿 API",
+                          "style": {
+                            "cssText": "padding-left:18px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;"
+                          },
+                          "title": "템플릿 API\n🛫 2026-07-22  📅 2026-08-05\n클릭=편집 · Ctrl+클릭=원본 열기",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:relative;flex:1 0 auto;height:100%;"
+                      },
+                      "children": [
+                        {
+                          "tag": "div",
+                          "style": {
+                            "cssText": "position:absolute;top:0;bottom:0;left:3766px;width:0;border-left:2px solid var(--interactive-accent);opacity:.5;pointer-events:none;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "템플릿 API",
+                          "style": {
+                            "cssText": "position:absolute;top:3px;height:16px;left:3332px;width:420px;box-sizing:border-box;border-radius:3px;font-size:10px;line-height:14px;padding:0 4px;overflow:hidden;white-space:nowrap;cursor:pointer;background:#3f51b52b;border:1px solid #3f51b5;border-left:4px solid #3f51b5;"
+                          },
+                          "title": "템플릿 API\n🛫 2026-07-22  📅 2026-08-05\n클릭=편집 · Ctrl+클릭=원본 열기",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "display:flex;height:22px;border-bottom:1px solid var(--background-modifier-border-hover);"
+                  },
+                  "children": [
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:sticky;left:0;z-index:2;flex:0 0 220px;width:220px;box-sizing:border-box;padding:0 6px;display:flex;align-items:center;gap:4px;overflow:hidden;white-space:nowrap;font-size:12px;background:var(--background-primary);border-right:1px solid var(--background-modifier-border);"
+                      },
+                      "children": [
+                        {
+                          "tag": "span",
+                          "text": "✓ 발송 이력",
+                          "style": {
+                            "cssText": "padding-left:18px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;opacity:.55;text-decoration:line-through;"
+                          },
+                          "title": "발송 이력\n🛫 2026-07-27  📅 2026-07-30\n(완료됨)\n클릭=편집 · Ctrl+클릭=원본 열기",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:relative;flex:1 0 auto;height:100%;"
+                      },
+                      "children": [
+                        {
+                          "tag": "div",
+                          "style": {
+                            "cssText": "position:absolute;top:0;bottom:0;left:3766px;width:0;border-left:2px solid var(--interactive-accent);opacity:.5;pointer-events:none;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "발송 이력",
+                          "style": {
+                            "cssText": "position:absolute;top:3px;height:16px;left:3472px;width:112px;box-sizing:border-box;border-radius:3px;font-size:10px;line-height:14px;padding:0 4px;overflow:hidden;white-space:nowrap;cursor:pointer;background:#3f51b52b;border:1px solid #3f51b5;border-left:4px solid #3f51b5;opacity:0.55;text-decoration:line-through;"
+                          },
+                          "title": "발송 이력\n🛫 2026-07-27  📅 2026-07-30\n(완료됨)\n클릭=편집 · Ctrl+클릭=원본 열기",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "display:flex;height:22px;border-bottom:1px solid var(--background-modifier-border-hover);"
+                  },
+                  "children": [
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:sticky;left:0;z-index:2;flex:0 0 220px;width:220px;box-sizing:border-box;padding:0 6px;display:flex;align-items:center;gap:4px;overflow:hidden;white-space:nowrap;font-size:12px;background:var(--background-primary);border-right:1px solid var(--background-modifier-border);"
+                      },
+                      "children": [
+                        {
+                          "tag": "span",
+                          "text": "리뷰",
+                          "style": {
+                            "cssText": "padding-left:18px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;"
+                          },
+                          "title": "리뷰\n🛫 -  📅 2026-08-18\n클릭=편집 · Ctrl+클릭=원본 열기",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:relative;flex:1 0 auto;height:100%;"
+                      },
+                      "children": [
+                        {
+                          "tag": "div",
+                          "style": {
+                            "cssText": "position:absolute;top:0;bottom:0;left:3766px;width:0;border-left:2px solid var(--interactive-accent);opacity:.5;pointer-events:none;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "◆",
+                          "style": {
+                            "cssText": "position:absolute;top:2px;left:4095px;width:14px;text-align:center;font-size:13px;line-height:16px;color:#3f51b5;cursor:pointer;"
+                          },
+                          "title": "리뷰\n🛫 -  📅 2026-08-18\n클릭=편집 · Ctrl+클릭=원본 열기",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "display:flex;height:26px;border-bottom:1px solid var(--background-modifier-border-hover);"
+                  },
+                  "children": [
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:sticky;left:0;z-index:2;flex:0 0 220px;width:220px;box-sizing:border-box;padding:0 6px;display:flex;align-items:center;gap:4px;overflow:hidden;white-space:nowrap;font-size:12px;background:var(--background-primary);border-right:1px solid var(--background-modifier-border);"
+                      },
+                      "children": [
+                        {
+                          "tag": "span",
+                          "text": "·",
+                          "style": {
+                            "cssText": "cursor:pointer;width:12px;text-align:center;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "span",
+                          "text": "📄 오리엔트",
+                          "style": {
+                            "cssText": "cursor:pointer;font-weight:600;overflow:hidden;text-overflow:ellipsis;"
+                          },
+                          "title": "오리엔트\n2026-07-28 ~ (종료일 없음)\nStatus: InProgress\n클릭=노트 열기 · Ctrl+클릭=새 탭",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:relative;flex:1 0 auto;height:100%;"
+                      },
+                      "children": [
+                        {
+                          "tag": "div",
+                          "style": {
+                            "cssText": "position:absolute;top:0;bottom:0;left:3766px;width:0;border-left:2px solid var(--interactive-accent);opacity:.5;pointer-events:none;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "style": {
+                            "cssText": "position:absolute;top:8px;height:10px;left:3500px;width:280px;background:var(--interactive-accent);opacity:.45;border-radius:3px;cursor:pointer;"
+                          },
+                          "title": "오리엔트\n2026-07-28 ~ (종료일 없음)\nStatus: InProgress\n클릭=노트 열기 · Ctrl+클릭=새 탭",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        },
+                        {
+                          "tag": "div",
+                          "style": {
+                            "cssText": "position:absolute;top:8px;height:10px;left:3780px;width:196px;background:linear-gradient(to right, var(--interactive-accent), transparent);opacity:.3;border-radius:0 3px 3px 0;pointer-events:none;"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "display:flex;height:26px;border-bottom:1px solid var(--background-modifier-border-hover);"
+                  },
+                  "children": [
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:sticky;left:0;z-index:2;flex:0 0 220px;width:220px;box-sizing:border-box;padding:0 6px;display:flex;align-items:center;gap:4px;overflow:hidden;white-space:nowrap;font-size:12px;background:var(--background-primary);border-right:1px solid var(--background-modifier-border);"
+                      },
+                      "children": [
+                        {
+                          "tag": "span",
+                          "text": "▾",
+                          "style": {
+                            "cssText": "cursor:pointer;width:12px;text-align:center;opacity:.7;"
+                          },
+                          "title": "접기",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        },
+                        {
+                          "tag": "span",
+                          "text": "📄 매장음악",
+                          "style": {
+                            "cssText": "cursor:pointer;font-weight:600;overflow:hidden;text-overflow:ellipsis;"
+                          },
+                          "title": "매장음악\n2026-08-10 ~ 2026-09-10\nStatus: Planning\n클릭=노트 열기 · Ctrl+클릭=새 탭",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:relative;flex:1 0 auto;height:100%;"
+                      },
+                      "children": [
+                        {
+                          "tag": "div",
+                          "style": {
+                            "cssText": "position:absolute;top:0;bottom:0;left:3766px;width:0;border-left:2px solid var(--interactive-accent);opacity:.5;pointer-events:none;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "style": {
+                            "cssText": "position:absolute;top:8px;height:10px;left:3864px;width:896px;background:var(--interactive-accent);opacity:.45;border-radius:3px;cursor:pointer;"
+                          },
+                          "title": "매장음악\n2026-08-10 ~ 2026-09-10\nStatus: Planning\n클릭=노트 열기 · Ctrl+클릭=새 탭",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "display:flex;height:22px;border-bottom:1px solid var(--background-modifier-border-hover);"
+                  },
+                  "children": [
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:sticky;left:0;z-index:2;flex:0 0 220px;width:220px;box-sizing:border-box;padding:0 6px;display:flex;align-items:center;gap:4px;overflow:hidden;white-space:nowrap;font-size:12px;background:var(--background-primary);border-right:1px solid var(--background-modifier-border);"
+                      },
+                      "children": [
+                        {
+                          "tag": "span",
+                          "text": "요건 확인",
+                          "style": {
+                            "cssText": "padding-left:18px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;"
+                          },
+                          "title": "요건 확인\n🛫 -  📅 2026-08-12\n클릭=편집 · Ctrl+클릭=원본 열기",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:relative;flex:1 0 auto;height:100%;"
+                      },
+                      "children": [
+                        {
+                          "tag": "div",
+                          "style": {
+                            "cssText": "position:absolute;top:0;bottom:0;left:3766px;width:0;border-left:2px solid var(--interactive-accent);opacity:.5;pointer-events:none;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "◆",
+                          "style": {
+                            "cssText": "position:absolute;top:2px;left:3927px;width:14px;text-align:center;font-size:13px;line-height:16px;color:#0b8043;cursor:pointer;"
+                          },
+                          "title": "요건 확인\n🛫 -  📅 2026-08-12\n클릭=편집 · Ctrl+클릭=원본 열기",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tag": "div",
+          "style": {
+            "cssText": "margin-top:6px;font-size:12px;opacity:.75;line-height:1.8;"
+          },
+          "children": [
+            {
+              "tag": "span",
+              "text": "📭 날짜 없음: "
+            },
+            {
+              "tag": "a",
+              "text": "미정",
+              "style": {
+                "cssText": "cursor:pointer;"
+              },
+              "title": "P/이슈/미정.md",
+              "handlers": [
+                "onclick"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

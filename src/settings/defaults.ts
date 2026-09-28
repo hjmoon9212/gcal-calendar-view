@@ -41,4 +41,10 @@ export const DEFAULT_SETTINGS: Settings = {
     // 강제가 필요한 이유가 둘: 태블릿은 isPhone 이 false 라 데스크탑 화면을 받고,
     // 모바일 화면을 고칠 때 폰을 들지 않고 데스크탑에서 바로 볼 수 있어야 한다.
     mobileUi: "auto",   // "auto" | "always" | "off"
+    // ── Gantt(gcal-gantt, 0.8.0~) ──
+    // 노트 막대의 시작·끝 프로퍼티. 끝은 쉼표로 여러 개 — **앞에서부터 먼저 값이 있는 것**.
+    // 두 볼트가 끝을 EndDate(Hub·Book)와 DueDate(Module·Milestone·Issue)로 섞어 쓴다.
+    // 블록의 `start:`/`end:` 가 이 값을 덮는다.
+    ganttStartProp: "StartDate",
+    ganttEndProps: "EndDate, DueDate",
 };

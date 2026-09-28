@@ -21,11 +21,12 @@ import { MarkdownRenderChild, Notice, Plugin } from "obsidian";
 import { DEFAULT_SETTINGS } from "./settings/defaults";
 import { GcalCalendarSettingTab } from "./settings/SettingsTab";
 import { TaskSheetModal } from "./ui/TaskSheetModal";
-import { parseList, parseOptions, resolveCalFilter, resolveSource } from "./core/blockOptions";
+import { normalizePath, parseList, parseOptions, resolveCalFilter, resolveSource } from "./core/blockOptions";
 import { categoryColorMap, resolveEventColorInfo } from "./core/colors";
 import { byDayOrder, dayRank } from "./core/order";
 import { layoutTimeLanes } from "./core/timeLanes";
 import { createCalendar } from "./calendar/createCalendar";
+import { createGantt } from "./gantt/createGantt";
 
 export default class GcalCalendarViewPlugin extends Plugin {
     settings: any;
@@ -43,6 +44,10 @@ export default class GcalCalendarViewPlugin extends Plugin {
         this.registerMarkdownCodeBlockProcessor("gcal-calendar", (src, el, ctx) =>
             this.renderBlock(src, el, ctx)
         );
+        // Gantt(0.8.0~) — 노트 = 그룹, 노트 프로퍼티 = 그룹 막대, #task = 행. 기본 범위는 볼트 전체.
+        this.registerMarkdownCodeBlockProcessor("gcal-gantt", (src, el, ctx) =>
+            this.renderBlock(src, el, ctx, "gantt")
+        );
 
         // ── 커맨드 ──
         // 여태 하나도 없었다 — 폰에서는 커맨드 팔레트가 주된 진입로인데 이 플러그인은
@@ -54,6 +59,14 @@ export default class GcalCalendarViewPlugin extends Plugin {
             name: "캘린더 블록 삽입",
             editorCallback: (editor: any) => {
                 editor.replaceSelection("```gcal-calendar\n```\n");
+            },
+        });
+
+        this.addCommand({
+            id: "insert-gantt-block",
+            name: "Gantt 블록 삽입",
+            editorCallback: (editor: any) => {
+                editor.replaceSelection("```gcal-gantt\n```\n");
             },
         });
 
@@ -104,7 +117,7 @@ export default class GcalCalendarViewPlugin extends Plugin {
         }
     }
 
-    renderBlock(src: string, el: any, ctx: any) {
+    renderBlock(src: string, el: any, ctx: any, kind: "calendar" | "gantt" = "calendar") {
         const child = new MarkdownRenderChild(el);
         ctx.addChild(child);
 
@@ -123,7 +136,7 @@ export default class GcalCalendarViewPlugin extends Plugin {
                 done = true;
                 (this.app.metadataCache as any).offref(ref);
                 el.empty();
-                this.renderBlock(src, el, ctx);
+                this.renderBlock(src, el, ctx, kind);
             });
             child.register(() => {
                 if (!done) (this.app.metadataCache as any).offref(ref);
@@ -133,14 +146,22 @@ export default class GcalCalendarViewPlugin extends Plugin {
         }
 
         const opts = parseOptions(src);
-        const source = resolveSource(opts, ctx.sourcePath);
+        const source = resolveSource(opts, ctx.sourcePath, kind === "gantt" ? "vault" : "folder");
         let cal;
         try {
-            cal = createCalendar({
-                plugin: this, api, container: el, source,
-                notes: opts.note, sourcePath: ctx.sourcePath, component: child,
-                calFilter: resolveCalFilter(opts),
-            });
+            cal = kind === "gantt"
+                ? createGantt({
+                    plugin: this, api, container: el, source,
+                    notes: opts.note, sourcePath: ctx.sourcePath, component: child,
+                    startProp: opts.start || this.settings.ganttStartProp,
+                    endProps: parseList(opts.end || this.settings.ganttEndProps),
+                    excludeTypes: parseList(opts["exclude-type"]),
+                })
+                : createCalendar({
+                    plugin: this, api, container: el, source,
+                    notes: opts.note, sourcePath: ctx.sourcePath, component: child,
+                    calFilter: resolveCalFilter(opts),
+                });
         } catch (e) {
             console.error("[gcal-calendar-view] 렌더 실패", e);
             el.createEl("div", { text: "캘린더 렌더 실패 — 콘솔을 확인하세요: " + (e as any).message });
@@ -162,6 +183,7 @@ export default class GcalCalendarViewPlugin extends Plugin {
 export const __test = {
     parseOptions,
     resolveSource,
+    normalizePath,
     parseList,
     resolveCalFilter,
     resolveEventColorInfo,

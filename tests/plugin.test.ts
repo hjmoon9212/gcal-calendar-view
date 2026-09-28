@@ -41,9 +41,10 @@ function makeApp(plugins: Record<string, any> = {}) {
     await p.onload();
     eq(p.__commands.map((c: any) => [c.id, c.name]), [
       ["insert-block", "캘린더 블록 삽입"],
+      ["insert-gantt-block", "Gantt 블록 삽입"],
       ["toggle-mobile-ui", "모바일 화면 전환 (자동 → 항상 → 끄기)"],
-    ], "명령 두 개 · 순서");
-    eq(p.__codeBlocks.map((c: any) => c[0]), ["gcal-calendar"], "코드블록 `gcal-calendar` 하나");
+    ], "명령 세 개 · 순서 (0.8.0 에 Gantt 블록 삽입 추가)");
+    eq(p.__codeBlocks.map((c: any) => c[0]), ["gcal-calendar", "gcal-gantt"], "코드블록 `gcal-calendar` · `gcal-gantt`");
     eq(p.__settingTabs.length, 1, "설정 탭 하나");
     ok(p.__settingTabs[0] instanceof T.GcalCalendarSettingTab, "설정 탭 클래스");
     eq(Object.keys(p.store), ["state", "pending"], "store = { state, pending }");
@@ -54,6 +55,8 @@ function makeApp(plugins: Record<string, any> = {}) {
     const inserted: string[] = [];
     p.__commands[0].editorCallback({ replaceSelection: (s: string) => inserted.push(s) });
     eq(inserted, ["```gcal-calendar\n```\n"], "insert-block: 빈 블록을 커서에");
+    p.__commands[1].editorCallback({ replaceSelection: (s: string) => inserted.push(s) });
+    eq(inserted[1], "```gcal-gantt\n```\n", "insert-gantt-block: 빈 Gantt 블록을 커서에");
   }
 
   // ── loadSettings: 얕은 병합 ──
@@ -78,7 +81,7 @@ function makeApp(plugins: Record<string, any> = {}) {
     eq(p.settings.categories, [{ key: "work", label: "W", color: "#111111" }], "배열은 통째로 교체(병합 아님)");
     eq(p.settings.unknown, 1, "모르는 키도 남긴다");
     eq(p.settings.eventColor, "#7f8c8d", "없는 키는 기본값");
-    eq(Object.keys(p.settings), ["categories", "defaultCategory", "eventColors", "eventColor", "mobileUi", "unknown"], "키 순서: 기본값 순 → 새 키");
+    eq(Object.keys(p.settings), ["categories", "defaultCategory", "eventColors", "eventColor", "mobileUi", "ganttStartProp", "ganttEndProps", "unknown"], "키 순서: 기본값 순 → 새 키");
 
     await p.saveSettings();
     eq(p.__data, JSON.parse(JSON.stringify(p.settings)), "saveSettings 는 settings 를 통째로 저장");
@@ -95,7 +98,7 @@ function makeApp(plugins: Record<string, any> = {}) {
     noticeLog.length = 0;
     const seen: string[] = [];
     for (let i = 0; i < 4; i++) {
-      await p.__commands[1].callback();
+      await p.__commands[2].callback();
       seen.push(p.settings.mobileUi + "/" + p.__data.mobileUi);
     }
     eq(seen, ["always/always", "off/off", "auto/auto", "always/always"], "순환 순서 · 매번 저장");
@@ -103,7 +106,7 @@ function makeApp(plugins: Record<string, any> = {}) {
     eq(refreshed, ["alive", "alive", "alive", "alive"], "살아 있는 캘린더만 다시 그린다");
 
     p.settings.mobileUi = "weird";
-    await p.__commands[1].callback();
+    await p.__commands[2].callback();
     eq(p.settings.mobileUi, "auto", "모르는 값이면 indexOf -1 → 다음은 auto");
   }
 

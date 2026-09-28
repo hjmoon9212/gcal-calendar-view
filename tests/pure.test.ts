@@ -158,6 +158,8 @@ eq(
     eventColors: {},
     eventColor: "#7f8c8d",
     mobileUi: "auto",
+    ganttStartProp: "StartDate",
+    ganttEndProps: "EndDate, DueDate",
   },
   "기본 설정(키 순서 포함)"
 );

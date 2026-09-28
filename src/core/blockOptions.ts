@@ -71,12 +71,33 @@ export function resolveCalFilter(opts: any) {
 }
 
 /**
+ * `path:` 값 → Dataview 소스 경로. 손으로 적는 값이라 따옴표·앞뒤 `/`·`\`·`.md` 를 정리한다.
+ * 비면 null.
+ */
+export function normalizePath(v: any): string | null {
+    const p = String(v || "")
+        .trim()
+        .replace(/^["']|["']$/g, "")
+        .replace(/\\/g, "/")
+        .replace(/^\/+|\/+$/g, "")
+        .replace(/\.md$/i, "")
+        .trim();
+    return p || null;
+}
+
+/**
  * 수집 스코프를 정한다. Template 폴더는 항상 제외한다 — 템플릿의 예시 task 가
  * 캘린더에 섞이면 안 된다.
+ *
+ * 우선순위: `source:` > `path:` > `scope:` > 블록 종류의 기본값.
+ * 기본값만 블록마다 다르다 — 캘린더는 이 노트의 폴더(`"folder"`), Gantt 는 볼트 전체(`"vault"`).
  */
-export function resolveSource(opts: any, sourcePath: any) {
+export function resolveSource(opts: any, sourcePath: any, defaultScope: "folder" | "vault" = "folder") {
     if (opts.source) return opts.source;
-    if ((opts.scope || "").toLowerCase() === "vault") return '!"Template"';
+    const p = normalizePath(opts.path);
+    if (p) return '"' + p + '" and !"Template"';
+    const scope = (opts.scope || defaultScope).toLowerCase();
+    if (scope === "vault") return '!"Template"';
     const folder = (sourcePath || "").split("/").slice(0, -1).join("/");
     return folder ? '"' + folder + '" and !"Template"' : '!"Template"';
 }

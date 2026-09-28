@@ -1,0 +1,728 @@
+{
+  "tag": "div",
+  "children": [
+    {
+      "tag": "div",
+      "cls": "gcal-gantt",
+      "style": {
+        "width": "100%"
+      },
+      "children": [
+        {
+          "tag": "div",
+          "style": {
+            "cssText": "display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;"
+          },
+          "children": [
+            {
+              "tag": "button",
+              "text": "주",
+              "style": {
+                "cssText": "font-size:11px;padding:2px 9px;border-radius:10px;cursor:pointer;opacity:.6;"
+              },
+              "handlers": [
+                "onclick"
+              ]
+            },
+            {
+              "tag": "button",
+              "text": "월",
+              "style": {
+                "cssText": "font-size:11px;padding:2px 9px;border-radius:10px;cursor:pointer;border:1px solid var(--interactive-accent);font-weight:700;"
+              },
+              "handlers": [
+                "onclick"
+              ]
+            },
+            {
+              "tag": "button",
+              "text": "분기",
+              "style": {
+                "cssText": "font-size:11px;padding:2px 9px;border-radius:10px;cursor:pointer;opacity:.6;"
+              },
+              "handlers": [
+                "onclick"
+              ]
+            },
+            {
+              "tag": "button",
+              "text": "오늘",
+              "handlers": [
+                "onclick"
+              ]
+            },
+            {
+              "tag": "button",
+              "text": "완료 ✓",
+              "title": "완료·취소 task 행 표시/숨김 (노트 막대의 구간 계산에는 항상 포함)",
+              "handlers": [
+                "onclick"
+              ]
+            },
+            {
+              "tag": "span",
+              "text": "노트 5개",
+              "style": {
+                "cssText": "font-size:11px;opacity:.6;"
+              }
+            }
+          ]
+        },
+        {
+          "tag": "div",
+          "style": {
+            "cssText": "overflow-x:auto;overflow-y:hidden;border:1px solid var(--background-modifier-border);border-radius:4px;"
+          },
+          "handlers": [
+            "on:scroll"
+          ],
+          "children": [
+            {
+              "tag": "div",
+              "style": {
+                "cssText": "width:2890px;position:relative;"
+              },
+              "children": [
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "display:flex;height:20px;border-bottom:1px solid var(--background-modifier-border-hover);position:sticky;top:0;z-index:3;background:var(--background-secondary);"
+                  },
+                  "children": [
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:sticky;left:0;z-index:2;flex:0 0 220px;width:220px;box-sizing:border-box;padding:0 6px;display:flex;align-items:center;gap:4px;overflow:hidden;white-space:nowrap;font-size:12px;background:var(--background-primary);border-right:1px solid var(--background-modifier-border);",
+                        "background": "var(--background-secondary)"
+                      }
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:relative;flex:1 0 auto;height:100%;"
+                      },
+                      "children": [
+                        {
+                          "tag": "div",
+                          "text": "2026년 3월",
+                          "style": {
+                            "cssText": "position:absolute;top:0;height:18px;left:0px;width:70px;box-sizing:border-box;padding-left:4px;font-size:11px;font-weight:600;overflow:hidden;white-space:nowrap;border-left:1px solid var(--background-modifier-border);"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "4월",
+                          "style": {
+                            "cssText": "position:absolute;top:0;height:18px;left:70px;width:300px;box-sizing:border-box;padding-left:4px;font-size:11px;font-weight:600;overflow:hidden;white-space:nowrap;border-left:1px solid var(--background-modifier-border);"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "5월",
+                          "style": {
+                            "cssText": "position:absolute;top:0;height:18px;left:370px;width:310px;box-sizing:border-box;padding-left:4px;font-size:11px;font-weight:600;overflow:hidden;white-space:nowrap;border-left:1px solid var(--background-modifier-border);"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "6월",
+                          "style": {
+                            "cssText": "position:absolute;top:0;height:18px;left:680px;width:300px;box-sizing:border-box;padding-left:4px;font-size:11px;font-weight:600;overflow:hidden;white-space:nowrap;border-left:1px solid var(--background-modifier-border);"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "7월",
+                          "style": {
+                            "cssText": "position:absolute;top:0;height:18px;left:980px;width:310px;box-sizing:border-box;padding-left:4px;font-size:11px;font-weight:600;overflow:hidden;white-space:nowrap;border-left:1px solid var(--background-modifier-border);"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "8월",
+                          "style": {
+                            "cssText": "position:absolute;top:0;height:18px;left:1290px;width:310px;box-sizing:border-box;padding-left:4px;font-size:11px;font-weight:600;overflow:hidden;white-space:nowrap;border-left:1px solid var(--background-modifier-border);"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "9월",
+                          "style": {
+                            "cssText": "position:absolute;top:0;height:18px;left:1600px;width:300px;box-sizing:border-box;padding-left:4px;font-size:11px;font-weight:600;overflow:hidden;white-space:nowrap;border-left:1px solid var(--background-modifier-border);"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "10월",
+                          "style": {
+                            "cssText": "position:absolute;top:0;height:18px;left:1900px;width:310px;box-sizing:border-box;padding-left:4px;font-size:11px;font-weight:600;overflow:hidden;white-space:nowrap;border-left:1px solid var(--background-modifier-border);"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "11월",
+                          "style": {
+                            "cssText": "position:absolute;top:0;height:18px;left:2210px;width:300px;box-sizing:border-box;padding-left:4px;font-size:11px;font-weight:600;overflow:hidden;white-space:nowrap;border-left:1px solid var(--background-modifier-border);"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "12월",
+                          "style": {
+                            "cssText": "position:absolute;top:0;height:18px;left:2510px;width:160px;box-sizing:border-box;padding-left:4px;font-size:11px;font-weight:600;overflow:hidden;white-space:nowrap;border-left:1px solid var(--background-modifier-border);"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "display:flex;height:26px;border-bottom:1px solid var(--background-modifier-border-hover);"
+                  },
+                  "children": [
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:sticky;left:0;z-index:2;flex:0 0 220px;width:220px;box-sizing:border-box;padding:0 6px;display:flex;align-items:center;gap:4px;overflow:hidden;white-space:nowrap;font-size:12px;background:var(--background-primary);border-right:1px solid var(--background-modifier-border);"
+                      },
+                      "children": [
+                        {
+                          "tag": "span",
+                          "text": "·",
+                          "style": {
+                            "cssText": "cursor:pointer;width:12px;text-align:center;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "span",
+                          "text": "📄 Hub",
+                          "style": {
+                            "cssText": "cursor:pointer;font-weight:600;overflow:hidden;text-overflow:ellipsis;"
+                          },
+                          "title": "Hub\n2026-04-01 ~ 2026-12-09\n클릭=노트 열기 · Ctrl+클릭=새 탭",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:relative;flex:1 0 auto;height:100%;"
+                      },
+                      "children": [
+                        {
+                          "tag": "div",
+                          "style": {
+                            "cssText": "position:absolute;top:0;bottom:0;left:1345px;width:0;border-left:2px solid var(--interactive-accent);opacity:.5;pointer-events:none;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "style": {
+                            "cssText": "position:absolute;top:8px;height:10px;left:70px;width:2530px;background:var(--interactive-accent);opacity:.45;border-radius:3px;cursor:pointer;"
+                          },
+                          "title": "Hub\n2026-04-01 ~ 2026-12-09\n클릭=노트 열기 · Ctrl+클릭=새 탭",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "display:flex;height:26px;border-bottom:1px solid var(--background-modifier-border-hover);"
+                  },
+                  "children": [
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:sticky;left:0;z-index:2;flex:0 0 220px;width:220px;box-sizing:border-box;padding:0 6px;display:flex;align-items:center;gap:4px;overflow:hidden;white-space:nowrap;font-size:12px;background:var(--background-primary);border-right:1px solid var(--background-modifier-border);"
+                      },
+                      "children": [
+                        {
+                          "tag": "span",
+                          "text": "·",
+                          "style": {
+                            "cssText": "cursor:pointer;width:12px;text-align:center;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "span",
+                          "text": "📄 보류",
+                          "style": {
+                            "cssText": "cursor:pointer;font-weight:600;overflow:hidden;text-overflow:ellipsis;"
+                          },
+                          "title": "보류\n2026-07-01 ~ 2026-07-31\nStatus: Hold\n클릭=노트 열기 · Ctrl+클릭=새 탭",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:relative;flex:1 0 auto;height:100%;"
+                      },
+                      "children": [
+                        {
+                          "tag": "div",
+                          "style": {
+                            "cssText": "position:absolute;top:0;bottom:0;left:1345px;width:0;border-left:2px solid var(--interactive-accent);opacity:.5;pointer-events:none;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "style": {
+                            "cssText": "position:absolute;top:8px;height:10px;left:980px;width:310px;background:var(--text-faint);opacity:.45;border-radius:3px;cursor:pointer;"
+                          },
+                          "title": "보류\n2026-07-01 ~ 2026-07-31\nStatus: Hold\n클릭=노트 열기 · Ctrl+클릭=새 탭",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "display:flex;height:26px;border-bottom:1px solid var(--background-modifier-border-hover);"
+                  },
+                  "children": [
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:sticky;left:0;z-index:2;flex:0 0 220px;width:220px;box-sizing:border-box;padding:0 6px;display:flex;align-items:center;gap:4px;overflow:hidden;white-space:nowrap;font-size:12px;background:var(--background-primary);border-right:1px solid var(--background-modifier-border);"
+                      },
+                      "children": [
+                        {
+                          "tag": "span",
+                          "text": "▾",
+                          "style": {
+                            "cssText": "cursor:pointer;width:12px;text-align:center;opacity:.7;"
+                          },
+                          "title": "접기",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        },
+                        {
+                          "tag": "span",
+                          "text": "📄 알림톡",
+                          "style": {
+                            "cssText": "cursor:pointer;font-weight:600;overflow:hidden;text-overflow:ellipsis;"
+                          },
+                          "title": "알림톡\n2026-07-20 ~ 2026-08-20\n클릭=노트 열기 · Ctrl+클릭=새 탭",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        },
+                        {
+                          "tag": "span",
+                          "text": "+1 날짜 없음",
+                          "style": {
+                            "cssText": "font-size:10px;opacity:.45;"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:relative;flex:1 0 auto;height:100%;"
+                      },
+                      "children": [
+                        {
+                          "tag": "div",
+                          "style": {
+                            "cssText": "position:absolute;top:0;bottom:0;left:1345px;width:0;border-left:2px solid var(--interactive-accent);opacity:.5;pointer-events:none;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "style": {
+                            "cssText": "position:absolute;top:8px;height:10px;left:1170px;width:320px;background:var(--interactive-accent);opacity:.45;border-radius:3px;cursor:pointer;"
+                          },
+                          "title": "알림톡\n2026-07-20 ~ 2026-08-20\n클릭=노트 열기 · Ctrl+클릭=새 탭",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "display:flex;height:22px;border-bottom:1px solid var(--background-modifier-border-hover);"
+                  },
+                  "children": [
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:sticky;left:0;z-index:2;flex:0 0 220px;width:220px;box-sizing:border-box;padding:0 6px;display:flex;align-items:center;gap:4px;overflow:hidden;white-space:nowrap;font-size:12px;background:var(--background-primary);border-right:1px solid var(--background-modifier-border);"
+                      },
+                      "children": [
+                        {
+                          "tag": "span",
+                          "text": "템플릿 API",
+                          "style": {
+                            "cssText": "padding-left:18px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;"
+                          },
+                          "title": "템플릿 API\n🛫 2026-07-22  📅 2026-08-05\n클릭=편집 · Ctrl+클릭=원본 열기",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:relative;flex:1 0 auto;height:100%;"
+                      },
+                      "children": [
+                        {
+                          "tag": "div",
+                          "style": {
+                            "cssText": "position:absolute;top:0;bottom:0;left:1345px;width:0;border-left:2px solid var(--interactive-accent);opacity:.5;pointer-events:none;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "템플릿 API",
+                          "style": {
+                            "cssText": "position:absolute;top:3px;height:16px;left:1190px;width:150px;box-sizing:border-box;border-radius:3px;font-size:10px;line-height:14px;padding:0 4px;overflow:hidden;white-space:nowrap;cursor:pointer;background:#3f51b52b;border:1px solid #3f51b5;border-left:4px solid #3f51b5;"
+                          },
+                          "title": "템플릿 API\n🛫 2026-07-22  📅 2026-08-05\n클릭=편집 · Ctrl+클릭=원본 열기",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "display:flex;height:22px;border-bottom:1px solid var(--background-modifier-border-hover);"
+                  },
+                  "children": [
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:sticky;left:0;z-index:2;flex:0 0 220px;width:220px;box-sizing:border-box;padding:0 6px;display:flex;align-items:center;gap:4px;overflow:hidden;white-space:nowrap;font-size:12px;background:var(--background-primary);border-right:1px solid var(--background-modifier-border);"
+                      },
+                      "children": [
+                        {
+                          "tag": "span",
+                          "text": "✓ 발송 이력",
+                          "style": {
+                            "cssText": "padding-left:18px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;opacity:.55;text-decoration:line-through;"
+                          },
+                          "title": "발송 이력\n🛫 2026-07-27  📅 2026-07-30\n(완료됨)\n클릭=편집 · Ctrl+클릭=원본 열기",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:relative;flex:1 0 auto;height:100%;"
+                      },
+                      "children": [
+                        {
+                          "tag": "div",
+                          "style": {
+                            "cssText": "position:absolute;top:0;bottom:0;left:1345px;width:0;border-left:2px solid var(--interactive-accent);opacity:.5;pointer-events:none;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "발송 이력",
+                          "style": {
+                            "cssText": "position:absolute;top:3px;height:16px;left:1240px;width:40px;box-sizing:border-box;border-radius:3px;font-size:10px;line-height:14px;padding:0 4px;overflow:hidden;white-space:nowrap;cursor:pointer;background:#3f51b52b;border:1px solid #3f51b5;border-left:4px solid #3f51b5;opacity:0.55;text-decoration:line-through;"
+                          },
+                          "title": "발송 이력\n🛫 2026-07-27  📅 2026-07-30\n(완료됨)\n클릭=편집 · Ctrl+클릭=원본 열기",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "display:flex;height:22px;border-bottom:1px solid var(--background-modifier-border-hover);"
+                  },
+                  "children": [
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:sticky;left:0;z-index:2;flex:0 0 220px;width:220px;box-sizing:border-box;padding:0 6px;display:flex;align-items:center;gap:4px;overflow:hidden;white-space:nowrap;font-size:12px;background:var(--background-primary);border-right:1px solid var(--background-modifier-border);"
+                      },
+                      "children": [
+                        {
+                          "tag": "span",
+                          "text": "리뷰",
+                          "style": {
+                            "cssText": "padding-left:18px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;"
+                          },
+                          "title": "리뷰\n🛫 -  📅 2026-08-18\n클릭=편집 · Ctrl+클릭=원본 열기",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:relative;flex:1 0 auto;height:100%;"
+                      },
+                      "children": [
+                        {
+                          "tag": "div",
+                          "style": {
+                            "cssText": "position:absolute;top:0;bottom:0;left:1345px;width:0;border-left:2px solid var(--interactive-accent);opacity:.5;pointer-events:none;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "◆",
+                          "style": {
+                            "cssText": "position:absolute;top:2px;left:1458px;width:14px;text-align:center;font-size:13px;line-height:16px;color:#3f51b5;cursor:pointer;"
+                          },
+                          "title": "리뷰\n🛫 -  📅 2026-08-18\n클릭=편집 · Ctrl+클릭=원본 열기",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "display:flex;height:26px;border-bottom:1px solid var(--background-modifier-border-hover);"
+                  },
+                  "children": [
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:sticky;left:0;z-index:2;flex:0 0 220px;width:220px;box-sizing:border-box;padding:0 6px;display:flex;align-items:center;gap:4px;overflow:hidden;white-space:nowrap;font-size:12px;background:var(--background-primary);border-right:1px solid var(--background-modifier-border);"
+                      },
+                      "children": [
+                        {
+                          "tag": "span",
+                          "text": "·",
+                          "style": {
+                            "cssText": "cursor:pointer;width:12px;text-align:center;opacity:.7;"
+                          }
+                        },
+                        {
+                          "tag": "span",
+                          "text": "📄 오리엔트",
+                          "style": {
+                            "cssText": "cursor:pointer;font-weight:600;overflow:hidden;text-overflow:ellipsis;"
+                          },
+                          "title": "오리엔트\n2026-07-28 ~ (종료일 없음)\nStatus: InProgress\n클릭=노트 열기 · Ctrl+클릭=새 탭",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:relative;flex:1 0 auto;height:100%;"
+                      },
+                      "children": [
+                        {
+                          "tag": "div",
+                          "style": {
+                            "cssText": "position:absolute;top:0;bottom:0;left:1345px;width:0;border-left:2px solid var(--interactive-accent);opacity:.5;pointer-events:none;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "style": {
+                            "cssText": "position:absolute;top:8px;height:10px;left:1250px;width:100px;background:var(--interactive-accent);opacity:.45;border-radius:3px;cursor:pointer;"
+                          },
+                          "title": "오리엔트\n2026-07-28 ~ (종료일 없음)\nStatus: InProgress\n클릭=노트 열기 · Ctrl+클릭=새 탭",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        },
+                        {
+                          "tag": "div",
+                          "style": {
+                            "cssText": "position:absolute;top:8px;height:10px;left:1350px;width:70px;background:linear-gradient(to right, var(--interactive-accent), transparent);opacity:.3;border-radius:0 3px 3px 0;pointer-events:none;"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "display:flex;height:26px;border-bottom:1px solid var(--background-modifier-border-hover);"
+                  },
+                  "children": [
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:sticky;left:0;z-index:2;flex:0 0 220px;width:220px;box-sizing:border-box;padding:0 6px;display:flex;align-items:center;gap:4px;overflow:hidden;white-space:nowrap;font-size:12px;background:var(--background-primary);border-right:1px solid var(--background-modifier-border);"
+                      },
+                      "children": [
+                        {
+                          "tag": "span",
+                          "text": "▾",
+                          "style": {
+                            "cssText": "cursor:pointer;width:12px;text-align:center;opacity:.7;"
+                          },
+                          "title": "접기",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        },
+                        {
+                          "tag": "span",
+                          "text": "📄 매장음악",
+                          "style": {
+                            "cssText": "cursor:pointer;font-weight:600;overflow:hidden;text-overflow:ellipsis;"
+                          },
+                          "title": "매장음악\n2026-08-10 ~ 2026-09-10\nStatus: Planning\n클릭=노트 열기 · Ctrl+클릭=새 탭",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:relative;flex:1 0 auto;height:100%;"
+                      },
+                      "children": [
+                        {
+                          "tag": "div",
+                          "style": {
+                            "cssText": "position:absolute;top:0;bottom:0;left:1345px;width:0;border-left:2px solid var(--interactive-accent);opacity:.5;pointer-events:none;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "style": {
+                            "cssText": "position:absolute;top:8px;height:10px;left:1380px;width:320px;background:var(--interactive-accent);opacity:.45;border-radius:3px;cursor:pointer;"
+                          },
+                          "title": "매장음악\n2026-08-10 ~ 2026-09-10\nStatus: Planning\n클릭=노트 열기 · Ctrl+클릭=새 탭",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "tag": "div",
+                  "style": {
+                    "cssText": "display:flex;height:22px;border-bottom:1px solid var(--background-modifier-border-hover);"
+                  },
+                  "children": [
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:sticky;left:0;z-index:2;flex:0 0 220px;width:220px;box-sizing:border-box;padding:0 6px;display:flex;align-items:center;gap:4px;overflow:hidden;white-space:nowrap;font-size:12px;background:var(--background-primary);border-right:1px solid var(--background-modifier-border);"
+                      },
+                      "children": [
+                        {
+                          "tag": "span",
+                          "text": "요건 확인",
+                          "style": {
+                            "cssText": "padding-left:18px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;"
+                          },
+                          "title": "요건 확인\n🛫 -  📅 2026-08-12\n클릭=편집 · Ctrl+클릭=원본 열기",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "tag": "div",
+                      "style": {
+                        "cssText": "position:relative;flex:1 0 auto;height:100%;"
+                      },
+                      "children": [
+                        {
+                          "tag": "div",
+                          "style": {
+                            "cssText": "position:absolute;top:0;bottom:0;left:1345px;width:0;border-left:2px solid var(--interactive-accent);opacity:.5;pointer-events:none;"
+                          }
+                        },
+                        {
+                          "tag": "div",
+                          "text": "◆",
+                          "style": {
+                            "cssText": "position:absolute;top:2px;left:1398px;width:14px;text-align:center;font-size:13px;line-height:16px;color:#0b8043;cursor:pointer;"
+                          },
+                          "title": "요건 확인\n🛫 -  📅 2026-08-12\n클릭=편집 · Ctrl+클릭=원본 열기",
+                          "handlers": [
+                            "onclick"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tag": "div",
+          "style": {
+            "cssText": "margin-top:6px;font-size:12px;opacity:.75;line-height:1.8;"
+          },
+          "children": [
+            {
+              "tag": "span",
+              "text": "📭 날짜 없음: "
+            },
+            {
+              "tag": "a",
+              "text": "미정",
+              "style": {
+                "cssText": "cursor:pointer;"
+              },
+              "title": "P/이슈/미정.md",
+              "handlers": [
+                "onclick"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
