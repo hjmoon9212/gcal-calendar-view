@@ -8,7 +8,11 @@
  * 캘린더와 다른 점: 상태는 `gantt:` 접두 키로 따로 둔다(같은 source 의 캘린더와 섞이지 않게),
  * "오늘" 은 **매 렌더** 다시 계산한다(캘린더는 연 시점에 굳는 알려진 버그가 있다).
  */
-import { MarkdownRenderer } from "obsidian";
+import { MarkdownRenderer, Notice, Platform } from "obsidian";
+import { TaskSheetModal } from "../ui/TaskSheetModal";
+import { isRO } from "../core/order";
+import { timeText, toMin, toHHMM } from "../core/time";
+import { addDays } from "../core/dates";
 import { gatherTasks } from "../data/gather";
 import { syncCategories } from "../calendar/categories";
 import { createWriteService } from "../write/TaskWriteService";
@@ -143,15 +147,54 @@ export function createGantt(a: GanttArgs) {
         model = null;
         render();
       },
-      editTask: (t) => writer.editTask(t),
-      openAtLine: (t, e) => writer.openAtLine(t, e),
+      // ★ 클릭은 **캘린더와 같다**(0.9.1~) — 데스크탑: 클릭 = 원본 줄(Ctrl=새 탭 · Ctrl+Shift=분할),
+      //   우클릭 = Tasks 편집 모달 / 폰: 탭 = 액션시트(📅·🛫·⏰·편집·원본 열기). 두 화면에서 같은
+      //   손버릇이 같은 결과를 내야 한다 — 0.8.x~0.9.0 은 클릭 = 편집 모달이라 캘린더와 반대였다.
+      taskClick: (t, e) => (mobileUi() ? openSheet(t) : writer.openAtLine(t, e)),
+      taskMenu: (t) => {
+        if (!mobileUi()) writer.editTask(t);
+      },
+      hint: mobileUi()
+        ? "탭=날짜·시각 편집"
+        : "클릭=열기 · Ctrl+클릭=새 탭 · 우클릭=편집",
       openNote: (path, e) => {
         const f = app.vault.getAbstractFileByPath(path);
         if (f) writer.openFile(path, f, writer.openMode(e));
       },
-      isMod: (e) => !!(e && (e.ctrlKey || e.metaKey)),
       noteHeader,
     });
+  }
+
+  /**
+   * 폰 화면인가 — 캘린더의 CalendarController.isMobileUi 와 **같은 규칙**(설정 mobileUi · Platform.isPhone).
+   * 매 렌더 다시 본다(설정을 바꾸면 열린 Gantt 도 따라가게).
+   */
+  function mobileUi(): boolean {
+    const m = plugin.settings.mobileUi;
+    if (m === "always") return true;
+    if (m === "off") return false;
+    try {
+      return !!Platform.isPhone;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /** 폰: 캘린더와 같은 액션시트. 쓰기 함수는 같은 writer 것을 넘긴다 — 모달은 노트를 직접 고치지 않는다 */
+  function openSheet(t: any) {
+    const today = L.now().toISODate();
+    new TaskSheetModal(app, t, {
+      applyDates: (x: any, c: any) => writer.applyDates(x, c),
+      dropOnDate: (x: any, iso: string, shift: boolean) => writer.dropOnDate(x, iso, shift),
+      writeBack: (x: any, due: string) => writer.writeBack(x, due),
+      editTask: (x: any) => writer.editTask(x),
+      openAtLine: (x: any, e?: any) => writer.openAtLine(x, e),
+      isRO,
+      colorOf: (x: any) => catColor[x.cat] || catColor[catDefault] || "#7f8c8d",
+      metaLine: (x: any) => [x.cat || "-", x.path ? "📄 " + x.path.split("/").pop().replace(/\.md$/, "") : ""].filter(Boolean).join("  ·  "),
+      timeText, toMin, toHHMM, addDays, todayISO: today,
+      notice: (m: any) => new Notice(m),
+    }).open();
   }
 
   function refresh() {

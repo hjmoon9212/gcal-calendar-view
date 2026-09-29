@@ -17,6 +17,7 @@ import { buildGantt, filterToWindow, reachEnd } from "../src/gantt/rows";
 import { buildTaskTree, taskParents, taskKey } from "../src/gantt/tree";
 import { statusInfo } from "../src/gantt/status";
 import { resolveSource, normalizePath } from "../src/core/blockOptions";
+import { Modal } from "./obsidian-stub";
 
 installDom();
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -271,8 +272,8 @@ function listsOf(body: string): { line: number; parent?: number }[] {
 
 const tick = () => new Promise((r) => setTimeout(r, 0));
 
-function open(extra: { excludeTypes?: string[]; notes?: string[]; tasksPluginEdit?: (l: string) => string } = {}) {
-  const h = makeHarness({ files: FILES, tasksPluginEdit: extra.tasksPluginEdit });
+function open(extra: { excludeTypes?: string[]; notes?: string[]; tasksPluginEdit?: (l: string) => string; mobileUi?: string } = {}) {
+  const h = makeHarness({ files: FILES, tasksPluginEdit: extra.tasksPluginEdit, settings: extra.mobileUi ? { mobileUi: extra.mobileUi } : {} });
   const base = h.args.api.pages;
   const api = {
     ...h.args.api,
@@ -316,27 +317,46 @@ function find(root: FakeEl, pred: (e: FakeEl) => boolean): FakeEl[] {
     eq(c.plugin.store.state["gantt:!\"Template\""].collapsed, ["P/모듈/알림톡.md"], "접힘은 블록 상태에 남는다");
   }
 
-  // 클릭 → Tasks 편집 모달 → 줄 갱신(쓰기는 TaskWriteService 한 곳)
+  // 클릭은 캘린더와 같다(0.9.1) — 클릭 = 원본 줄, 우클릭 = 편집 모달
   {
     const c = open({ tasksPluginEdit: (l) => l.replace("📅 2026-08-05", "📅 2026-08-07") });
-    const lab = find(c.container, (e) => e.tag === "span" && e.text === "템플릿 API")[0];
-    await lab.onclick!({});
+    const lab = () => find(c.container, (e) => e.tag === "span" && e.text === "템플릿 API")[0];
+    await lab().onclick!({});
+    eq(c.calls.opened.map((o) => [o.path, o.line, o.mode]), [["P/모듈/알림톡.md", 1, false]], "클릭 = 원본 줄(현재 탭)");
+    eq(c.calls.editModal.length, 0, "클릭으로는 모달이 안 뜬다");
+    await find(c.container, (e) => e.tag === "span" && e.text === "리뷰")[0].onclick!({ ctrlKey: true });
+    eq(c.calls.opened[1].mode, "tab", "Ctrl+클릭 = 새 탭");
+    let prevented = false;
+    await Promise.all(lab().fire("contextmenu", { preventDefault: () => (prevented = true) }));
     await tick();
-    eq(c.calls.editModal, ["- [ ] #task #gcal/work 템플릿 API 🛫 2026-07-22 📅 2026-08-05 🆔 tplApi"], "클릭 = 편집 모달");
+    ok(prevented, "우클릭 기본 메뉴를 막는다");
+    eq(c.calls.editModal, ["- [ ] #task #gcal/work 템플릿 API 🛫 2026-07-22 📅 2026-08-05 🆔 tplApi"], "우클릭 = 편집 모달");
     eq(c.calls.writes.length, 1, "모달 결과를 한 번 쓴다");
     ok(c.files["P/모듈/알림톡.md"].includes("📅 2026-08-07"), "노트 줄이 바뀐다");
     ok(find(c.container, (e) => e.title?.includes("📅 2026-08-07")).length > 0, "다시 그린 막대가 새 날짜(낙관적 갱신)");
-  }
-
-  // Ctrl+클릭 → 원본 줄 열기 · 노트 이름 클릭 → 노트 열기
-  {
-    const c = open();
-    await find(c.container, (e) => e.tag === "span" && e.text === "리뷰")[0].onclick!({ ctrlKey: true });
-    eq(c.calls.opened.map((o) => [o.path, o.line]), [["P/모듈/알림톡.md", 7]], "Ctrl+클릭 = 원본 줄");
-    eq(c.calls.editModal.length, 0, "모달은 안 뜬다");
+    ok(find(c.container, (e) => (e.title || "").endsWith("클릭=열기 · Ctrl+클릭=새 탭 · 우클릭=편집")).length > 0, "툴팁 안내도 캘린더와 같다");
     await find(c.container, (e) => e.text === "📄 매장음악")[0].onclick!({});
     await tick();
-    eq(c.calls.opened[1].path, "P/모듈/매장음악.md", "노트 이름 = 노트 열기");
+    eq(c.calls.opened[c.calls.opened.length - 1].path, "P/모듈/매장음악.md", "노트 이름 = 노트 열기");
+  }
+
+  // 폰 — 탭 = 액션시트(캘린더 모바일과 같다), 우클릭은 없다
+  {
+    const c = open({ mobileUi: "always" });
+    let sheets = 0;
+    const orig = (Modal.prototype as any).open;
+    (Modal.prototype as any).open = function () {
+      sheets++;
+    };
+    try {
+      await find(c.container, (e) => e.tag === "span" && e.text === "템플릿 API")[0].onclick!({});
+      eq(sheets, 1, "탭 = 액션시트");
+      eq([c.calls.opened.length, c.calls.editModal.length], [0, 0], "원본 열기·편집 모달은 안 뜬다");
+      await Promise.all(find(c.container, (e) => e.tag === "span" && e.text === "템플릿 API")[0].fire("contextmenu"));
+      eq(c.calls.editModal.length, 0, "폰에서는 우클릭 편집 없음");
+    } finally {
+      (Modal.prototype as any).open = orig;
+    }
   }
 
   // 상태 칸 · 종료일 초과 표시

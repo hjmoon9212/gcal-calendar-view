@@ -7,8 +7,8 @@
  * **보기 기간(창)**(0.8.1~): 줌이 곧 창의 크기이고 ◀ ▶ 로 옮긴다. 창과 겹치는 노트·task 만 그린다
  * (rows.ts `filterToWindow`). 창 밖으로 걸친 막대는 가장자리에서 잘리고 ◀/▶ 가 붙는다.
  *
- * ⛔ 여기서 노트를 고치지 않는다. 편집은 전부 넘겨받은 `editTask`(= write/TaskWriteService)로
- *    흘려보낸다 — 캘린더의 우클릭 편집과 같은 경로라 낙관적 갱신·줄 찾기 규칙이 하나다.
+ * ⛔ 여기서 노트를 고치지 않는다. task 조작은 넘겨받은 `taskClick`/`taskMenu` 로만 흘려보낸다 —
+ *    무엇을 할지(열기·편집 모달·액션시트)는 createGantt 가 **캘린더와 같은 규칙**으로 정한다(0.9.1~).
  *
  * 스타일은 캘린더처럼 전부 인라인 cssText 다(styles.css 로 옮기면 테마와 특이성이 달라진다).
  * 강조는 최소로 — 글자색·막대 모양만, 배지·행 배경은 쓰지 않는다.
@@ -55,10 +55,13 @@ export interface GanttViewDeps {
   render: () => void;
   /** 모델을 다시 만들어야 할 때(완료 task 토글) */
   rebuild: () => void;
-  editTask: (t: any) => void;
-  openAtLine: (t: any, evt?: any) => void;
+  /** task 클릭 — 데스크탑 = 원본 줄 열기(Ctrl=새 탭 · Ctrl+Shift=분할), 폰 = 액션시트 */
+  taskClick: (t: any, evt?: any) => void;
+  /** task 우클릭 — Tasks 편집 모달(데스크탑). 폰에는 우클릭이 없다 */
+  taskMenu: (t: any, evt?: any) => void;
   openNote: (path: string, evt?: any) => void;
-  isMod: (evt: any) => boolean;
+  /** 툴팁 끝의 조작 안내(데스크탑/폰이 다르다) */
+  hint: string;
   noteHeader?: () => El | null;
 }
 
@@ -314,8 +317,12 @@ function taskRow(inner: El, r: GanttRow, sc: Scale, today: string, d: GanttViewD
   const t = r.task;
   const dim = t.done || t.cancelled;
   const { label, track } = line(inner, ROW_H);
-  const click = (e: any) => (d.isMod(e) ? d.openAtLine(t, e) : d.editTask(t));
-  const tip = taskTooltip(r);
+  const click = (e: any) => d.taskClick(t, e);
+  const menu = (e: any) => {
+    e?.preventDefault?.();
+    d.taskMenu(t, e);
+  };
+  const tip = taskTooltip(r, d.hint);
 
   // 들여쓰기 + ▸/▾ (자식이 있을 때만). 토글 자리는 항상 비워 둬 제목이 깊이별로 줄 맞게 한다.
   const tog = label.createEl("span", { text: tree ? (tree.open ? "▾" : "▸") : "" });
@@ -336,6 +343,7 @@ function taskRow(inner: El, r: GanttRow, sc: Scale, today: string, d: GanttViewD
     `cursor:pointer;overflow:hidden;text-overflow:ellipsis;${r.late ? `color:${OVERDUE_RED};` : ""}${dimCss(dim)}`;
   lab.title = tip;
   lab.onclick = click;
+  lab.addEventListener("contextmenu", menu);
   if (tree && !tree.open) label.createEl("span", { text: `(${tree.kids})` }).style.cssText = "font-size:11px;opacity:.5;";
 
   todayLine(track, sc, today);
@@ -350,6 +358,7 @@ function taskRow(inner: El, r: GanttRow, sc: Scale, today: string, d: GanttViewD
         `font-size:15px;line-height:18px;color:${r.late ? OVERDUE_RED : color};cursor:pointer;${dim ? "opacity:.45;" : ""}`;
       m.title = tip;
       m.onclick = click;
+      m.addEventListener("contextmenu", menu);
       endX = cx + 8;
     }
   } else {
@@ -367,6 +376,7 @@ function taskRow(inner: El, r: GanttRow, sc: Scale, today: string, d: GanttViewD
           skinCss(color, false, r.late) + dimCss(dim, "0.55");
       el.title = tip;
       el.onclick = click;
+      el.addEventListener("contextmenu", menu);
       if (!inside) endX = b.left + b.width;
     }
   }
@@ -389,6 +399,7 @@ function taskRow(inner: El, r: GanttRow, sc: Scale, today: string, d: GanttViewD
       `white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;opacity:.8;${r.late ? `color:${OVERDUE_RED};` : ""}${dimCss(dim)}`;
     out.title = tip;
     out.onclick = click;
+    out.addEventListener("contextmenu", menu);
   }
 }
 
@@ -408,7 +419,7 @@ function groupTooltip(g: GanttGroup): string {
   );
 }
 
-function taskTooltip(r: GanttRow): string {
+function taskTooltip(r: GanttRow, hint: string): string {
   const t = r.task;
   return (
     `${titleOf(t)}\n` +
@@ -418,6 +429,6 @@ function taskTooltip(r: GanttRow): string {
     (t.done ? "\n(완료됨)" : t.cancelled ? "\n(취소됨)" : "") +
     (r.late ? "\n⚠ 상위(노트 종료일 또는 상위 task 📅)보다 늦음" : "") +
     (r.overrun ? `\n⚠ 하위 task ${r.overrun.count}개가 이 task 📅 보다 늦음 — 최대 ${r.overrun.until}` : "") +
-    "\n클릭=편집 · Ctrl+클릭=원본 열기"
+    "\n" + hint
   );
 }
