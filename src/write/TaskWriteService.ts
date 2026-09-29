@@ -171,6 +171,30 @@ export function createWriteService(deps: WriteDeps) {
     deps.afterWrite();
   }
 
+  /**
+   * 노트 **프로퍼티**(frontmatter)의 날짜를 고친다 — Gantt 노트 막대 드래그(0.10.0~).
+   * Obsidian 의 `processFrontMatter` 로만 쓴다: 본문과 다른 키는 건드리지 않고, YAML 직렬화도
+   * Obsidian 이 한다(손으로 문자열을 고치면 따옴표·목록 형식이 깨진다).
+   */
+  async function setNoteProps(path: string, patch: Record<string, string>): Promise<boolean> {
+    const file = app.vault.getAbstractFileByPath(path);
+    if (!file) {
+      new Notice("파일 없음: " + path);
+      return false;
+    }
+    const fm = app.fileManager;
+    if (!fm || typeof fm.processFrontMatter !== "function") {
+      new Notice("이 Obsidian 버전에서는 프로퍼티를 고칠 수 없습니다");
+      return false;
+    }
+    deps.rememberScroll();
+    await fm.processFrontMatter(file, (front: any) => {
+      for (const [k, v] of Object.entries(patch)) front[k] = v;
+    });
+    deps.afterWrite();
+    return true;
+  }
+
   /** 규칙이 정한 것을 쓰고 말한다. `changes` 가 null 이면 이유만 말한다(거절). */
   const runPlan = async (task: any, plan: DropPlan): Promise<void> => {
     if (!plan.changes) {
@@ -188,6 +212,7 @@ export function createWriteService(deps: WriteDeps) {
     openAtLine,
     editTask,
     applyDates,
+    setNoteProps,
     /** 배경 날짜 칸 드롭 (일반 = 기간째 이동 · Shift = 마감일만 조정) */
     dropOnDate: (task: any, iso: string, shift: boolean) => runPlan(task, planDropOnDate(task, iso, shift)),
     /** 일간 보기 시간 그리드 드롭 → 시각 지정/이동 */

@@ -115,3 +115,29 @@ export function noteSpan(
   if (start! > end!) [start, end] = [end, start];
   return { start: start!, end: end!, open };
 }
+
+/**
+ * 쓸 프로퍼티의 **실제 키 이름**(0.10.0~ 드래그 편집). 대소문자가 섞인 볼트에서 새 키를 만들지 않게
+ * 노트에 있는 이름 그대로 돌려준다.
+ *   ① 날짜 값이 있는 첫 이름 — 막대가 그 값에서 왔다
+ *   ② 값은 비었지만 키가 있는 첫 이름 — Module 노트의 `DueDate:` 처럼 템플릿이 자리를 만들어 둔 것
+ *   ③ 둘 다 없으면 names[0]
+ */
+export function writeKey(obj: any, names: string[]): { key: string; hasValue: boolean } {
+  const actual = (name: string): string | null => {
+    if (!obj || typeof obj !== "object") return null;
+    if (name in obj) return name;
+    const want = name.toLowerCase();
+    for (const k of Object.keys(obj)) if (k.toLowerCase() === want) return k;
+    return null;
+  };
+  for (const n of names) {
+    const k = actual(n);
+    if (k && toISODate(obj[k])) return { key: k, hasValue: true };
+  }
+  for (const n of names) {
+    const k = actual(n);
+    if (k) return { key: k, hasValue: false };
+  }
+  return { key: names[0], hasValue: false };
+}

@@ -6,7 +6,7 @@
  */
 import type { TaskItem } from "../data/gather";
 import { spanOf } from "../core/dates";
-import { firstDate, getProp, noteSpan, NoteSpan } from "./noteDates";
+import { firstDate, getProp, noteSpan, NoteSpan, writeKey } from "./noteDates";
 import { overlaps } from "./scale";
 import { isDoneStatus } from "./status";
 import { buildTaskTree, TreeRow } from "./tree";
@@ -34,6 +34,12 @@ export interface GanttGroup {
    * 끝을 task 로 메웠거나 열린 기간이면 정의상 초과가 없다.
    */
   overrun: { until: string; count: number } | null;
+  /**
+   * 막대를 끌어 고칠 때 쓸 프로퍼티(0.10.0~). 키는 노트에 있는 이름 그대로.
+   * `hasStart`/`hasEnd` = 그 끝이 프로퍼티 값에서 왔는가 — 아니면(task 로 메움·열린 기간)
+   * 기간째 이동에서 그 끝은 쓰지 않는다.
+   */
+  props: { startKey: string; endKey: string; hasStart: boolean; hasEnd: boolean };
 }
 
 export interface GanttOptions {
@@ -128,6 +134,12 @@ export function buildGantt(pages: GanttPage[], tasks: TaskItem[], o: GanttOption
       rows,
       undated: undatedCount,
       overrun,
+      props: (() => {
+        const fm = p.file.frontmatter;
+        const sk = writeKey(fm, [o.startProp]);
+        const ek = writeKey(fm, o.endProps);
+        return { startKey: sk.key, endKey: ek.key, hasStart: !!pStart, hasEnd: !!pEnd };
+      })(),
     };
     (span ? groups : undated).push(g);
   }

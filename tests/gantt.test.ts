@@ -11,7 +11,8 @@ import { eq, ok, done } from "./helpers/assert";
 import { golden } from "./helpers/golden";
 import { serializeEl, FakeEl } from "./helpers/fakeDom";
 import { installDom, makeHarness } from "./helpers/renderHarness";
-import { toISODate, getProp, firstDate, noteSpan } from "../src/gantt/noteDates";
+import { toISODate, getProp, firstDate, noteSpan, writeKey } from "../src/gantt/noteDates";
+import { daysFor, previewSpan, notePatch, taskChanges } from "../src/gantt/drag";
 import { viewWindow, stepAnchor, addMonths, windowLabel, makeScale, monthTicks, dayTicks } from "../src/gantt/scale";
 import { buildGantt, filterToWindow, reachEnd } from "../src/gantt/rows";
 import { buildTaskTree, taskParents, taskKey } from "../src/gantt/tree";
@@ -204,6 +205,34 @@ const FILES: Record<string, string> = {
   eq(filterToWindow(m, "2024-01-01", "2027-12-31", false).groups.map((v) => v.group.name).includes("옛날"), false, "완료 노트 숨김");
 }
 
+// ── 드래그 규칙(0.10.0) ──
+eq(daysFor(14, 10), 1, "반 칸 넘으면 한 칸");
+eq(daysFor(-26, 10), -3, "왼쪽으로");
+eq(daysFor(4, 10), 0, "반 칸 안 되면 0");
+eq(previewSpan(["2026-08-10", "2026-08-20"], "move", 3), ["2026-08-13", "2026-08-23"], "기간째 이동");
+eq(previewSpan(["2026-08-10", "2026-08-20"], "start", 15), ["2026-08-20", "2026-08-20"], "시작은 끝을 못 넘는다");
+eq(previewSpan(["2026-08-10", "2026-08-20"], "end", -15), ["2026-08-10", "2026-08-10"], "끝은 시작보다 앞설 수 없다");
+eq(writeKey({ EndDate: "", DueDate: "2026-09-10" }, ["EndDate", "DueDate"]), { key: "DueDate", hasValue: true }, "값이 있는 키");
+eq(writeKey({ Type: "Module", DueDate: "" }, ["EndDate", "DueDate"]), { key: "DueDate", hasValue: false }, "값은 없지만 자리(빈 키)가 있는 키");
+eq(writeKey({ enddate: "" }, ["EndDate", "DueDate"]), { key: "enddate", hasValue: false }, "노트에 있는 이름 그대로(대소문자)");
+eq(writeKey(undefined, ["EndDate", "DueDate"]), { key: "EndDate", hasValue: false }, "없으면 첫 이름");
+{
+  const G = (span: any, props: any): any => ({ span, props });
+  const both = { startKey: "StartDate", endKey: "DueDate", hasStart: true, hasEnd: true };
+  eq(notePatch(G({ start: "2026-08-10", end: "2026-09-10", open: false }, both), "move", 3), { StartDate: "2026-08-13", DueDate: "2026-09-13" }, "노트 이동 = 두 키");
+  eq(notePatch(G({ start: "2026-07-28", end: "2026-08-06", open: true }, { ...both, endKey: "EndDate", hasEnd: false }), "move", -2), { StartDate: "2026-07-26" }, "열린 기간의 이동은 시작만(끝은 노트가 정한 값이 아니다)");
+  eq(notePatch(G({ start: "2026-07-28", end: "2026-08-06", open: true }, { ...both, endKey: "EndDate", hasEnd: false }), "end", 5), { EndDate: "2026-08-11" }, "끝을 끌면 없던 키에도 쓴다");
+  eq(notePatch(G({ start: "2026-08-10", end: "2026-08-10", open: false }, both), "start", 4), null, "끝을 못 넘으면 바뀌는 게 없다");
+  eq(notePatch(G({ start: "2026-08-10", end: "2026-09-10", open: false }, both), "move", 0), null, "0일 이동 = 없음");
+  const R = (start: string | null, due: string | null, summary = false): any => ({ summary, task: { start, due } });
+  eq(taskChanges(R("2026-08-01", "2026-08-05"), "move", 2), { start: "2026-08-03", due: "2026-08-07" }, "task 이동");
+  eq(taskChanges(R("2026-08-01", "2026-08-05"), "start", -3), { start: "2026-07-29" }, "왼쪽 끝 = 🛫 만");
+  eq(taskChanges(R("2026-08-01", "2026-08-05"), "end", 1), { due: "2026-08-06" }, "오른쪽 끝 = 📅 만");
+  eq(taskChanges(R(null, "2026-08-05"), "move", 1), { due: "2026-08-06" }, "◆ 이동 = 📅 만");
+  eq(taskChanges(R(null, "2026-08-05"), "end", 1), null, "◆ 에는 끝이 없다");
+  eq(taskChanges(R(null, null, true), "move", 1), null, "요약 막대는 못 끈다");
+}
+
 // ── 트리(탭 들여쓰기 = 상하위, 0.9.0) ──
 {
   eq(
@@ -272,19 +301,42 @@ function listsOf(body: string): { line: number; parent?: number }[] {
 
 const tick = () => new Promise((r) => setTimeout(r, 0));
 
-function open(extra: { excludeTypes?: string[]; notes?: string[]; tasksPluginEdit?: (l: string) => string; mobileUi?: string } = {}) {
-  const h = makeHarness({ files: FILES, tasksPluginEdit: extra.tasksPluginEdit, settings: extra.mobileUi ? { mobileUi: extra.mobileUi } : {} });
+function open(extra: { excludeTypes?: string[]; notes?: string[]; tasksPluginEdit?: (l: string) => string; mobileUi?: string; indexLag?: boolean } = {}) {
+  const h = makeHarness({ files: FILES, tasksPluginEdit: extra.tasksPluginEdit, settings: extra.mobileUi ? { mobileUi: extra.mobileUi } : {}, indexLag: extra.indexLag });
   const base = h.args.api.pages;
+  // 프로퍼티는 테스트마다 사본 — processFrontMatter 가 고친다. indexLag 면 Dataview 는 옛 사본을 준다
+  const fm: Record<string, Record<string, any>> = JSON.parse(JSON.stringify(FM));
+  const fmIndex = extra.indexLag ? JSON.parse(JSON.stringify(FM)) : fm;
+  const fmWrites: { path: string; patch: Record<string, any> }[] = [];
+  h.plugin.app.fileManager = {
+    processFrontMatter: async (f: any, fn: (front: any) => void) => {
+      const before = { ...fm[f.path] };
+      fn(fm[f.path]);
+      const patch: Record<string, any> = {};
+      for (const k of Object.keys(fm[f.path])) if (fm[f.path][k] !== before[k]) patch[k] = fm[f.path][k];
+      fmWrites.push({ path: f.path, patch });
+    },
+  };
   const api = {
     ...h.args.api,
-    pages: (src: string) => base(src).map((p: any) => ({ ...p, file: { ...p.file, frontmatter: FM[p.file.path], lists: listsOf(h.files[p.file.path]) } })),
+    pages: (src: string) => base(src).map((p: any) => ({ ...p, file: { ...p.file, frontmatter: fmIndex[p.file.path], lists: listsOf(h.files[p.file.path]) } })),
   };
   const g = createGantt({
     plugin: h.plugin, api, container: h.container, source: "!\"Template\"", notes: extra.notes ?? [],
     sourcePath: "P/대시보드.md", component: h.args.component,
     startProp: "StartDate", endProps: ["EndDate", "DueDate"], excludeTypes: extra.excludeTypes ?? [],
   });
-  return { ...h, g, tree: () => serializeEl(h.container) };
+  return { ...h, g, fm, fmWrites, tree: () => serializeEl(h.container) };
+}
+
+/** 포인터로 끌어 놓는다(px). 놓은 뒤 쓰기·재렌더까지 기다린다 */
+async function dragBy(el: FakeEl, dx: number, at?: FakeEl) {
+  (at ?? el).fire("pointerdown", { clientX: 100, pointerId: 1, button: 0, pointerType: "mouse" });
+  el.fire("pointermove", { clientX: 100 + dx / 2 });
+  el.fire("pointermove", { clientX: 100 + dx });
+  await Promise.all(el.fire("pointerup", { clientX: 100 + dx }));
+  await new Promise((r) => setTimeout(r, 0));
+  await new Promise((r) => setTimeout(r, 0));
 }
 
 function find(root: FakeEl, pred: (e: FakeEl) => boolean): FakeEl[] {
@@ -390,6 +442,46 @@ function find(root: FakeEl, pred: (e: FakeEl) => boolean): FakeEl[] {
     await btn("오늘").onclick!();
     await tick();
     ok(find(c.container, (e) => e.text === "2026.07 ~ 2026.09").length === 1, "오늘 = 창을 되돌린다");
+  }
+
+  // 노트 막대 드래그 → 프로퍼티 (0.10.0)
+  {
+    const c = open({ indexLag: true });
+    const bar = (name: string) => find(c.container, (e) => e.style.cursor === "grab" && (e.title || "").startsWith(name + "\n"))[0];
+    await dragBy(bar("매장음악"), 30);
+    eq(c.fmWrites, [{ path: "P/모듈/매장음악.md", patch: { StartDate: "2026-08-13", DueDate: "2026-09-13" } }], "가운데 끌기 = 시작·끝 같이 +3일(월 줌 하루 10px)");
+    ok(!!find(c.container, (e) => (e.title || "").startsWith("매장음악\n2026-08-13 ~ 2026-09-13")).length, "Dataview 가 따라오기 전에도 새 값으로 그린다(낙관적 갱신)");
+    eq(c.calls.opened.length, 0, "끌고 놓은 뒤의 click 은 열기를 하지 않는다");
+    bar("매장음악").onclick!({});
+    eq(c.calls.opened.length, 1, "그다음 클릭은 평소대로 노트 열기");
+
+    const book = bar("오리엔트");
+    await dragBy(book, 50, find(book, (e) => e.title === "끌어서 끝만")[0]);
+    eq(c.fmWrites[1], { path: "P/책/오리엔트.md", patch: { EndDate: "2026-08-11" } }, "오른쪽 끝 = 종료일(비어 있던 EndDate 에)");
+    await dragBy(bar("보류"), 2);
+    eq(c.fmWrites.length, 2, "4px 미만은 드래그가 아니다");
+  }
+
+  // task 막대 드래그 → 🛫/📅 (캘린더와 같은 applyDates)
+  {
+    const c = open();
+    const tbar = (title: string) => find(c.container, (e) => e.style.cursor === "grab" && (e.title || "").startsWith(title + "\n🛫"))[0];
+    await dragBy(tbar("템플릿 API"), 20);
+    ok(c.files["P/모듈/알림톡.md"].includes("템플릿 API 🛫 2026-07-24 📅 2026-08-07"), "이동 = 🛫·📅 같이 +2일");
+    const t2 = tbar("템플릿 API");
+    await dragBy(t2, -30, find(t2, (e) => e.title === "끌어서 시작일만")[0]);
+    ok(c.files["P/모듈/알림톡.md"].includes("🛫 2026-07-21 📅 2026-08-07"), "왼쪽 끝 = 🛫 만");
+    const ms = find(c.container, (e) => e.text === "◆" && (e.title || "").startsWith("리뷰\n"))[0];
+    await dragBy(ms, 10);
+    ok(c.files["P/모듈/알림톡.md"].includes("리뷰 📅 2026-08-19"), "◆ 이동 = 📅 만");
+    eq(c.calls.opened.length, 0, "드래그는 원본을 열지 않는다");
+  }
+
+  // 폰에서는 드래그 없음
+  {
+    const c = open({ mobileUi: "always" });
+    eq(find(c.container, (e) => e.title === "끌어서 끝만" || e.title === "끌어서 시작일만").length, 0, "폰 = 핸들 없음");
+    eq(find(c.container, (e) => e.style.cursor === "grab").length, 0, "폰 = 끌 수 있는 막대 없음");
   }
 
   // 하위 task — 기본 접힘(1단계만) → ▸ 로 펼침 → 기억

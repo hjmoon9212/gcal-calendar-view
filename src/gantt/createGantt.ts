@@ -19,6 +19,9 @@ import { createWriteService } from "../write/TaskWriteService";
 import { buildGantt, GanttModel, GanttPage } from "./rows";
 import { renderGantt, GanttViewState, LABEL_W } from "./GanttView";
 import { taskParents } from "./tree";
+import { notePatch, taskChanges, DragMode, spanText, previewSpan } from "./drag";
+import { toISODate } from "./noteDates";
+import type { GanttGroup, GanttRow } from "./rows";
 import { isZoom } from "./scale";
 
 export interface GanttArgs {
@@ -67,6 +70,30 @@ export function createGantt(a: GanttArgs) {
   };
 
   let model: GanttModel | null = null;
+
+  /**
+   * 노트 프로퍼티의 **낙관적 갱신**(0.10.0~). task 줄의 대기표(pending)와 같은 이유다 — processFrontMatter
+   * 로 쓴 직후 Dataview 가 따라오기까지 몇 초 걸리고, 그 사이 옛 값으로 그리면 막대가 제자리로 튀었다가
+   * 돌아온다. 쓴 값을 여기 두고 수집한 frontmatter 위에 덮는다. 인덱스가 같은 값을 주거나 15초가
+   * 지나면 버린다.
+   */
+  const noteOverlay = new Map<string, { patch: Record<string, string>; ts: number }>();
+  const OVERLAY_TTL = 15000;
+  const withOverlay = (pages: GanttPage[]): GanttPage[] => {
+    if (!noteOverlay.size) return pages;
+    const now = Date.now();
+    return pages.map((p) => {
+      const ov = noteOverlay.get(p.file.path);
+      if (!ov) return p;
+      const fm = p.file.frontmatter ?? {};
+      const caught = Object.entries(ov.patch).every(([k, v]) => toISODate(fm[k]) === v);
+      if (caught || now - ov.ts > OVERLAY_TTL) {
+        noteOverlay.delete(p.file.path);
+        return p;
+      }
+      return { ...p, file: { ...p.file, frontmatter: { ...fm, ...ov.patch } } };
+    });
+  };
   let catColor: Record<string, string> = {};
   let catDefault = "";
 
@@ -75,7 +102,7 @@ export function createGantt(a: GanttArgs) {
     const cats = syncCategories(plugin.settings, {}, new Set());
     catColor = cats.CATCOLOR;
     catDefault = cats.CAT_DEFAULT;
-    const pages = Array.from(api.pages(a.source) as Iterable<GanttPage>);
+    const pages = withOverlay(Array.from(api.pages(a.source) as Iterable<GanttPage>));
     const tasks = gatherTasks(pages as any, { catDefault, pending: plugin.store.pending, now: Date.now() });
     // 탭 들여쓰기 = 상하위. Dataview 가 목록 항목마다 부모 줄을 준다(file.lists, 없으면 file.tasks).
     const parents = new Map<string, Map<number, number | null>>();
@@ -156,13 +183,41 @@ export function createGantt(a: GanttArgs) {
       },
       hint: mobileUi()
         ? "탭=날짜·시각 편집"
-        : "클릭=열기 · Ctrl+클릭=새 탭 · 우클릭=편집",
+        : "드래그=기간 이동 · 양 끝=🛫/📅만\n클릭=열기 · Ctrl+클릭=새 탭 · 우클릭=편집",
+      // 막대 드래그(0.10.0~) — 데스크탑만. 폰은 탭 = 액션시트라 드래그가 설 자리가 없다
+      canDrag: !mobileUi(),
+      dragNote,
+      dragTask,
       openNote: (path, e) => {
         const f = app.vault.getAbstractFileByPath(path);
         if (f) writer.openFile(path, f, writer.openMode(e));
       },
       noteHeader,
     });
+  }
+
+  /** 노트 막대를 놓았다 → 프로퍼티(StartDate · EndDate/DueDate) */
+  async function dragNote(g: GanttGroup, mode: DragMode, days: number) {
+    const patch = notePatch(g, mode, days);
+    if (!patch || !g.span) return;
+    noteOverlay.set(g.path, { patch, ts: Date.now() });
+    const ok = await writer.setNoteProps(g.path, patch);
+    if (!ok) {
+      noteOverlay.delete(g.path);
+      refresh();
+      return;
+    }
+    new Notice(`📄 ${g.name}: ` + Object.entries(patch).map(([k, v]) => `${k} ${v}`).join(" · "));
+  }
+
+  /** task 막대를 놓았다 → 🛫/📅 (캘린더 드롭과 같은 applyDates — 낙관적 갱신·GCal 반영까지 같다) */
+  async function dragTask(r: GanttRow, mode: DragMode, days: number) {
+    const changes = taskChanges(r, mode, days);
+    if (!changes) return;
+    await writer.applyDates(r.task, changes);
+    const t = r.task;
+    const pv = t.start ? previewSpan([t.start, t.due!], mode, days) : null;
+    new Notice(pv ? (mode === "move" ? "🛫~📅 " + spanText(pv) : mode === "start" ? "🛫 " + pv[0] : "📅 " + pv[1]) : "📅 " + changes.due);
   }
 
   /**

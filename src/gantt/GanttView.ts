@@ -20,6 +20,7 @@ import type { GanttGroup, GanttModel, GanttRow, VisibleGroup } from "./rows";
 import { filterToWindow } from "./rows";
 import { dayTicks, makeScale, monthTicks, Scale, stepAnchor, viewWindow, windowLabel, Zoom, ZOOMS, ZOOM_LABEL } from "./scale";
 import { statusInfo } from "./status";
+import { daysFor, DragMode, DRAG_THRESHOLD, previewSpan, spanText } from "./drag";
 
 type El = any;
 
@@ -62,6 +63,12 @@ export interface GanttViewDeps {
   openNote: (path: string, evt?: any) => void;
   /** 툴팁 끝의 조작 안내(데스크탑/폰이 다르다) */
   hint: string;
+  /** 막대를 끌어 고칠 수 있는가(데스크탑만 — 폰은 탭이 액션시트다) */
+  canDrag: boolean;
+  /** 노트 막대를 놓았다 → 프로퍼티 */
+  dragNote: (g: GanttGroup, mode: DragMode, days: number) => void;
+  /** task 막대를 놓았다 → 🛫/📅 */
+  dragTask: (r: GanttRow, mode: DragMode, days: number) => void;
   noteHeader?: () => El | null;
 }
 
@@ -240,6 +247,85 @@ function clipMark(track: El, side: "L" | "R", left: number, top: number): void {
   m.style.cssText = `position:absolute;top:${top}px;left:${left}px;width:10px;font-size:8px;line-height:10px;opacity:.6;pointer-events:none;`;
 }
 
+/**
+ * 막대 드래그(0.10.0~) — 가운데 = 기간째 이동, 양 끝 핸들 = 시작/끝만. 하루 단위로 스냅하고,
+ * 끄는 동안 막대를 그 자리에 미리 그리며 `시작 ~ 끝` 라벨을 띄운다. 놓으면 `onDrop` 한 번.
+ *
+ * pointer 이벤트 + setPointerCapture — 캘린더 일간 리사이즈와 같은 이유다(HTML5 DnD 는 스냅
+ * 미리보기를 못 그리고, 포인터가 막대 밖으로 나가면 move 를 놓친다).
+ * DRAG_THRESHOLD 미만이면 드래그가 아니다 → 뒤따르는 click 이 평소대로 열기를 한다.
+ * 끌고 놓은 뒤의 click 은 `dragged()` 로 삼킨다(pointerup 직후 click 이 한 번 온다).
+ * 터치는 받지 않는다 — 태블릿의 가로 스크롤과 싸운다.
+ */
+function attachDrag(
+  el: El,
+  track: El,
+  span: [string, string],
+  edges: { start: boolean; end: boolean },
+  place: (pv: [string, string]) => void,
+  onDrop: (mode: DragMode, days: number) => void,
+  dayPx: number,
+  labelAt: (pv: [string, string]) => number
+): { dragged: () => boolean } {
+  let justDragged = false;
+  const begin = (e: any, mode: DragMode) => {
+    if ((e.button ?? 0) !== 0 || e.pointerType === "touch") return;
+    e.preventDefault?.();
+    e.stopPropagation?.();
+    const x0 = e.clientX;
+    let moved = false;
+    let days = 0;
+    let tag: El = null;
+    try {
+      el.setPointerCapture?.(e.pointerId);
+    } catch (_) {}
+    const move = (ev: any) => {
+      const dx = ev.clientX - x0;
+      if (!moved && Math.abs(dx) < DRAG_THRESHOLD) return;
+      moved = true;
+      days = daysFor(dx, dayPx);
+      const pv = previewSpan(span, mode, days);
+      place(pv);
+      if (!tag) {
+        tag = track.createEl("div");
+        tag.style.cssText =
+          "position:absolute;top:-2px;z-index:5;padding:0 5px;border-radius:3px;font-size:11px;line-height:16px;white-space:nowrap;" +
+          "background:var(--background-primary);border:1px solid var(--interactive-accent);pointer-events:none;";
+      }
+      tag.setText(spanText(pv));
+      tag.style.left = labelAt(pv) + "px";
+    };
+    const up = () => {
+      el.removeEventListener("pointermove", move);
+      el.removeEventListener("pointerup", up);
+      el.removeEventListener("pointercancel", up);
+      try {
+        el.releasePointerCapture?.(e.pointerId);
+      } catch (_) {}
+      tag?.remove();
+      if (!moved) return;
+      justDragged = true;
+      setTimeout(() => (justDragged = false), 0);
+      if (days) onDrop(mode, days);
+      else place(span);
+    };
+    el.addEventListener("pointermove", move);
+    el.addEventListener("pointerup", up);
+    el.addEventListener("pointercancel", up);
+  };
+  el.style.cursor = "grab";
+  el.addEventListener("pointerdown", (e: any) => begin(e, "move"));
+  for (const side of ["start", "end"] as const) {
+    if (!edges[side]) continue;
+    const h = el.createEl("div");
+    h.title = side === "start" ? "끌어서 시작일만" : "끌어서 끝만";
+    h.style.cssText =
+      `position:absolute;top:0;bottom:0;${side === "start" ? "left" : "right"}:0;width:6px;cursor:ew-resize;touch-action:none;`;
+    h.addEventListener("pointerdown", (e: any) => begin(e, side));
+  }
+  return { dragged: () => justDragged };
+}
+
 function groupRow(inner: El, v: VisibleGroup, sc: Scale, today: string, collapsed: boolean, d: GanttViewDeps): void {
   const g = v.group;
   const si = statusInfo(g.status);
@@ -263,7 +349,7 @@ function groupRow(inner: El, v: VisibleGroup, sc: Scale, today: string, collapse
   name.style.cssText =
     "cursor:pointer;font-weight:600;overflow:hidden;text-overflow:ellipsis;" +
     (g.overrun ? `color:${OVERDUE_RED};` : "") + (si.bar === "done" ? "opacity:.55;" : "");
-  name.title = groupTooltip(g);
+  name.title = groupTooltip(g, false);
   name.onclick = (e: any) => d.openNote(g.path, e);
   if (collapsed && v.rows.length) label.createEl("span", { text: `(${v.rows.length})` }).style.cssText = "opacity:.5;";
   const hidden = [
@@ -284,8 +370,25 @@ function groupRow(inner: El, v: VisibleGroup, sc: Scale, today: string, collapse
     el.style.cssText =
       `position:absolute;top:10px;height:12px;left:${b.left}px;width:${Math.max(b.width, 3)}px;` +
       look + "border-radius:3px;cursor:pointer;";
-    el.title = groupTooltip(g);
-    el.onclick = (e: any) => d.openNote(g.path, e);
+    el.title = groupTooltip(g, d.canDrag);
+    let drag: { dragged: () => boolean } | null = null;
+    el.onclick = (e: any) => {
+      if (drag?.dragged()) return;
+      d.openNote(g.path, e);
+    };
+    if (d.canDrag) {
+      drag = attachDrag(
+        el, track, [s.start, s.end],
+        { start: !b.clipL, end: !b.clipR },
+        ([a, z]) => {
+          el.style.left = sc.x(a) + "px";
+          el.style.width = Math.max(3, sc.x(z) - sc.x(a) + sc.dayPx) + "px";
+        },
+        (mode, days) => d.dragNote(g, mode, days),
+        sc.dayPx,
+        ([a]) => sc.x(a)
+      );
+    }
     if (b.clipL) clipMark(track, "L", b.left, 11);
     if (b.clipR) clipMark(track, "R", b.left + b.width - 10, 11);
     if (s.open && !b.clipR) {
@@ -317,7 +420,11 @@ function taskRow(inner: El, r: GanttRow, sc: Scale, today: string, d: GanttViewD
   const t = r.task;
   const dim = t.done || t.cancelled;
   const { label, track } = line(inner, ROW_H);
-  const click = (e: any) => d.taskClick(t, e);
+  let drag: { dragged: () => boolean } | null = null;
+  const click = (e: any) => {
+    if (drag?.dragged()) return;
+    d.taskClick(t, e);
+  };
   const menu = (e: any) => {
     e?.preventDefault?.();
     d.taskMenu(t, e);
@@ -359,6 +466,16 @@ function taskRow(inner: El, r: GanttRow, sc: Scale, today: string, d: GanttViewD
       m.title = tip;
       m.onclick = click;
       m.addEventListener("contextmenu", menu);
+      if (d.canDrag && !dim) {
+        // ◆ 는 옮기기만 — 시작이 없으니 양 끝이 없다
+        drag = attachDrag(
+          m, track, r.span, { start: false, end: false },
+          ([, z]) => (m.style.left = sc.x(z) + sc.dayPx / 2 - 8 + "px"),
+          (mode, days) => d.dragTask(r, mode, days),
+          sc.dayPx,
+          ([, z]) => sc.x(z)
+        );
+      }
       endX = cx + 8;
     }
   } else {
@@ -377,6 +494,18 @@ function taskRow(inner: El, r: GanttRow, sc: Scale, today: string, d: GanttViewD
       el.title = tip;
       el.onclick = click;
       el.addEventListener("contextmenu", menu);
+      if (d.canDrag && !r.summary && !dim) {
+        drag = attachDrag(
+          el, track, r.span, { start: !b.clipL, end: !b.clipR },
+          ([a, z]) => {
+            el.style.left = sc.x(a) + "px";
+            el.style.width = Math.max(3, sc.x(z) - sc.x(a) + sc.dayPx) + "px";
+          },
+          (mode, days) => d.dragTask(r, mode, days),
+          sc.dayPx,
+          ([a]) => sc.x(a)
+        );
+      }
       if (!inside) endX = b.left + b.width;
     }
   }
@@ -407,7 +536,7 @@ function overrunText(g: GanttGroup): string {
   return `⚠ 종료일(${g.span!.end})보다 늦은 task ${g.overrun!.count}개 — 최대 ${g.overrun!.until}`;
 }
 
-function groupTooltip(g: GanttGroup): string {
+function groupTooltip(g: GanttGroup, canDrag: boolean): string {
   const s = g.span;
   const range = s ? `${s.start} ~ ${s.open ? "(종료일 없음)" : s.end}` : "날짜 없음";
   return (
@@ -415,7 +544,8 @@ function groupTooltip(g: GanttGroup): string {
     (s && !g.fromProps ? "\n(프로퍼티 없음 — task 날짜로 계산)" : "") +
     (g.status ? `\nStatus: ${g.status}` : "") +
     (g.overrun ? "\n" + overrunText(g) : "") +
-    "\n클릭=노트 열기 · Ctrl+클릭=새 탭"
+    "\n클릭=노트 열기 · Ctrl+클릭=새 탭" +
+    (canDrag ? "\n드래그=기간 이동 · 양 끝=시작/종료일 (프로퍼티)" : "")
   );
 }
 

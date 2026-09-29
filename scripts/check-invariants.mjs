@@ -45,10 +45,10 @@ const okMsg = (msg) => console.log("  ✓ " + msg);
   const offenders = files.filter((f) => {
     const r = rel(f);
     if (r.startsWith("src/write/")) return false;
-    return /vault\.(process|modify)\s*\(/.test(readFileSync(f, "utf8"));
+    return /vault\.(process|modify)\s*\(|processFrontMatter\s*\(/.test(readFileSync(f, "utf8"));
   });
   if (offenders.length) bad(`노트 쓰기가 src/write/ 밖에 있다: ${offenders.map(rel).join(", ")}`);
-  else okMsg("vault.process / vault.modify 는 src/write/ 안에서만 부른다");
+  else okMsg("vault.process / vault.modify / processFrontMatter 는 src/write/ 안에서만 부른다");
 }
 
 // ── 2. luxon 을 값으로 import 하지 않는다 ──

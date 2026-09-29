@@ -482,11 +482,13 @@
                         {
                           "tag": "div",
                           "style": {
-                            "cssText": "position:absolute;top:10px;height:12px;left:0px;width:980px;background:var(--interactive-accent);opacity:.45;border-radius:3px;cursor:pointer;"
+                            "cssText": "position:absolute;top:10px;height:12px;left:0px;width:980px;background:var(--interactive-accent);opacity:.45;border-radius:3px;cursor:pointer;",
+                            "cursor": "grab"
                           },
-                          "title": "Hub\n2026-04-01 ~ 2026-12-09\n클릭=노트 열기 · Ctrl+클릭=새 탭",
+                          "title": "Hub\n2026-04-01 ~ 2026-12-09\n클릭=노트 열기 · Ctrl+클릭=새 탭\n드래그=기간 이동 · 양 끝=시작/종료일 (프로퍼티)",
                           "handlers": [
-                            "onclick"
+                            "onclick",
+                            "on:pointerdown"
                           ]
                         },
                         {
@@ -571,11 +573,25 @@
                         {
                           "tag": "div",
                           "style": {
-                            "cssText": "position:absolute;top:10px;height:12px;left:0px;width:168px;background:var(--text-faint);opacity:.45;border-radius:3px;cursor:pointer;"
+                            "cssText": "position:absolute;top:10px;height:12px;left:0px;width:168px;background:var(--text-faint);opacity:.45;border-radius:3px;cursor:pointer;",
+                            "cursor": "grab"
                           },
-                          "title": "보류\n2026-07-01 ~ 2026-07-31\nStatus: Hold\n클릭=노트 열기 · Ctrl+클릭=새 탭",
+                          "title": "보류\n2026-07-01 ~ 2026-07-31\nStatus: Hold\n클릭=노트 열기 · Ctrl+클릭=새 탭\n드래그=기간 이동 · 양 끝=시작/종료일 (프로퍼티)",
                           "handlers": [
-                            "onclick"
+                            "onclick",
+                            "on:pointerdown"
+                          ],
+                          "children": [
+                            {
+                              "tag": "div",
+                              "style": {
+                                "cssText": "position:absolute;top:0;bottom:0;right:0;width:6px;cursor:ew-resize;touch-action:none;"
+                              },
+                              "title": "끌어서 끝만",
+                              "handlers": [
+                                "on:pointerdown"
+                              ]
+                            }
                           ]
                         },
                         {
@@ -662,11 +678,25 @@
                         {
                           "tag": "div",
                           "style": {
-                            "cssText": "position:absolute;top:10px;height:12px;left:0px;width:728px;background:var(--interactive-accent);opacity:.45;border-radius:3px;cursor:pointer;"
+                            "cssText": "position:absolute;top:10px;height:12px;left:0px;width:728px;background:var(--interactive-accent);opacity:.45;border-radius:3px;cursor:pointer;",
+                            "cursor": "grab"
                           },
-                          "title": "알림톡\n2026-07-20 ~ 2026-08-20\n클릭=노트 열기 · Ctrl+클릭=새 탭",
+                          "title": "알림톡\n2026-07-20 ~ 2026-08-20\n클릭=노트 열기 · Ctrl+클릭=새 탭\n드래그=기간 이동 · 양 끝=시작/종료일 (프로퍼티)",
                           "handlers": [
-                            "onclick"
+                            "onclick",
+                            "on:pointerdown"
+                          ],
+                          "children": [
+                            {
+                              "tag": "div",
+                              "style": {
+                                "cssText": "position:absolute;top:0;bottom:0;right:0;width:6px;cursor:ew-resize;touch-action:none;"
+                              },
+                              "title": "끌어서 끝만",
+                              "handlers": [
+                                "on:pointerdown"
+                              ]
+                            }
                           ]
                         },
                         {
@@ -721,7 +751,7 @@
                               "style": {
                                 "cssText": "cursor:pointer;overflow:hidden;text-overflow:ellipsis;"
                               },
-                              "title": "템플릿 API\n🛫 2026-07-22  📅 2026-08-05\n클릭=열기 · Ctrl+클릭=새 탭 · 우클릭=편집",
+                              "title": "템플릿 API\n🛫 2026-07-22  📅 2026-08-05\n드래그=기간 이동 · 양 끝=🛫/📅만\n클릭=열기 · Ctrl+클릭=새 탭 · 우클릭=편집",
                               "handlers": [
                                 "onclick",
                                 "on:contextmenu"
@@ -754,12 +784,26 @@
                           "tag": "div",
                           "text": "◀ 템플릿 API",
                           "style": {
-                            "cssText": "position:absolute;top:5px;height:20px;left:0px;width:308px;box-sizing:border-box;border-radius:4px;font-size:12px;line-height:18px;padding:0 5px;overflow:hidden;white-space:nowrap;cursor:pointer;background:#3f51b52b;border:1px solid #3f51b5;border-left:4px solid #3f51b5;"
+                            "cssText": "position:absolute;top:5px;height:20px;left:0px;width:308px;box-sizing:border-box;border-radius:4px;font-size:12px;line-height:18px;padding:0 5px;overflow:hidden;white-space:nowrap;cursor:pointer;background:#3f51b52b;border:1px solid #3f51b5;border-left:4px solid #3f51b5;",
+                            "cursor": "grab"
                           },
-                          "title": "템플릿 API\n🛫 2026-07-22  📅 2026-08-05\n클릭=열기 · Ctrl+클릭=새 탭 · 우클릭=편집",
+                          "title": "템플릿 API\n🛫 2026-07-22  📅 2026-08-05\n드래그=기간 이동 · 양 끝=🛫/📅만\n클릭=열기 · Ctrl+클릭=새 탭 · 우클릭=편집",
                           "handlers": [
                             "onclick",
-                            "on:contextmenu"
+                            "on:contextmenu",
+                            "on:pointerdown"
+                          ],
+                          "children": [
+                            {
+                              "tag": "div",
+                              "style": {
+                                "cssText": "position:absolute;top:0;bottom:0;right:0;width:6px;cursor:ew-resize;touch-action:none;"
+                              },
+                              "title": "끌어서 끝만",
+                              "handlers": [
+                                "on:pointerdown"
+                              ]
+                            }
                           ]
                         }
                       ]
@@ -802,7 +846,7 @@
                               "style": {
                                 "cssText": "cursor:pointer;overflow:hidden;text-overflow:ellipsis;opacity:.55;text-decoration:line-through;"
                               },
-                              "title": "발송 이력\n🛫 2026-07-27  📅 2026-07-30\n(완료됨)\n클릭=열기 · Ctrl+클릭=새 탭 · 우클릭=편집",
+                              "title": "발송 이력\n🛫 2026-07-27  📅 2026-07-30\n(완료됨)\n드래그=기간 이동 · 양 끝=🛫/📅만\n클릭=열기 · Ctrl+클릭=새 탭 · 우클릭=편집",
                               "handlers": [
                                 "onclick",
                                 "on:contextmenu"
@@ -830,7 +874,7 @@
                           "style": {
                             "cssText": "position:absolute;top:5px;height:20px;left:28px;width:112px;box-sizing:border-box;border-radius:4px;font-size:12px;line-height:18px;padding:0 5px;overflow:hidden;white-space:nowrap;cursor:pointer;background:#3f51b52b;border:1px solid #3f51b5;border-left:4px solid #3f51b5;opacity:0.55;text-decoration:line-through;"
                           },
-                          "title": "발송 이력\n🛫 2026-07-27  📅 2026-07-30\n(완료됨)\n클릭=열기 · Ctrl+클릭=새 탭 · 우클릭=편집",
+                          "title": "발송 이력\n🛫 2026-07-27  📅 2026-07-30\n(완료됨)\n드래그=기간 이동 · 양 끝=🛫/📅만\n클릭=열기 · Ctrl+클릭=새 탭 · 우클릭=편집",
                           "handlers": [
                             "onclick",
                             "on:contextmenu"
@@ -876,7 +920,7 @@
                               "style": {
                                 "cssText": "cursor:pointer;overflow:hidden;text-overflow:ellipsis;"
                               },
-                              "title": "리뷰\n🛫 -  📅 2026-08-18\n클릭=열기 · Ctrl+클릭=새 탭 · 우클릭=편집",
+                              "title": "리뷰\n🛫 -  📅 2026-08-18\n드래그=기간 이동 · 양 끝=🛫/📅만\n클릭=열기 · Ctrl+클릭=새 탭 · 우클릭=편집",
                               "handlers": [
                                 "onclick",
                                 "on:contextmenu"
@@ -902,12 +946,14 @@
                           "tag": "div",
                           "text": "◆",
                           "style": {
-                            "cssText": "position:absolute;top:6px;left:650px;width:16px;text-align:center;font-size:15px;line-height:18px;color:#3f51b5;cursor:pointer;"
+                            "cssText": "position:absolute;top:6px;left:650px;width:16px;text-align:center;font-size:15px;line-height:18px;color:#3f51b5;cursor:pointer;",
+                            "cursor": "grab"
                           },
-                          "title": "리뷰\n🛫 -  📅 2026-08-18\n클릭=열기 · Ctrl+클릭=새 탭 · 우클릭=편집",
+                          "title": "리뷰\n🛫 -  📅 2026-08-18\n드래그=기간 이동 · 양 끝=🛫/📅만\n클릭=열기 · Ctrl+클릭=새 탭 · 우클릭=편집",
                           "handlers": [
                             "onclick",
-                            "on:contextmenu"
+                            "on:contextmenu",
+                            "on:pointerdown"
                           ]
                         },
                         {
@@ -916,7 +962,7 @@
                           "style": {
                             "cssText": "position:absolute;top:5px;left:670px;max-width:306px;font-size:12px;line-height:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;opacity:.8;"
                           },
-                          "title": "리뷰\n🛫 -  📅 2026-08-18\n클릭=열기 · Ctrl+클릭=새 탭 · 우클릭=편집",
+                          "title": "리뷰\n🛫 -  📅 2026-08-18\n드래그=기간 이동 · 양 끝=🛫/📅만\n클릭=열기 · Ctrl+클릭=새 탭 · 우클릭=편집",
                           "handlers": [
                             "onclick",
                             "on:contextmenu"
@@ -990,11 +1036,35 @@
                         {
                           "tag": "div",
                           "style": {
-                            "cssText": "position:absolute;top:10px;height:12px;left:56px;width:280px;background:var(--interactive-accent);opacity:.45;border-radius:3px;cursor:pointer;"
+                            "cssText": "position:absolute;top:10px;height:12px;left:56px;width:280px;background:var(--interactive-accent);opacity:.45;border-radius:3px;cursor:pointer;",
+                            "cursor": "grab"
                           },
-                          "title": "오리엔트\n2026-07-28 ~ (종료일 없음)\nStatus: InProgress\n클릭=노트 열기 · Ctrl+클릭=새 탭",
+                          "title": "오리엔트\n2026-07-28 ~ (종료일 없음)\nStatus: InProgress\n클릭=노트 열기 · Ctrl+클릭=새 탭\n드래그=기간 이동 · 양 끝=시작/종료일 (프로퍼티)",
                           "handlers": [
-                            "onclick"
+                            "onclick",
+                            "on:pointerdown"
+                          ],
+                          "children": [
+                            {
+                              "tag": "div",
+                              "style": {
+                                "cssText": "position:absolute;top:0;bottom:0;left:0;width:6px;cursor:ew-resize;touch-action:none;"
+                              },
+                              "title": "끌어서 시작일만",
+                              "handlers": [
+                                "on:pointerdown"
+                              ]
+                            },
+                            {
+                              "tag": "div",
+                              "style": {
+                                "cssText": "position:absolute;top:0;bottom:0;right:0;width:6px;cursor:ew-resize;touch-action:none;"
+                              },
+                              "title": "끌어서 끝만",
+                              "handlers": [
+                                "on:pointerdown"
+                              ]
+                            }
                           ]
                         },
                         {
@@ -1082,11 +1152,25 @@
                         {
                           "tag": "div",
                           "style": {
-                            "cssText": "position:absolute;top:10px;height:12px;left:420px;width:560px;border:1px dashed var(--interactive-accent);box-sizing:border-box;border-radius:3px;cursor:pointer;"
+                            "cssText": "position:absolute;top:10px;height:12px;left:420px;width:560px;border:1px dashed var(--interactive-accent);box-sizing:border-box;border-radius:3px;cursor:pointer;",
+                            "cursor": "grab"
                           },
-                          "title": "매장음악\n2026-08-10 ~ 2026-09-10\nStatus: Planning\n⚠ 종료일(2026-09-10)보다 늦은 task 1개 — 최대 2026-09-20\n클릭=노트 열기 · Ctrl+클릭=새 탭",
+                          "title": "매장음악\n2026-08-10 ~ 2026-09-10\nStatus: Planning\n⚠ 종료일(2026-09-10)보다 늦은 task 1개 — 최대 2026-09-20\n클릭=노트 열기 · Ctrl+클릭=새 탭\n드래그=기간 이동 · 양 끝=시작/종료일 (프로퍼티)",
                           "handlers": [
-                            "onclick"
+                            "onclick",
+                            "on:pointerdown"
+                          ],
+                          "children": [
+                            {
+                              "tag": "div",
+                              "style": {
+                                "cssText": "position:absolute;top:0;bottom:0;left:0;width:6px;cursor:ew-resize;touch-action:none;"
+                              },
+                              "title": "끌어서 시작일만",
+                              "handlers": [
+                                "on:pointerdown"
+                              ]
+                            }
                           ]
                         },
                         {
@@ -1136,7 +1220,7 @@
                               "style": {
                                 "cssText": "cursor:pointer;overflow:hidden;text-overflow:ellipsis;"
                               },
-                              "title": "요건 확인\n🛫 -  📅 2026-08-12\n클릭=열기 · Ctrl+클릭=새 탭 · 우클릭=편집",
+                              "title": "요건 확인\n🛫 -  📅 2026-08-12\n드래그=기간 이동 · 양 끝=🛫/📅만\n클릭=열기 · Ctrl+클릭=새 탭 · 우클릭=편집",
                               "handlers": [
                                 "onclick",
                                 "on:contextmenu"
@@ -1162,12 +1246,14 @@
                           "tag": "div",
                           "text": "◆",
                           "style": {
-                            "cssText": "position:absolute;top:6px;left:482px;width:16px;text-align:center;font-size:15px;line-height:18px;color:#0b8043;cursor:pointer;"
+                            "cssText": "position:absolute;top:6px;left:482px;width:16px;text-align:center;font-size:15px;line-height:18px;color:#0b8043;cursor:pointer;",
+                            "cursor": "grab"
                           },
-                          "title": "요건 확인\n🛫 -  📅 2026-08-12\n클릭=열기 · Ctrl+클릭=새 탭 · 우클릭=편집",
+                          "title": "요건 확인\n🛫 -  📅 2026-08-12\n드래그=기간 이동 · 양 끝=🛫/📅만\n클릭=열기 · Ctrl+클릭=새 탭 · 우클릭=편집",
                           "handlers": [
                             "onclick",
-                            "on:contextmenu"
+                            "on:contextmenu",
+                            "on:pointerdown"
                           ]
                         },
                         {
@@ -1176,7 +1262,7 @@
                           "style": {
                             "cssText": "position:absolute;top:5px;left:502px;max-width:474px;font-size:12px;line-height:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;opacity:.8;"
                           },
-                          "title": "요건 확인\n🛫 -  📅 2026-08-12\n클릭=열기 · Ctrl+클릭=새 탭 · 우클릭=편집",
+                          "title": "요건 확인\n🛫 -  📅 2026-08-12\n드래그=기간 이동 · 양 끝=🛫/📅만\n클릭=열기 · Ctrl+클릭=새 탭 · 우클릭=편집",
                           "handlers": [
                             "onclick",
                             "on:contextmenu"
