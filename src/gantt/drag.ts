@@ -57,12 +57,13 @@ export function notePatch(g: GanttGroup, mode: DragMode, d: number): Record<stri
 
 /**
  * task 막대 → 줄 변경. 바뀌는 게 없으면 null. 요약 막대(자기 날짜 없음)는 끌 수 없다.
- * 📅 만 있는 task(◆)는 옮기기만 한다 — 시작이 없으니 양 끝이 없다.
+ * 📅 만 있는 task(◆)는 📅 하나만 움직인다 — 이동과 끝 조정이 같고 시작 조정은 없다.
  */
 export function taskChanges(r: GanttRow, mode: DragMode, d: number): LineChanges | null {
   const t = r.task;
   if (!d || r.summary || !t.due) return null;
-  if (!t.start) return mode === "move" ? { due: addDays(t.due, d) } : null;
+  // 🛫 없는 task 는 📅 하나뿐 — 이동과 끝 조정이 같다(초과 점선을 끌 때 "end" 로 온다)
+  if (!t.start) return mode === "start" ? null : { due: addDays(t.due, d) };
   const [s, e] = previewSpan([t.start, t.due], mode, d);
   if (mode === "move") return { start: s, due: e };
   if (mode === "start") return s === t.start ? null : { start: s };

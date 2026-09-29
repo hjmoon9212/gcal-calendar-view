@@ -229,7 +229,8 @@ eq(writeKey(undefined, ["EndDate", "DueDate"]), { key: "EndDate", hasValue: fals
   eq(taskChanges(R("2026-08-01", "2026-08-05"), "start", -3), { start: "2026-07-29" }, "왼쪽 끝 = 🛫 만");
   eq(taskChanges(R("2026-08-01", "2026-08-05"), "end", 1), { due: "2026-08-06" }, "오른쪽 끝 = 📅 만");
   eq(taskChanges(R(null, "2026-08-05"), "move", 1), { due: "2026-08-06" }, "◆ 이동 = 📅 만");
-  eq(taskChanges(R(null, "2026-08-05"), "end", 1), null, "◆ 에는 끝이 없다");
+  eq(taskChanges(R(null, "2026-08-05"), "end", 1), { due: "2026-08-06" }, "◆ 의 끝 = 📅(초과 점선을 끌 때)");
+  eq(taskChanges(R(null, "2026-08-05"), "start", 1), null, "◆ 에는 시작이 없다");
   eq(taskChanges(R(null, null, true), "move", 1), null, "요약 막대는 못 끈다");
 }
 
@@ -470,6 +471,17 @@ function find(root: FakeEl, pred: (e: FakeEl) => boolean): FakeEl[] {
     eq(c.fmWrites[1], { path: "P/책/오리엔트.md", patch: { EndDate: "2026-08-11" } }, "오른쪽 끝 = 종료일(비어 있던 EndDate 에)");
     await dragBy(bar("보류"), 2);
     eq(c.fmWrites.length, 2, "4px 미만은 드래그가 아니다");
+  }
+
+  // 붉은 점선(초과분) 드래그 → 종료일 (0.10.2)
+  {
+    const c = open();
+    const dash = find(c.container, (e) => (e.title || "").startsWith("⚠ 종료일(2026-09-10)보다 늦은 task 1개"))[0];
+    ok(!!dash && dash.style.pointerEvents === "auto", "점선을 잡을 수 있다");
+    await dragBy(dash, 100);
+    eq(c.fmWrites, [{ path: "P/모듈/매장음악.md", patch: { DueDate: "2026-09-20" } }], "점선을 끌면 종료일만 +10일");
+    eq(c.calls.opened.length, 0, "끌고 놓은 뒤 열기 없음");
+    ok(!find(c.container, (e) => (e.title || "").startsWith("⚠ 종료일(")).some((e) => (e.title || "").includes("매장음악")), "종료일이 늦은 task 를 덮으면 점선이 사라진다");
   }
 
   // task 막대 드래그 → 🛫/📅 (캘린더와 같은 applyDates)

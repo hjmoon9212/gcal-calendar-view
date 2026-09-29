@@ -339,11 +339,14 @@
                         {
                           "tag": "div",
                           "style": {
-                            "cssText": "position:absolute;top:10px;height:12px;left:0px;width:100px;box-sizing:border-box;border:1px dashed #e05a7a;border-radius:0 3px 3px 0;cursor:pointer;"
+                            "cssText": "position:absolute;top:10px;height:12px;left:0px;width:100px;box-sizing:border-box;border:1px dashed #e05a7a;border-radius:0 3px 3px 0;cursor:pointer;",
+                            "pointerEvents": "auto",
+                            "cursor": "grab"
                           },
-                          "title": "⚠ 종료일(2026-06-15)보다 늦은 task 1개 — 최대 2026-07-10",
+                          "title": "⚠ 종료일(2026-06-15)보다 늦은 task 1개 — 최대 2026-07-10\n드래그=종료일 조정",
                           "handlers": [
-                            "onclick"
+                            "onclick",
+                            "on:pointerdown"
                           ]
                         }
                       ]
@@ -1135,11 +1138,14 @@
                         {
                           "tag": "div",
                           "style": {
-                            "cssText": "position:absolute;top:10px;height:12px;left:720px;width:100px;box-sizing:border-box;border:1px dashed #e05a7a;border-radius:0 3px 3px 0;cursor:pointer;"
+                            "cssText": "position:absolute;top:10px;height:12px;left:720px;width:100px;box-sizing:border-box;border:1px dashed #e05a7a;border-radius:0 3px 3px 0;cursor:pointer;",
+                            "pointerEvents": "auto",
+                            "cursor": "grab"
                           },
-                          "title": "⚠ 종료일(2026-09-10)보다 늦은 task 1개 — 최대 2026-09-20",
+                          "title": "⚠ 종료일(2026-09-10)보다 늦은 task 1개 — 최대 2026-09-20\n드래그=종료일 조정",
                           "handlers": [
-                            "onclick"
+                            "onclick",
+                            "on:pointerdown"
                           ]
                         }
                       ]

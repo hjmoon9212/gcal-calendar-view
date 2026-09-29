@@ -265,7 +265,9 @@ function attachDrag(
   place: (pv: [string, string]) => void,
   onDrop: (mode: DragMode, days: number) => void,
   dayPx: number,
-  labelAt: (pv: [string, string]) => number
+  labelAt: (pv: [string, string]) => number,
+  /** 몸통을 잡았을 때의 동작 — 막대는 기간째 이동, 초과 점선은 끝만(0.10.2~) */
+  bodyMode: DragMode = "move"
 ): { dragged: () => boolean } {
   let justDragged = false;
   const begin = (e: any, mode: DragMode) => {
@@ -314,7 +316,7 @@ function attachDrag(
     el.addEventListener("pointercancel", up);
   };
   el.style.cursor = "grab";
-  el.addEventListener("pointerdown", (e: any) => begin(e, "move"));
+  el.addEventListener("pointerdown", (e: any) => begin(e, bodyMode));
   for (const side of ["start", "end"] as const) {
     if (!edges[side]) continue;
     const h = el.createEl("div");
@@ -410,10 +412,44 @@ function groupRow(inner: El, v: VisibleGroup, sc: Scale, today: string, collapse
       x.style.cssText =
         `position:absolute;top:10px;height:12px;left:${o.left}px;width:${Math.max(o.width, 3)}px;box-sizing:border-box;` +
         `border:1px dashed ${OVERDUE_RED};border-radius:0 3px 3px 0;cursor:pointer;`;
-      x.title = overrunText(g);
-      x.onclick = (e: any) => d.openNote(g.path, e);
+      x.title = overrunText(g) + (d.canDrag ? "\n드래그=종료일 조정" : "");
+      let xdrag: { dragged: () => boolean } | null = null;
+      x.onclick = (e: any) => {
+        if (xdrag?.dragged()) return;
+        d.openNote(g.path, e);
+      };
+      if (d.canDrag) xdrag = dragOverrun(x, track, sc, [s.start, s.end], g.overrun.until, (days) => d.dragNote(g, "end", days));
     }
   }
+}
+
+/**
+ * 붉은 점선(초과분)을 끌면 **끝을 옮긴다**(0.10.2~). 주 줌에서는 막대 본체가 창 밖이라 잡을 곳이
+ * 점선뿐인 경우가 많다 — 표시 전용이던 0.10.1 까지는 거기서 아무 일도 안 일어났다.
+ * 미리보기: 점선의 왼쪽 끝이 새 종료일 다음 날로 따라온다(다 덮으면 한 칸만 남는다).
+ */
+function dragOverrun(
+  x: El,
+  track: El,
+  sc: Scale,
+  span: [string, string],
+  until: string,
+  onDrop: (days: number) => void
+): { dragged: () => boolean } {
+  x.style.pointerEvents = "auto";
+  return attachDrag(
+    x, track, span, { start: false, end: false },
+    ([, z]) => {
+      const from = addDays(z, 1);
+      const left = sc.x(from < sc.from ? sc.from : from);
+      x.style.left = left + "px";
+      x.style.width = Math.max(3, sc.x(until) + sc.dayPx - left) + "px";
+    },
+    (_mode, days) => onDrop(days),
+    sc.dayPx,
+    ([, z]) => sc.x(z),
+    "end"
+  );
 }
 
 function taskRow(inner: El, r: GanttRow, sc: Scale, today: string, d: GanttViewDeps, tree: { open: boolean; kids: number } | null): void {
@@ -517,6 +553,13 @@ function taskRow(inner: El, r: GanttRow, sc: Scale, today: string, d: GanttViewD
       x.style.cssText =
         `position:absolute;top:5px;height:20px;left:${o.left}px;width:${Math.max(o.width, 3)}px;box-sizing:border-box;` +
         `border:1px dashed ${OVERDUE_RED};border-radius:0 4px 4px 0;pointer-events:none;`;
+      if (d.canDrag && !dim) {
+        x.title = `⚠ 하위 task ${r.overrun.count}개가 이 task 📅 보다 늦음 — 최대 ${r.overrun.until}\n드래그=📅 조정`;
+        x.style.cursor = "grab";
+        drag = dragOverrun(x, track, sc, r.span, r.overrun.until, (days) => d.dragTask(r, "end", days));
+        x.onclick = click;
+        x.addEventListener("contextmenu", menu);
+      }
       if (endX >= 0) endX = Math.max(endX, o.left + o.width);
     }
   }
