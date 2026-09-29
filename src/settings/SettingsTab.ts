@@ -91,6 +91,59 @@ export class GcalCalendarSettingTab extends PluginSettingTab {
             ul.createEl("li", { text: t });
         }
 
+        // ── Gantt (0.8.0~) ── 캘린더 사용법 바로 밑. 같은 플러그인의 다른 블록이라 조작법도 여기서 찾게 한다.
+        containerEl.createEl("h3", { text: "Gantt" });
+        const gantt = containerEl.createEl("div");
+        gantt.style.cssText = "font-size:12px;line-height:1.7;opacity:.85;";
+        gantt.createEl("p", {
+            text: "노트 1개 = 그룹 1개. 그룹 막대 = 노트 프로퍼티(시작 ~ 끝), 그 아래 행 = 그 노트의 #task(🛫 ~ 📅, 📅 만이면 ◆).",
+        }).style.margin = "0 0 6px";
+        this.sample(gantt, "볼트 전체 (기본, Template 제외)", "```gcal-gantt\n```");
+        this.sample(gantt, "이 경로 이하만 (폴더 또는 파일)", "```gcal-gantt\npath: 0. Note/1. Project/내 프로젝트\n```");
+        this.sample(gantt, "이 블록이 놓인 노트의 폴더 이하", "```gcal-gantt\nscope: folder\n```");
+        this.sample(
+            gantt,
+            "프로퍼티 이름을 이 블록에서만 바꾸기 · Type 이 Project-Hub 인 노트 빼기",
+            "```gcal-gantt\nstart: StartDate\nend: EndDate, DueDate\nexclude-type: Project-Hub\n```"
+        );
+        const gul = gantt.createEl("ul");
+        gul.style.cssText = "margin:0 0 4px;padding-left:18px;";
+        for (const t of [
+            "보기 기간: 주(5주, 기본) · 월(3개월) · 분기(12개월). ◀ ▶ 로 옮기고 «오늘» 로 되돌린다. 기간과 겹치는 노트·task 만 보인다.",
+            "끝 프로퍼티가 비면 그 노트 task 의 가장 늦은 📅, 그것도 없으면 오늘까지 열린 기간(오른쪽이 흐려진다).",
+            "상태 칸 = Status(진행·계획·보류·완료). 계획 = 점선 막대 · 보류 = 회색 · 완료 = 흐림. «완료 노트» 로 Done 노트 숨김.",
+            "종료일보다 📅 가 늦은 미완료 task 가 있으면 노트 이름이 붉고, 막대 뒤에 붉은 점선이 이어진다(task 끼리도 같은 규칙).",
+            "탭 들여쓰기 = 하위 task. ▸/▾ 로 접고 편다 — 처음엔 최상위만. 날짜 없는 부모는 하위 기간을 괄호 막대로 보인다.",
+            "막대 가운데 드래그 = 기간째 이동 · 양 끝 = 시작/끝만 · 붉은 점선 = 끝만(하루 단위). 노트 막대는 프로퍼티를, task 막대는 🛫/📅 를 고친다.",
+            "클릭 = 원본 열기 · Ctrl+클릭 = 새 탭 · 우클릭 = Tasks 편집 모달 (캘린더와 같다). 폰은 탭 = 액션시트, 드래그 없음.",
+        ]) {
+            gul.createEl("li", { text: t });
+        }
+        // 프로퍼티 이름 — 입력 중 display() 를 다시 부르면 포커스가 날아가므로 저장만 하고,
+        // 열린 Gantt 는 설정 창을 닫을 때(hide → refreshAll) 다시 그린다.
+        new Setting(containerEl)
+            .setName("시작 프로퍼티")
+            .setDesc("노트 막대의 시작. 블록의 start: 가 이 값을 덮는다.")
+            .addText((t) => {
+                t.setPlaceholder("StartDate")
+                    .setValue(this.plugin.settings.ganttStartProp || "")
+                    .onChange(async (v) => {
+                        this.plugin.settings.ganttStartProp = v.trim() || "StartDate";
+                        await this.plugin.saveSettings();
+                    });
+            });
+        new Setting(containerEl)
+            .setName("끝 프로퍼티")
+            .setDesc("쉼표로 여러 개 — 앞에서부터 먼저 값이 있는 것. 블록의 end: 가 이 값을 덮는다.")
+            .addText((t) => {
+                t.setPlaceholder("EndDate, DueDate")
+                    .setValue(this.plugin.settings.ganttEndProps || "")
+                    .onChange(async (v) => {
+                        this.plugin.settings.ganttEndProps = v.trim() || "EndDate, DueDate";
+                        await this.plugin.saveSettings();
+                    });
+            });
+
         // ── 모바일 화면 ──
         // 사용법 바로 밑에 둔다. 폰에서 화면이 달라 보이는 이유를 여기서 처음 만나야 한다.
         containerEl.createEl("h3", { text: "모바일" });

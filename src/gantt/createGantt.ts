@@ -19,6 +19,7 @@ import { createWriteService } from "../write/TaskWriteService";
 import { buildGantt, GanttModel, GanttPage } from "./rows";
 import { renderGantt, GanttViewState, LABEL_W } from "./GanttView";
 import { taskParents } from "./tree";
+import { parseList } from "../core/blockOptions";
 import { notePatch, taskChanges, DragMode, spanText, previewSpan } from "./drag";
 import { toISODate } from "./noteDates";
 import type { GanttGroup, GanttRow } from "./rows";
@@ -122,8 +123,8 @@ export function createGantt(a: GanttArgs) {
     }
     return buildGantt(pages, tasks, {
       parents,
-      startProp: a.startProp,
-      endProps: a.endProps,
+      startProp: a.startProp || plugin.settings.ganttStartProp || "StartDate",
+      endProps: a.endProps.length ? a.endProps : parseList(plugin.settings.ganttEndProps || "EndDate, DueDate"),
       excludeTypes: a.excludeTypes,
       today: L.now().toISODate(),
       showDone: state.showDone,

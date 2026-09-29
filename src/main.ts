@@ -153,8 +153,10 @@ export default class GcalCalendarViewPlugin extends Plugin {
                 ? createGantt({
                     plugin: this, api, container: el, source,
                     notes: opts.note, sourcePath: ctx.sourcePath, component: child,
-                    startProp: opts.start || this.settings.ganttStartProp,
-                    endProps: parseList(opts.end || this.settings.ganttEndProps),
+                    // 블록 옵션이 없으면 **매 수집마다 설정을 다시 읽는다**(createGantt) — 설정을 바꾸고
+                    // 창을 닫으면(refreshAll) 열린 Gantt 가 바로 따라간다
+                    startProp: opts.start || "",
+                    endProps: parseList(opts.end),
                     excludeTypes: parseList(opts["exclude-type"]),
                 })
                 : createCalendar({

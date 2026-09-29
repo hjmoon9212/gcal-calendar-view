@@ -55,6 +55,80 @@
     "buttonTextAfter": "복사됨"
   },
   {
+    "target": "<button> 복사",
+    "changed": {},
+    "calls": [],
+    "display": 0,
+    "notices": [],
+    "clipboard": [
+      "```gcal-gantt\n```"
+    ],
+    "buttonTextAfter": "복사됨"
+  },
+  {
+    "target": "<button> 복사",
+    "changed": {},
+    "calls": [],
+    "display": 0,
+    "notices": [],
+    "clipboard": [
+      "```gcal-gantt\npath: 0. Note/1. Project/내 프로젝트\n```"
+    ],
+    "buttonTextAfter": "복사됨"
+  },
+  {
+    "target": "<button> 복사",
+    "changed": {},
+    "calls": [],
+    "display": 0,
+    "notices": [],
+    "clipboard": [
+      "```gcal-gantt\nscope: folder\n```"
+    ],
+    "buttonTextAfter": "복사됨"
+  },
+  {
+    "target": "<button> 복사",
+    "changed": {},
+    "calls": [],
+    "display": 0,
+    "notices": [],
+    "clipboard": [
+      "```gcal-gantt\nstart: StartDate\nend: EndDate, DueDate\nexclude-type: Project-Hub\n```"
+    ],
+    "buttonTextAfter": "복사됨"
+  },
+  {
+    "target": "시작 프로퍼티 0:text",
+    "input": "  new  ",
+    "changed": {
+      "ganttStartProp": "new"
+    },
+    "calls": [
+      [
+        "saveSettings"
+      ]
+    ],
+    "display": 0,
+    "notices": [],
+    "clipboard": []
+  },
+  {
+    "target": "끝 프로퍼티 0:text",
+    "input": "  new  ",
+    "changed": {
+      "ganttEndProps": "new"
+    },
+    "calls": [
+      [
+        "saveSettings"
+      ]
+    ],
+    "display": 0,
+    "notices": [],
+    "clipboard": []
+  },
+  {
     "target": "모바일 화면 0:dropdown",
     "input": "off",
     "changed": {

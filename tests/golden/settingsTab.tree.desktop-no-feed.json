@@ -278,6 +278,249 @@
     },
     {
       "tag": "h3",
+      "text": "Gantt"
+    },
+    {
+      "tag": "div",
+      "style": {
+        "cssText": "font-size:12px;line-height:1.7;opacity:.85;"
+      },
+      "children": [
+        {
+          "tag": "p",
+          "text": "노트 1개 = 그룹 1개. 그룹 막대 = 노트 프로퍼티(시작 ~ 끝), 그 아래 행 = 그 노트의 #task(🛫 ~ 📅, 📅 만이면 ◆).",
+          "style": {
+            "margin": "0 0 6px"
+          }
+        },
+        {
+          "tag": "div",
+          "style": {
+            "cssText": "margin:0 0 10px;"
+          },
+          "children": [
+            {
+              "tag": "div",
+              "style": {
+                "cssText": "display:flex;align-items:center;gap:8px;margin-bottom:3px;"
+              },
+              "children": [
+                {
+                  "tag": "span",
+                  "text": "볼트 전체 (기본, Template 제외)",
+                  "style": {
+                    "cssText": "font-size:11px;opacity:.6;"
+                  }
+                },
+                {
+                  "tag": "button",
+                  "text": "복사",
+                  "style": {
+                    "cssText": "font-size:11px;padding:1px 8px;border-radius:10px;cursor:pointer;"
+                  },
+                  "handlers": [
+                    "onclick"
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "pre",
+              "text": "```gcal-gantt\n```",
+              "style": {
+                "cssText": "font-size:11px;padding:8px;border-radius:4px;background:var(--background-secondary);margin:0;white-space:pre;overflow-x:auto;user-select:text;"
+              }
+            }
+          ]
+        },
+        {
+          "tag": "div",
+          "style": {
+            "cssText": "margin:0 0 10px;"
+          },
+          "children": [
+            {
+              "tag": "div",
+              "style": {
+                "cssText": "display:flex;align-items:center;gap:8px;margin-bottom:3px;"
+              },
+              "children": [
+                {
+                  "tag": "span",
+                  "text": "이 경로 이하만 (폴더 또는 파일)",
+                  "style": {
+                    "cssText": "font-size:11px;opacity:.6;"
+                  }
+                },
+                {
+                  "tag": "button",
+                  "text": "복사",
+                  "style": {
+                    "cssText": "font-size:11px;padding:1px 8px;border-radius:10px;cursor:pointer;"
+                  },
+                  "handlers": [
+                    "onclick"
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "pre",
+              "text": "```gcal-gantt\npath: 0. Note/1. Project/내 프로젝트\n```",
+              "style": {
+                "cssText": "font-size:11px;padding:8px;border-radius:4px;background:var(--background-secondary);margin:0;white-space:pre;overflow-x:auto;user-select:text;"
+              }
+            }
+          ]
+        },
+        {
+          "tag": "div",
+          "style": {
+            "cssText": "margin:0 0 10px;"
+          },
+          "children": [
+            {
+              "tag": "div",
+              "style": {
+                "cssText": "display:flex;align-items:center;gap:8px;margin-bottom:3px;"
+              },
+              "children": [
+                {
+                  "tag": "span",
+                  "text": "이 블록이 놓인 노트의 폴더 이하",
+                  "style": {
+                    "cssText": "font-size:11px;opacity:.6;"
+                  }
+                },
+                {
+                  "tag": "button",
+                  "text": "복사",
+                  "style": {
+                    "cssText": "font-size:11px;padding:1px 8px;border-radius:10px;cursor:pointer;"
+                  },
+                  "handlers": [
+                    "onclick"
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "pre",
+              "text": "```gcal-gantt\nscope: folder\n```",
+              "style": {
+                "cssText": "font-size:11px;padding:8px;border-radius:4px;background:var(--background-secondary);margin:0;white-space:pre;overflow-x:auto;user-select:text;"
+              }
+            }
+          ]
+        },
+        {
+          "tag": "div",
+          "style": {
+            "cssText": "margin:0 0 10px;"
+          },
+          "children": [
+            {
+              "tag": "div",
+              "style": {
+                "cssText": "display:flex;align-items:center;gap:8px;margin-bottom:3px;"
+              },
+              "children": [
+                {
+                  "tag": "span",
+                  "text": "프로퍼티 이름을 이 블록에서만 바꾸기 · Type 이 Project-Hub 인 노트 빼기",
+                  "style": {
+                    "cssText": "font-size:11px;opacity:.6;"
+                  }
+                },
+                {
+                  "tag": "button",
+                  "text": "복사",
+                  "style": {
+                    "cssText": "font-size:11px;padding:1px 8px;border-radius:10px;cursor:pointer;"
+                  },
+                  "handlers": [
+                    "onclick"
+                  ]
+                }
+              ]
+            },
+            {
+              "tag": "pre",
+              "text": "```gcal-gantt\nstart: StartDate\nend: EndDate, DueDate\nexclude-type: Project-Hub\n```",
+              "style": {
+                "cssText": "font-size:11px;padding:8px;border-radius:4px;background:var(--background-secondary);margin:0;white-space:pre;overflow-x:auto;user-select:text;"
+              }
+            }
+          ]
+        },
+        {
+          "tag": "ul",
+          "style": {
+            "cssText": "margin:0 0 4px;padding-left:18px;"
+          },
+          "children": [
+            {
+              "tag": "li",
+              "text": "보기 기간: 주(5주, 기본) · 월(3개월) · 분기(12개월). ◀ ▶ 로 옮기고 «오늘» 로 되돌린다. 기간과 겹치는 노트·task 만 보인다."
+            },
+            {
+              "tag": "li",
+              "text": "끝 프로퍼티가 비면 그 노트 task 의 가장 늦은 📅, 그것도 없으면 오늘까지 열린 기간(오른쪽이 흐려진다)."
+            },
+            {
+              "tag": "li",
+              "text": "상태 칸 = Status(진행·계획·보류·완료). 계획 = 점선 막대 · 보류 = 회색 · 완료 = 흐림. «완료 노트» 로 Done 노트 숨김."
+            },
+            {
+              "tag": "li",
+              "text": "종료일보다 📅 가 늦은 미완료 task 가 있으면 노트 이름이 붉고, 막대 뒤에 붉은 점선이 이어진다(task 끼리도 같은 규칙)."
+            },
+            {
+              "tag": "li",
+              "text": "탭 들여쓰기 = 하위 task. ▸/▾ 로 접고 편다 — 처음엔 최상위만. 날짜 없는 부모는 하위 기간을 괄호 막대로 보인다."
+            },
+            {
+              "tag": "li",
+              "text": "막대 가운데 드래그 = 기간째 이동 · 양 끝 = 시작/끝만 · 붉은 점선 = 끝만(하루 단위). 노트 막대는 프로퍼티를, task 막대는 🛫/📅 를 고친다."
+            },
+            {
+              "tag": "li",
+              "text": "클릭 = 원본 열기 · Ctrl+클릭 = 새 탭 · 우클릭 = Tasks 편집 모달 (캘린더와 같다). 폰은 탭 = 액션시트, 드래그 없음."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "setting": {
+        "name": "시작 프로퍼티",
+        "desc": "노트 막대의 시작. 블록의 start: 가 이 값을 덮는다.",
+        "controls": [
+          {
+            "type": "text",
+            "value": "StartDate",
+            "placeholder": "StartDate",
+            "handler": true
+          }
+        ]
+      }
+    },
+    {
+      "setting": {
+        "name": "끝 프로퍼티",
+        "desc": "쉼표로 여러 개 — 앞에서부터 먼저 값이 있는 것. 블록의 end: 가 이 값을 덮는다.",
+        "controls": [
+          {
+            "type": "text",
+            "value": "EndDate, DueDate",
+            "placeholder": "EndDate, DueDate",
+            "handler": true
+          }
+        ]
+      }
+    },
+    {
+      "tag": "h3",
       "text": "모바일"
     },
     {
