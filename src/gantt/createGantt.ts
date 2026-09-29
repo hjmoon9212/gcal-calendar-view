@@ -49,7 +49,9 @@ export function createGantt(a: GanttArgs) {
   const key = "gantt:" + a.source;
   const saved = (plugin.store.state[key] = plugin.store.state[key] || {});
   const state: GanttViewState = {
-    zoom: isZoom(saved.zoom) ? saved.zoom : "month",
+    // 기본 = 주(0.10.1~). 막대·글자가 가장 크게 보이는 단위라 정렬이 한눈에 들어온다.
+    // 바꾼 줌은 이 세션 동안 블록별로 기억한다(store 는 메모리 — 재시작하면 다시 주).
+    zoom: isZoom(saved.zoom) ? saved.zoom : "week",
     // 창의 기준일은 **저장하지 않는다** — 열 때마다 오늘 기준(캘린더 0.6.0~ 과 같은 원칙).
     // 줌·필터는 "무엇을 보는가" 라 기억한다.
     anchor: L.now().toISODate(),

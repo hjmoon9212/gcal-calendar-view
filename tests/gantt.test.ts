@@ -301,8 +301,10 @@ function listsOf(body: string): { line: number; parent?: number }[] {
 
 const tick = () => new Promise((r) => setTimeout(r, 0));
 
-function open(extra: { excludeTypes?: string[]; notes?: string[]; tasksPluginEdit?: (l: string) => string; mobileUi?: string; indexLag?: boolean } = {}) {
+function open(extra: { excludeTypes?: string[]; notes?: string[]; tasksPluginEdit?: (l: string) => string; mobileUi?: string; indexLag?: boolean; defaultZoom?: boolean } = {}) {
   const h = makeHarness({ files: FILES, tasksPluginEdit: extra.tasksPluginEdit, settings: extra.mobileUi ? { mobileUi: extra.mobileUi } : {}, indexLag: extra.indexLag });
+  // 아래 테스트는 월 줌(하루 10px)을 기준으로 적었다 — 기본(주)은 따로 확인한다
+  if (!extra.defaultZoom) h.plugin.store.state["gantt:!\"Template\""] = { zoom: "month" };
   const base = h.args.api.pages;
   // 프로퍼티는 테스트마다 사본 — processFrontMatter 가 고친다. indexLag 면 Dataview 는 옛 사본을 준다
   const fm: Record<string, Record<string, any>> = JSON.parse(JSON.stringify(FM));
@@ -442,6 +444,14 @@ function find(root: FakeEl, pred: (e: FakeEl) => boolean): FakeEl[] {
     await btn("오늘").onclick!();
     await tick();
     ok(find(c.container, (e) => e.text === "2026.07 ~ 2026.09").length === 1, "오늘 = 창을 되돌린다");
+  }
+
+  // 기본 줌 = 주(0.10.1)
+  {
+    const c = open({ defaultZoom: true });
+    ok(find(c.container, (e) => e.tag === "button" && e.text === "주" && e.style.cssText.includes("font-weight:700")).length === 1, "처음 열면 주 줌");
+    ok(find(c.container, (e) => e.text === "07.26 ~ 08.29").length === 1, "주 창 = 지난주 일요일부터 5주");
+    eq(c.plugin.store.state["gantt:!\"Template\""].zoom, "week", "기억되는 값도 주");
   }
 
   // 노트 막대 드래그 → 프로퍼티 (0.10.0)
