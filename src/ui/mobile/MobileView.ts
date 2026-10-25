@@ -13,7 +13,7 @@ import { addDays, coversDay, diffDays, onDay, sundayStart } from "../../core/dat
 import { timeText, toHHMM, toMin } from "../../core/time";
 import { mobileHourRange } from "../mobileHours";
 import { TaskSheetModal } from "../TaskSheetModal";
-import { dimCss, mobileRowSkinCss, skinCss, spanPrefix, timeBlockLabel, titleOf, OVERDUE_RED, SUNDAY_RED, WARN_YELLOW } from "../style";
+import { dimCss, mobileRowSkinCss, skinCss, spanParts, timeBlockLabel, titleOf, OVERDUE_RED, SUNDAY_RED, WARN_YELLOW } from "../style";
 
 export function createMobileView(ctx: ViewCtx) {
     const {
@@ -259,8 +259,11 @@ export function createMobileView(ctx: ViewCtx) {
             chip.style.cssText = "display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:0 10px;font-size:12px;" +
                 "border-radius:8px;cursor:pointer;max-width:100%;" +
                 skinCss(c, ro) + dimCss(dim);
-            const lbl = chip.createEl("span", { text: (ro ? "📆 " : "") + spanPrefix(t, iso, toHHMM) + titleOf(t) });
+            const [pre, post] = spanParts(t, iso, toHHMM);
+            const lbl = chip.createEl("span", { text: (ro ? "📆 " : "") + pre + titleOf(t) });
             lbl.style.cssText = "overflow:hidden;text-overflow:ellipsis;white-space:nowrap;";
+            // 꼬리(▶ · ~ 17:00)는 말줄임에 먹히지 않게 따로 — 칩이 flex 라 gap 대신 음수 여백으로 붙인다
+            if (post) chip.createEl("span", { text: post.trim() }).style.cssText = "flex:0 0 auto;white-space:nowrap;margin-left:-3px;";
             chip.onclick = (e: any) => { e.stopPropagation(); openSheet(t); };
         }
 

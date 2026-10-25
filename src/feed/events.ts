@@ -25,6 +25,8 @@ export interface EventItem {
   due: string;
   tStart: number | null;
   tEnd: number | null;
+  /** 날을 넘기는 시간 일정의 마지막 날 종료 시각(분). sync 0.12.1~ 만 준다 — 없으면 null */
+  tEndLastDay: number | null;
   cat: null;
   color: string;
   calendarName: string;
@@ -69,6 +71,7 @@ export const toEventItem = (e: any, color: string): EventItem => ({
   due: e.endISO,
   tStart: e.tStart,
   tEnd: e.tEnd,
+  tEndLastDay: typeof e.tEndLastDay === "number" ? e.tEndLastDay : null, // 덕 타이핑 — 옛 sync 는 필드가 없다
   cat: null, // 카테고리가 아니다 — 필터도 별도 토글로 건다
   color,
   calendarName: e.calendarName || "",

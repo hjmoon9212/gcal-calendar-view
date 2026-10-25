@@ -14,7 +14,7 @@ import { addDays, diffDays, onDay, sundayStart } from "../../core/dates";
 import { DEFAULT_MIN, SNAP_MIN, snapMin, timeText, toHHMM } from "../../core/time";
 import { calKey } from "../../core/blockOptions";
 import { layoutWeekBars } from "../lanes";
-import { barLabel, barTooltip, dayChipLabel, dayChipTooltip, dimCss, grabCss, skinCss, spanPrefix, timeBlockLabel, timeBlockTooltip, titleOf, weekdayColor, OVERDUE_RED, WARN_YELLOW } from "../style";
+import { barLabel, barTooltip, dayChipLabel, dayChipTooltip, dimCss, grabCss, skinCss, spanParts, timeBlockLabel, timeBlockTooltip, titleOf, weekdayColor, OVERDUE_RED, WARN_YELLOW } from "../style";
 
 export function createDesktopView(ctx: ViewCtx) {
     const {
@@ -214,7 +214,20 @@ export function createDesktopView(ctx: ViewCtx) {
         const el = document.createElement("div");
         el.title = dayChipTooltip(task, ro);
         el.style.cssText = `${skinCss(c, ro)}border-radius:4px;padding:2px 7px;font-size:11px;line-height:16px;${grabCss(ro)}max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;${dimCss(task.done || task.cancelled)}`;
-        el.appendChild(document.createTextNode(dayChipLabel(task, ro, spanPrefix(task, iso, toHHMM))));
+        const [pre, post] = spanParts(task, iso, toHHMM);
+        if (!post) el.appendChild(document.createTextNode(dayChipLabel(task, ro, pre)));
+        else {
+            // 꼬리(▶ · ~ 17:00)는 제목이 길어 말줄임이 돼도 보이도록 따로 뗀다
+            // (flex 항목 앞 공백은 사라지므로 꼬리 간격은 여백으로 준다)
+            el.style.display = "inline-flex";
+            const main = document.createElement("span");
+            main.textContent = dayChipLabel(task, ro, pre);
+            main.style.cssText = "min-width:0;overflow:hidden;text-overflow:ellipsis;";
+            const tail = document.createElement("span");
+            tail.textContent = post.trim();
+            tail.style.cssText = "flex:0 0 auto;margin-left:4px;";
+            el.append(main, tail);
+        }
         if (!ro) {
             el.draggable = true;
             el.addEventListener("dragstart", (e: any) => { st.dragging = task; e.dataTransfer.effectAllowed = "move"; });

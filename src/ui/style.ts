@@ -50,6 +50,8 @@ export interface Item {
   bookmark: boolean;
   tStart: number | null;
   tEnd: number | null;
+  /** 📆 날을 넘기는 시간 일정의 마지막 날 종료 시각(분). sync 0.12.1~ */
+  tEndLastDay?: number | null;
   start?: string | null;
   due?: string | null;
   calendarName?: string;
@@ -80,11 +82,19 @@ export const dayChipLabel = (t: Item, ro: boolean, pre = ""): string =>
   (ro ? "📆 " : "") + pre + (t.recurring ? "🔁 " : "") + (t.bookmark ? "🔖 " : "") + titleOf(t);
 
 /**
- * 종일 줄에 올라온 **날을 넘기는 시간 일정**(core/order.ts spansDays)의 접두.
- * 시작일엔 "10:00~ ", 이어지는 날엔 기간 막대처럼 "◀ ". 시각 없는 항목은 "".
+ * 종일 줄에 올라온 **날을 넘기는 시간 일정**(core/order.ts spansDays)의 [접두, 꼬리].
+ * 기간 막대의 잘린 쪽 화살표와 같은 규칙이다:
+ *   시작일     "10:00~ 제목 ▶"
+ *   중간 날    "◀ 제목 ▶"
+ *   마지막 날  "◀ 제목 ~ 17:00"  (피드에 tEndLastDay 가 없으면 — sync 0.12.0 이하 — "◀ 제목")
+ * 시각 없는 항목은 ["", ""].
  */
-export const spanPrefix = (t: Item, iso: string, hhmm: (m: number) => string): string =>
-  t.tStart === null ? "" : t.start === iso ? hhmm(t.tStart) + "~ " : "◀ ";
+export const spanParts = (t: Item, iso: string, hhmm: (m: number) => string): [string, string] => {
+  if (t.tStart === null) return ["", ""];
+  if (t.start === iso) return [hhmm(t.tStart) + "~ ", " ▶"];
+  if (t.due === iso) return ["◀ ", t.tEndLastDay != null ? " ~ " + hhmm(t.tEndLastDay) : ""];
+  return ["◀ ", " ▶"];
+};
 
 /** 시간 블록. 앞에 시각이 오고 ⚠️ **북마크는 안 붙는다**. */
 export const timeBlockLabel = (t: Item, ro: boolean, timePart: string): string =>
