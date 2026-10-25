@@ -7,13 +7,13 @@
  */
 import { Notice } from "obsidian";
 import { CalItem, Categories, catKey, El, itemColor, ViewCtx } from "../types";
-import { byDayOrder, isRO } from "../../core/order";
+import { byDayOrder, inTimeGrid, isRO } from "../../core/order";
 import { layoutTimeLanes } from "../../core/timeLanes";
 import { addDays, coversDay, diffDays, onDay, sundayStart } from "../../core/dates";
 import { timeText, toHHMM, toMin } from "../../core/time";
 import { mobileHourRange } from "../mobileHours";
 import { TaskSheetModal } from "../TaskSheetModal";
-import { dimCss, mobileRowSkinCss, skinCss, timeBlockLabel, titleOf, OVERDUE_RED, SUNDAY_RED, WARN_YELLOW } from "../style";
+import { dimCss, mobileRowSkinCss, skinCss, spanPrefix, timeBlockLabel, titleOf, OVERDUE_RED, SUNDAY_RED, WARN_YELLOW } from "../style";
 
 export function createMobileView(ctx: ViewCtx) {
     const {
@@ -235,9 +235,9 @@ export function createMobileView(ctx: ViewCtx) {
         const iso = st.view.toISODate();
         // 데스크탑 renderDay 와 같은 기준: 이 날에 걸친 것(기간의 어느 하루라도 이 날이면)
         const today = items.filter((t: CalItem) => onDay(t, iso));
-        const timed = today.filter((t: CalItem) => t.tStart !== null);
+        const timed = today.filter((t: CalItem) => inTimeGrid(t));
         // 종일 줄 안에서도 📆 일정이 먼저 — 데스크탑 renderDay 와 같은 규칙
-        const allday = today.filter((t: CalItem) => t.tStart === null).sort(byDayOrder);
+        const allday = today.filter((t: CalItem) => !inTimeGrid(t)).sort(byDayOrder);
 
         // ── 종일 줄 ──
         const ad = box.createEl("div");
@@ -259,7 +259,7 @@ export function createMobileView(ctx: ViewCtx) {
             chip.style.cssText = "display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:0 10px;font-size:12px;" +
                 "border-radius:8px;cursor:pointer;max-width:100%;" +
                 skinCss(c, ro) + dimCss(dim);
-            const lbl = chip.createEl("span", { text: (ro ? "📆 " : "") + titleOf(t) });
+            const lbl = chip.createEl("span", { text: (ro ? "📆 " : "") + spanPrefix(t, iso, toHHMM) + titleOf(t) });
             lbl.style.cssText = "overflow:hidden;text-overflow:ellipsis;white-space:nowrap;";
             chip.onclick = (e: any) => { e.stopPropagation(); openSheet(t); };
         }

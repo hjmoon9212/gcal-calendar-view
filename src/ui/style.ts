@@ -76,8 +76,15 @@ export const barLabel = (t: Item, ro: boolean, clipL: boolean, clipR: boolean, h
   (clipR ? " ▶" : "");
 
 /** 일간 종일 칩. ⚠️ 완료·취소 표시(✓/✗)가 **없다** — 흐림과 취소선으로만 말한다. */
-export const dayChipLabel = (t: Item, ro: boolean): string =>
-  (ro ? "📆 " : "") + (t.recurring ? "🔁 " : "") + (t.bookmark ? "🔖 " : "") + titleOf(t);
+export const dayChipLabel = (t: Item, ro: boolean, pre = ""): string =>
+  (ro ? "📆 " : "") + pre + (t.recurring ? "🔁 " : "") + (t.bookmark ? "🔖 " : "") + titleOf(t);
+
+/**
+ * 종일 줄에 올라온 **날을 넘기는 시간 일정**(core/order.ts spansDays)의 접두.
+ * 시작일엔 "10:00~ ", 이어지는 날엔 기간 막대처럼 "◀ ". 시각 없는 항목은 "".
+ */
+export const spanPrefix = (t: Item, iso: string, hhmm: (m: number) => string): string =>
+  t.tStart === null ? "" : t.start === iso ? hhmm(t.tStart) + "~ " : "◀ ";
 
 /** 시간 블록. 앞에 시각이 오고 ⚠️ **북마크는 안 붙는다**. */
 export const timeBlockLabel = (t: Item, ro: boolean, timePart: string): string =>

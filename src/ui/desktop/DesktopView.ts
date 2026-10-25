@@ -8,13 +8,13 @@
  */
 import { Notice } from "obsidian";
 import { CalItem, Categories, catKey, El, itemColor, ViewCtx } from "../types";
-import { byDayOrder, isRO } from "../../core/order";
+import { byDayOrder, inTimeGrid, isRO } from "../../core/order";
 import { layoutTimeLanes } from "../../core/timeLanes";
 import { addDays, diffDays, onDay, sundayStart } from "../../core/dates";
 import { DEFAULT_MIN, SNAP_MIN, snapMin, timeText, toHHMM } from "../../core/time";
 import { calKey } from "../../core/blockOptions";
 import { layoutWeekBars } from "../lanes";
-import { barLabel, barTooltip, dayChipLabel, dayChipTooltip, dimCss, grabCss, skinCss, timeBlockLabel, timeBlockTooltip, titleOf, weekdayColor, OVERDUE_RED, WARN_YELLOW } from "../style";
+import { barLabel, barTooltip, dayChipLabel, dayChipTooltip, dimCss, grabCss, skinCss, spanPrefix, timeBlockLabel, timeBlockTooltip, titleOf, weekdayColor, OVERDUE_RED, WARN_YELLOW } from "../style";
 
 export function createDesktopView(ctx: ViewCtx) {
     const {
@@ -208,13 +208,13 @@ export function createDesktopView(ctx: ViewCtx) {
     }
 
     // 일간 보기용 칩 (종일 스트립에 놓이는, 시각 없는 태스크)
-    function dayChip(task: CalItem) {
+    function dayChip(task: CalItem, iso: string) {
         const ro = isRO(task);
         const c = itemColor(task, CATCOLOR, CAT_DEFAULT);
         const el = document.createElement("div");
         el.title = dayChipTooltip(task, ro);
         el.style.cssText = `${skinCss(c, ro)}border-radius:4px;padding:2px 7px;font-size:11px;line-height:16px;${grabCss(ro)}max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;${dimCss(task.done || task.cancelled)}`;
-        el.appendChild(document.createTextNode(dayChipLabel(task, ro)));
+        el.appendChild(document.createTextNode(dayChipLabel(task, ro, spanPrefix(task, iso, toHHMM))));
         if (!ro) {
             el.draggable = true;
             el.addEventListener("dragstart", (e: any) => { st.dragging = task; e.dataTransfer.effectAllowed = "move"; });
@@ -232,16 +232,16 @@ export function createDesktopView(ctx: ViewCtx) {
     function renderDay(container: El, tasks: CalItem[]) {
         const iso = st.view.toISODate();
         const today = tasks.filter((t: CalItem) => onDay(t, iso));
-        const timed = today.filter((t: CalItem) => t.tStart !== null).sort((a: any, b: any) => a.tStart - b.tStart || a.tEnd - b.tEnd);
+        const timed = today.filter((t: CalItem) => inTimeGrid(t)).sort((a: any, b: any) => a.tStart - b.tStart || a.tEnd - b.tEnd);
         // 종일 스트립 안에서도 📆 일정이 먼저다 — 그날 뼈대를 왼쪽에서 바로 읽게.
-        const allday = today.filter((t: CalItem) => t.tStart === null).sort(byDayOrder);
+        const allday = today.filter((t: CalItem) => !inTimeGrid(t)).sort(byDayOrder);
 
         // ── 종일 스트립 ──
         const ad = container.createEl("div");
         ad.style.cssText = "display:flex;flex-wrap:wrap;gap:4px;align-items:center;border:1px solid var(--background-modifier-border);border-radius:4px 4px 0 0;padding:5px 6px;min-height:32px;";
         const adLabel = ad.createEl("span", { text: `종일 (${allday.length})` });
         adLabel.style.cssText = "font-size:11px;opacity:.6;margin-right:2px;";
-        for (const t of allday) ad.appendChild(dayChip(t));
+        for (const t of allday) ad.appendChild(dayChip(t, iso));
         ad.addEventListener("dragover", (e: any) => { e.preventDefault(); ad.style.background = "var(--background-modifier-active-hover)"; });
         ad.addEventListener("dragleave", () => { ad.style.background = ""; });
         ad.addEventListener("drop", async (e: any) => {

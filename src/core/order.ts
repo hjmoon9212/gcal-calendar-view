@@ -5,6 +5,22 @@ export function isRO(t: any) {
 }
 
 /**
+ * 시각이 있는데 **날을 넘기는** 📆 일정인가 (예: 10/26 10:00 ~ 10/28 17:00).
+ *
+ * 피드는 이런 일정을 `tEnd = 1440` 으로 접어 보내고 진짜 종료 시각은 버린다. 그대로 일간
+ * 그리드에 두면 걸친 날마다 "10:00~24:00" 블록이 깔린다. Google 캘린더처럼 종일 줄에 올린다.
+ * task 는 제외 — 종일 줄로 옮기면 드래그(그리드 ↔ 종일 = 시각 부여·제거) 의미가 바뀐다.
+ */
+export function spansDays(t: any) {
+    return isRO(t) && t.tStart !== null && !!t.start && !!t.due && t.start < t.due;
+}
+
+/** 일간 보기에서 시간 그리드에 그릴 항목인가. 아니면 종일 줄로 간다. */
+export function inTimeGrid(t: any) {
+    return t.tStart !== null && !spansDays(t);
+}
+
+/**
  * **하루 안에서의 정렬 순위.** 낮을수록 먼저.
  *
  *   0 — 📆 GCal **종일** 일정. 회의·당일 주요 약속이 대부분이라 **그날의 뼈대**다.

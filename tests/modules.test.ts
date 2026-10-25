@@ -19,6 +19,8 @@ import { layoutWeekBars } from "../src/ui/lanes";
 import { mobileHourRange } from "../src/ui/mobileHours";
 import { syncCategories } from "../src/calendar/categories";
 import { DEFAULT_SETTINGS } from "../src/settings/defaults";
+import { inTimeGrid, spansDays } from "../src/core/order";
+import { dayChipLabel, spanPrefix } from "../src/ui/style";
 
 // ── core/dates ──
 eq(addDays("2026-08-31", 1), "2026-09-01", "달을 넘긴다");
@@ -225,6 +227,24 @@ eq(mobileHourRange([], { fullDay: false, nowHour: 23 }), [8, 24], "오늘이면 
   ok(!active.has("hobby"), "사라진 카테고리는 필터에서도 뺀다");
   ok(active.has("study"), "새 카테고리는 켜진 채로");
   ok(!active.has("work"), "그 와중에도 꺼 둔 것은 지킨다");
+}
+
+// ── 날을 넘기는 시간 일정 → 일간 보기 종일 줄 (0.10.4) ──
+{
+  // 10/26 10:00 ~ 10/28 17:00 — 피드는 tEnd 를 1440 으로 접어 보낸다
+  const ev = toEventItem({ uid: "u", title: "청약", startISO: "2026-10-26", endISO: "2026-10-28", tStart: 600, tEnd: 1440, allDay: false, calendarName: "P" }, "#000");
+  const ev1 = toEventItem({ uid: "v", title: "회의", startISO: "2026-10-26", endISO: "2026-10-26", tStart: 600, tEnd: 660, allDay: false, calendarName: "P" }, "#000");
+  const evAll = toEventItem({ uid: "w", title: "휴가", startISO: "2026-10-26", endISO: "2026-10-28", tStart: null, tEnd: null, allDay: true, calendarName: "P" }, "#000");
+  const tk = { kind: "task", start: "2026-10-26", due: "2026-10-28", tStart: 600, tEnd: 660 };
+  ok(spansDays(ev) && !inTimeGrid(ev), "날을 넘기는 시간 일정은 그리드에서 뺀다");
+  ok(!spansDays(ev1) && inTimeGrid(ev1), "하루 안의 시간 일정은 그대로 그리드");
+  ok(!spansDays(evAll) && !inTimeGrid(evAll), "종일 일정은 원래대로 종일 줄");
+  ok(!spansDays(tk) && inTimeGrid(tk), "task 는 건드리지 않는다(드래그 의미 보존)");
+  eq(spanPrefix(ev, "2026-10-26", toHHMM), "10:00~ ", "시작일엔 시작 시각");
+  eq(spanPrefix(ev, "2026-10-27", toHHMM), "◀ ", "이어지는 날엔 ◀");
+  eq(spanPrefix(evAll, "2026-10-26", toHHMM), "", "종일 일정엔 접두 없음");
+  eq(dayChipLabel(ev, true, spanPrefix(ev, "2026-10-26", toHHMM)), "📆 10:00~ 청약", "칩 라벨: 📆 다음에 시각");
+  eq(dayChipLabel(evAll, true), "📆 휴가", "접두를 안 주면 예전 라벨 그대로");
 }
 
 done();
