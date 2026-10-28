@@ -50,11 +50,17 @@ export function parseTaskItem(
   // 낙관적 갱신: 방금 쓴 줄이 아직 인덱스에 안 반영됐으면 그 줄로 대체해서 그린다
   const key = pkey(path, t.line, title);
   const ov = opts.pending.get(key);
+  let status = t.status;
+  let completed = !!t.completed;
   if (ov) {
-    if (ov.text === text) opts.pending.delete(key); // 인덱스가 따라옴 → 해제
+    if (ov.text === text && (ov.status === undefined || ov.status === t.status)) opts.pending.delete(key); // 인덱스가 따라옴 → 해제
     else {
       text = ov.text;
       title = mkTitle(text); // 편집 모달로 제목이 바뀐 경우까지 반영
+      if (ov.status !== undefined) {
+        status = ov.status;
+        completed = ov.status === "x" || ov.status === "X";
+      }
     }
   }
   const dm = text.match(/📅\s*(\d{4}-\d{2}-\d{2})/);
@@ -73,9 +79,9 @@ export function parseTaskItem(
     tStart,
     tEnd,
     cat: gm ? gm[1].toLowerCase() : opts.catDefault,
-    done: !!t.completed,
-    cancelled: t.status === "-", // - [-] = Tasks 취소 상태
-    bookmark: t.status === "b", // - [b] = 북마크 상태
+    done: completed,
+    cancelled: status === "-", // - [-] = Tasks 취소 상태
+    bookmark: status === "b", // - [b] = 북마크 상태
     // 🔁 반복 task. mkTitle 이 제목에서 지우므로 여기서 원문을 보고 잡아둔다.
     recurring: /🔁/u.test(text),
   };

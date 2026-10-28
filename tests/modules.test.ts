@@ -12,6 +12,7 @@ import { addDays, coversDay, diffDays, onDay, overlapsRange, spanOf } from "../s
 import { DEFAULT_MIN, parseTimeField, snapMin, timeText, toHHMM, toMin } from "../src/core/time";
 import { findTaskLine, patchLine } from "../src/write/linePatch";
 import { planDropOnDate, planDropOnTime, planWriteBack } from "../src/write/dropRules";
+import { createWriteService } from "../src/write/TaskWriteService";
 import { mkTitle, parseTaskItem, gatherTasks } from "../src/data/gather";
 import { pkey, sweepPending, UID } from "../src/data/pending";
 import { eventCacheKey, passesCalFilter, toEventItem } from "../src/feed/events";
@@ -137,6 +138,73 @@ eq(mkTitle("#task ⏰ 09:00-10:00 회의 준비 ⏫"), "회의 준비", "⏰ 와
   eq(pending.size, 0, "따라온 대기표는 해제된다");
 }
 {
+  // 0.10.6 — 완료 토글의 대기표는 체크박스 상태까지 싣는다. 텍스트가 같아도 상태가 다르면 안 푼다.
+  const pending = new Map([[pkey("a.md", 1, "할일"), { text: "#task 할일 ✅ 2026-08-06", status: "x", ts: Date.now() }]]);
+  const opts = { catDefault: "personal", pending, now: Date.now() };
+  const stale = [{ file: { path: "a.md", tasks: [{ text: "#task 할일", line: 1, status: " ", completed: false }] } }];
+  eq(gatherTasks(stale, opts)[0].done, true, "인덱스가 옛 [ ] 여도 대기표의 [x] 로 그린다");
+  const textOnly = [{ file: { path: "a.md", tasks: [{ text: "#task 할일 ✅ 2026-08-06", line: 1, status: " ", completed: false }] } }];
+  eq(gatherTasks(textOnly, opts)[0].done, true, "텍스트만 따라오고 상태가 안 따라왔으면 아직 대기표");
+  eq(pending.size, 1, "상태가 다르면 남는다");
+  const caught = [{ file: { path: "a.md", tasks: [{ text: "#task 할일 ✅ 2026-08-06", line: 1, status: "x", completed: true }] } }];
+  eq(gatherTasks(caught, opts)[0].done, true, "인덱스가 따라왔다");
+  eq(pending.size, 0, "상태까지 따라오면 해제된다");
+}
+// cjs 번들이라 최상위 await 가 없다 — 이 블록만 비동기로 돌리고 done() 은 끝나기를 기다린다.
+const toggleDoneTests = (async () => {
+  // 0.10.6 — writer.toggleDone: 줄은 Tasks API 가 만들고, 반복(두 줄)은 대기표에 안 올린다
+  const mkApp = (body: string, api: any) => {
+    const files: Record<string, string> = { "a.md": body };
+    return {
+      files,
+      plugins: { plugins: { "obsidian-tasks-plugin": api ? { apiV1: api } : {} } },
+      vault: {
+        getAbstractFileByPath: (p: string) => (p in files ? { path: p } : null),
+        process: async (f: any, fn: (d: string) => string) => { files[f.path] = fn(files[f.path]); },
+      },
+    };
+  };
+  const toggle = (line: string) =>
+    line.includes("[ ]") ? line.replace("[ ]", "[x]") + " ✅ 2026-08-06" : line.replace("[x]", "[ ]").replace(/ ✅ \S+/, "");
+  const task = { kind: "task", path: "a.md", line: 1, title: "할일", text: "#task 할일", done: false };
+  const run = async (body: string, api: any, t: any = task) => {
+    const app = mkApp(body, api);
+    const pending = new Map();
+    let writes = 0;
+    const w = createWriteService({ app, pending, rememberScroll: () => {}, afterWrite: () => { writes++; } });
+    await w.toggleDone(t);
+    return { body: app.files["a.md"], pending, writes };
+  };
+  {
+    const r = await run("# 제목\n- [ ] #task 할일\n끝", { executeToggleTaskDoneCommand: toggle });
+    eq(r.body, "# 제목\n- [x] #task 할일 ✅ 2026-08-06\n끝", "그 줄만 Tasks 결과로 바뀐다");
+    eq([...r.pending.values()].map((v: any) => [v.text, v.status]), [["#task 할일 ✅ 2026-08-06", "x"]], "대기표: 체크박스 뗀 텍스트 + 상태");
+    eq(r.writes, 1, "쓴 뒤 다시 그린다");
+  }
+  {
+    const r = await run("- [x] #task 할일 ✅ 2026-08-06", { executeToggleTaskDoneCommand: toggle }, { ...task, line: 0, done: true });
+    eq(r.body, "- [ ] #task 할일", "완료 취소");
+  }
+  {
+    const rec = (l: string) => "- [ ] #task 할일 🔁 every day 📅 2026-08-07\n" + toggle(l);
+    const r = await run("- [ ] #task 할일 🔁 every day 📅 2026-08-06", { executeToggleTaskDoneCommand: rec }, { ...task, line: 0 });
+    eq(r.body.split("\n").length, 2, "반복: 다음 회차 줄까지 들어간다");
+    eq(r.pending.size, 0, "반복은 대기표에 안 올린다(재색인에 맡긴다)");
+  }
+  {
+    const r = await run("- [ ] #task 할일", null, { ...task, line: 0 });
+    eq([r.body, r.writes], ["- [ ] #task 할일", 0], "Tasks API 가 없으면 쓰지 않는다");
+  }
+  {
+    const r = await run("- [ ] #task 다른 일", { executeToggleTaskDoneCommand: toggle }, { ...task, line: 0 });
+    eq([r.body, r.writes], ["- [ ] #task 다른 일", 0], "줄을 못 찾으면 아무것도 안 건드린다");
+  }
+  {
+    const r = await run("- [ ] #task 할일", { executeToggleTaskDoneCommand: toggle }, { kind: "event", path: null, title: "회의" });
+    eq(r.writes, 0, "GCal 일정은 읽기 전용");
+  }
+})();
+{
   const pending = new Map([
     ["old", { text: "x", ts: Date.now() - 20001 }],
     ["new", { text: "y", ts: Date.now() }],
@@ -253,4 +321,4 @@ eq(mobileHourRange([], { fullDay: false, nowHour: 23 }), [8, 24], "오늘이면 
   eq(dayChipLabel(evAll, true), "📆 휴가", "접두를 안 주면 예전 라벨 그대로");
 }
 
-done();
+toggleDoneTests.then(done);

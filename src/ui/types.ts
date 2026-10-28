@@ -45,6 +45,7 @@ export interface ViewCtx {
   // ── 쓰기(TaskWriteService) ──
   openAtLine: (task: CalItem, evt?: any) => any;
   editTask: (task: CalItem) => any;
+  toggleDone: (task: CalItem) => Promise<void>;
   applyDates: (task: CalItem, changes: any) => Promise<void>;
   dropOnDate: (task: CalItem, iso: string, shift: boolean) => Promise<void>;
   dropOnTime: (task: CalItem, iso: string, startMin: number) => Promise<void>;

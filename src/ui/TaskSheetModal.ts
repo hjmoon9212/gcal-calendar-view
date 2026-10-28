@@ -82,7 +82,17 @@ export class TaskSheetModal extends Modal {
             return;
         }
 
-        // ── 📅 마감일 ── 가장 흔한 동작이라 맨 위에 둔다.
+        // ── ✅ 완료 ── 폰에서 가장 자주 하는 일이라 날짜보다 위에 둔다(0.10.6~).
+        //    취소(`- [-]`) task 에는 두지 않는다 — 누르면 취소가 완료로 덮인다.
+        //    완료 숨김(「완료 ✗」)이면 누르는 즉시 카드가 사라지므로 되돌리기는 「완료 ✓」에서 한다.
+        if (!t.cancelled && c.toggleDone) {
+            const dn = this.row();
+            dn.style.marginTop = "12px";
+            this.btn(dn, t.done ? "↩ 완료 취소" : "✅ 완료", () => c.toggleDone(t),
+                t.done ? "" : "font-weight:600;flex:1 1 auto;");
+        }
+
+        // ── 📅 마감일 ── 날짜 동작 중 가장 흔한 것이라 맨 위에 둔다.
         this.section("📅 마감일" + (t.due ? " — 지금 " + t.due : " — 없음"));
         const due = this.row();
         this.btn(due, "오늘", () => c.writeBack(t, c.todayISO));

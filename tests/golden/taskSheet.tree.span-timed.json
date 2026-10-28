@@ -30,6 +30,25 @@
     },
     {
       "tag": "div",
+      "style": {
+        "cssText": "display:flex;flex-wrap:wrap;align-items:center;gap:8px;",
+        "marginTop": "12px"
+      },
+      "children": [
+        {
+          "tag": "button",
+          "text": "✅ 완료",
+          "style": {
+            "cssText": "min-height:40px;padding:0 14px;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600;flex:1 1 auto;"
+          },
+          "handlers": [
+            "onclick"
+          ]
+        }
+      ]
+    },
+    {
+      "tag": "div",
       "text": "📅 마감일 — 지금 2026-08-10",
       "style": {
         "cssText": "font-size:12px;opacity:.6;margin:16px 0 6px;"

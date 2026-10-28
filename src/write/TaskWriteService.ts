@@ -133,6 +133,64 @@ export function createWriteService(deps: WriteDeps) {
   }
 
   /**
+   * 완료 ⇄ 미완료 토글 — 모바일 액션시트의 「✅ 완료」(0.10.6~).
+   *
+   * 줄은 **Tasks 의 `executeToggleTaskDoneCommand` 가 만든다.** ✅ 완료일을 붙이고 떼는 것,
+   * 🔁 반복이면 다음 회차 줄을 만드는 것이 전부 거기 있다 — `[ ]`→`[x]` 를 직접 바꾸면
+   * 반복 task 가 다음 회차 없이 끝나 버린다. 그래서 API 가 없으면 쓰지 않고 말만 한다.
+   * 이 API 는 동기라 `vault.process` 안에서 부른다(읽기와 쓰기 사이에 줄이 바뀔 틈이 없다).
+   */
+  async function toggleDone(task: any): Promise<void> {
+    if (isRO(task)) return; // GCal 일정은 읽기 전용
+    const tp = app.plugins.plugins["obsidian-tasks-plugin"];
+    const api = tp && tp.apiV1; // apiV1 은 getter(속성) — 괄호 없이 접근
+    if (!api || typeof api.executeToggleTaskDoneCommand !== "function") {
+      new Notice("Tasks 플러그인이 없거나 오래돼 완료 처리를 할 수 없습니다");
+      return;
+    }
+    const file = app.vault.getAbstractFileByPath(task.path);
+    if (!file) {
+      new Notice("파일 없음: " + task.path);
+      return;
+    }
+    deps.rememberScroll();
+    let missed = false;
+    let wroteAt = task.line;
+    let edited = "";
+    let changed = false;
+    await app.vault.process(file, (d: string) => {
+      const lines = d.split("\n");
+      const j = findTaskLine(lines, task);
+      if (j < 0) {
+        missed = true;
+        return d;
+      } // 못 찾으면 아무것도 건드리지 않는다
+      edited = api.executeToggleTaskDoneCommand(lines[j], task.path);
+      if (typeof edited !== "string" || !edited || edited === lines[j]) return d;
+      lines[j] = edited;
+      wroteAt = j;
+      changed = true;
+      return lines.join("\n");
+    });
+    if (missed) {
+      new Notice("태스크 줄을 찾지 못함: " + task.path);
+      return;
+    }
+    if (!changed) return;
+    // editTask 와 같은 낙관적 갱신. 반복 task 는 두 줄이 돌아오므로 재색인에 맡긴다(editTask 주석).
+    const m = !/\r?\n/.test(edited) ? edited.match(/^\s*[-*+]\s*\[(.)\]\s*/) : null;
+    if (m) {
+      deps.pending.set(pkey(task.path, wroteAt, task.title), {
+        text: edited.slice(m[0].length),
+        status: m[1],
+        ts: Date.now(),
+      });
+    }
+    new Notice(task.done ? "↩ 완료 취소" : "✅ 완료");
+    deps.afterWrite();
+  }
+
+  /**
    * 원본 줄의 🛫 start / 📅 due / ⏰ time 을 직접 변경 (changes: {start?, due?, time?}).
    * 없는 필드는 새로 추가하고, time 에 null 을 주면 시각을 제거한다.
    */
@@ -211,6 +269,7 @@ export function createWriteService(deps: WriteDeps) {
     openFile: (path: string, file: any, mode: boolean | string) => leafForFile(path, mode).openFile(file, { active: true }),
     openAtLine,
     editTask,
+    toggleDone,
     applyDates,
     setNoteProps,
     /** 배경 날짜 칸 드롭 (일반 = 기간째 이동 · Shift = 마감일만 조정) */

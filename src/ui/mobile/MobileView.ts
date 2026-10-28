@@ -20,7 +20,7 @@ export function createMobileView(ctx: ViewCtx) {
         app, plugin, root, L, todayISO,
         S, st, ctrl, activeCats, saveState, syncCategories, collect, render,
         restorePageScroll,
-        openAtLine, editTask, applyDates, dropOnDate, writeBack,
+        openAtLine, editTask, toggleDone, applyDates, dropOnDate, writeBack,
         feed, feedPlugin, eventsFor, rangeForView,
         noteMarkdown, noteBlock, CALF,
     } = ctx;
@@ -58,7 +58,7 @@ export function createMobileView(ctx: ViewCtx) {
     /** 액션시트를 연다. 쓰기 함수를 그대로 넘긴다 — 모달은 노트를 직접 고치지 않는다. */
     const openSheet = (t: CalItem) => {
         new TaskSheetModal(app, t, {
-            applyDates, dropOnDate, writeBack, editTask, openAtLine,
+            applyDates, dropOnDate, writeBack, editTask, openAtLine, toggleDone,
             isRO, colorOf, metaLine, timeText, toMin, toHHMM, addDays, todayISO,
             notice: (m: any) => new Notice(m),
         }).open();

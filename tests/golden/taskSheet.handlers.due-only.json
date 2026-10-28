@@ -1,5 +1,15 @@
 [
   {
+    "target": "button ✅ 완료",
+    "calls": [
+      [
+        "toggleDone",
+        "task:장보기"
+      ]
+    ],
+    "closed": 1
+  },
+  {
     "target": "button 오늘",
     "calls": [
       [

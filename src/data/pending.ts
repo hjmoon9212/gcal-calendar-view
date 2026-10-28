@@ -26,6 +26,11 @@ export const UID = (path: string, line: number): string => path + SEP + line;
 export interface PendingEntry {
   text: string;
   ts: number;
+  /**
+   * 체크박스 상태 문자(`- [x]` 의 x). 완료 토글(0.10.6~)만 싣는다 — text 는 Dataview 형식이라
+   * 체크박스가 없어서, 이게 없으면 인덱스가 따라올 때까지 완료한 카드가 미완료로 그려진다.
+   */
+  status?: string;
 }
 
 /**

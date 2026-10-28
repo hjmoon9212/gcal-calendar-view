@@ -158,6 +158,7 @@ export function createCalendar({ plugin, api, container, source, notes, sourcePa
     const openMode = (e: any) => writer.openMode(e);
     const openAtLine = (task: any, evt?: any) => writer.openAtLine(task, evt);
     const editTask = (task: any) => writer.editTask(task);
+    const toggleDone = (task: any) => writer.toggleDone(task);
     const applyDates = (task: any, changes: any) => writer.applyDates(task, changes);
     const dropOnDate = (task: any, iso: string, shift: boolean) => writer.dropOnDate(task, iso, shift);
     const dropOnTime = (task: any, iso: string, startMin: number) => writer.dropOnTime(task, iso, startMin);
@@ -180,7 +181,7 @@ export function createCalendar({ plugin, api, container, source, notes, sourcePa
         app, plugin, root, L, todayISO, CALF,
         S, st, ctrl, activeCats, saveState, syncCategories, collect, render, takeDrag,
         restorePageScroll, rememberScroll,
-        openAtLine, editTask, applyDates, dropOnDate, dropOnTime, writeBack, openMode, writer,
+        openAtLine, editTask, toggleDone, applyDates, dropOnDate, dropOnTime, writeBack, openMode, writer,
         feed, feedPlugin, eventsFor, passesCalFilter, rangeForView,
         noteMarkdown, noteBlock, attachDrop,
         HOUR_H, DAY_BOX_H, GUTTER,

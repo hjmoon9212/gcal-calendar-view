@@ -8,7 +8,7 @@
 import { installFakeEnv } from "./helpers/fakeEnv";
 installFakeEnv(); // 2026-08-06 12:00 로컬 → nowUp = 12:00
 
-import { done } from "./helpers/assert";
+import { done, eq } from "./helpers/assert";
 import { golden } from "./helpers/golden";
 import { FakeEl, findAll, serializeEl } from "./helpers/fakeDom";
 
@@ -40,6 +40,7 @@ function makeCtx() {
     dropOnDate: rec("dropOnDate"),
     editTask: rec("editTask"),
     openAtLine: rec("openAtLine"),
+    toggleDone: rec("toggleDone"),
     notice: (m: string) => calls.push(["notice", m]),
   };
   return ctx;
@@ -129,6 +130,17 @@ const TASKS: Record<string, any> = {
     const save = findAll(m.contentEl, (e) => e.text === "저장")[0];
     await save.onclick!();
     golden("taskSheet.save-inverted", ctx.calls);
+  }
+  // 0.10.6 — 완료 버튼: 미완료 = 「✅ 완료」, 완료 = 「↩ 완료 취소」, 취소·일정 = 없음
+  {
+    const label = (task: any) => findAll(open(task).m.contentEl, (e) => /완료/.test(e.text || "") && !!e.onclick).map((e) => e.text);
+    eq(label({ ...TASKS["due-only"] }), ["✅ 완료"], "미완료 task → ✅ 완료");
+    eq(label({ ...TASKS["due-only"], done: true }), ["↩ 완료 취소"], "완료 task → 완료 취소");
+    eq(label({ ...TASKS["due-only"], cancelled: true }), [], "취소 task 에는 없다(완료로 덮지 않는다)");
+    eq(label({ ...TASKS["event"] }), [], "GCal 일정에는 없다");
+    const { m, ctx, closes } = open({ ...TASKS["due-only"] });
+    await findAll(m.contentEl, (e) => e.text === "✅ 완료")[0].onclick!();
+    eq([ctx.calls, closes()], [[["toggleDone", "task:장보기"]], 1], "누르면 toggleDone 을 부르고 닫는다");
   }
   // 닫으면 비운다
   {
