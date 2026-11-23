@@ -16,7 +16,8 @@
 import { skinCss, dimCss, statusMark, titleOf, OVERDUE_RED } from "../ui/style";
 import { timeText } from "../core/time";
 import { addDays } from "../core/dates";
-import type { GanttGroup, GanttModel, GanttRow, VisibleGroup } from "./rows";
+import type { GanttGroup, GanttModel, GanttRow, VisibleGroup, VisibleProject } from "./rows";
+import type { Progress } from "./tree";
 import { filterToWindow } from "./rows";
 import { dayTicks, makeScale, monthTicks, Scale, stepAnchor, viewWindow, windowLabel, Zoom, ZOOMS, ZOOM_LABEL } from "./scale";
 import { statusInfo } from "./status";
@@ -30,7 +31,18 @@ export const STATUS_W = 40;
 export const GROUP_H = 32;
 export const ROW_H = 30;
 export const INDENT = 16;
+export const PROJECT_H = 34;
+/** 프로젝트 접힘 키 접두 — 노트 경로와 같은 `collapsed` 배열에 섞어 둔다 */
+export const PROJECT_KEY = "proj:";
 const HOLD_GRAY = "var(--text-faint)";
+
+/** `완료/전체` — 글자와 흐림만(강조 최소). 다 끝났으면 더 흐리게 */
+function progressText(el: El, p: Progress | null, css = ""): void {
+  if (!p) return;
+  const s = el.createEl("span", { text: `${p.done}/${p.total}` });
+  s.style.cssText = `font-size:11px;font-variant-numeric:tabular-nums;opacity:${p.done >= p.total ? ".4" : ".7"};${css}`;
+  s.title = `완료 ${p.done} / 전체 ${p.total} (${Math.round((p.done / p.total) * 100)}%)`;
+}
 const ACCENT = "var(--interactive-accent)";
 
 export interface GanttViewState {
@@ -120,14 +132,16 @@ export function renderGantt(model: GanttModel, d: GanttViewDeps): void {
     state.showDoneNotes = !state.showDoneNotes;
     d.render();
   };
-  const count = bar.createEl("span", { text: `노트 ${view.groups.length}/${view.total}개` });
+  const count = bar.createEl("span", {
+    text: (view.projects ? `프로젝트 ${view.projects.length} · ` : "") + `노트 ${view.groups.length}/${view.total}개`,
+  });
   count.style.cssText = "font-size:11px;opacity:.6;";
   count.title = "이 기간에 보이는 노트 / 날짜가 있는 전체 노트";
 
   if (!model.groups.length) {
     const empty = box.createEl("div", { text: "그릴 노트가 없습니다 — 범위 안에 StartDate/EndDate 프로퍼티나 📅 가 있는 #task 가 없습니다." });
     empty.style.cssText = "padding:8px;font-size:12px;opacity:.6;";
-  } else if (!view.groups.length) {
+  } else if (!view.groups.length || (view.projects && !view.projects.length)) {
     const empty = box.createEl("div", { text: "이 기간에 걸친 노트가 없습니다 — ◀ ▶ 로 옮겨 보세요." });
     empty.style.cssText = "padding:8px;font-size:12px;opacity:.6;";
   } else {
@@ -140,10 +154,10 @@ export function renderGantt(model: GanttModel, d: GanttViewDeps): void {
 
     headerRow(inner, sc, today, state.zoom === "week");
     const expanded = new Set(state.expanded);
-    for (const v of view.groups) {
+    const drawGroup = (v: VisibleGroup, nest: number) => {
       const collapsed = d.state.collapsed.includes(v.group.path);
-      groupRow(inner, v, sc, today, collapsed, d);
-      if (collapsed) continue;
+      groupRow(inner, v, sc, today, collapsed, d, nest);
+      if (collapsed) return;
       // 노션식 접기 — 전위 순회 목록에서, 접힌 행보다 깊은 행은 건너뛴다
       let hideBelow = Infinity;
       v.rows.forEach((r, i) => {
@@ -154,10 +168,20 @@ export function renderGantt(model: GanttModel, d: GanttViewDeps): void {
         const open = hasKids && expanded.has(r.key);
         let kids = 0;
         if (hasKids) for (let j = i + 1; j < v.rows.length && v.rows[j].depth > r.depth; j++) kids++;
-        taskRow(inner, r, sc, today, d, hasKids ? { open, kids } : null);
+        taskRow(inner, r, sc, today, d, hasKids ? { open, kids } : null, nest);
         if (hasKids && !open) hideBelow = r.depth;
       });
-    }
+    };
+    if (view.projects) {
+      // 프로젝트 > 노트 > 1단계 task(0.11.0~). 프로젝트·노트는 기본 펼침, 하위 task 는 기본 접힘
+      for (const vp of view.projects) {
+        const ck = PROJECT_KEY + vp.project.key;
+        const collapsed = d.state.collapsed.includes(ck);
+        projectRow(inner, vp, sc, today, collapsed, d);
+        if (collapsed) continue;
+        for (const v of vp.groups) drawGroup(v, INDENT);
+      }
+    } else for (const v of view.groups) drawGroup(v, 0);
 
     // 창이 컨테이너보다 넓을 때만 스크롤이 생긴다. 처음엔 오늘이 보이게, 다시 그린 것이면 보던 자리 그대로.
     scroller.addEventListener("scroll", () => {
@@ -328,7 +352,68 @@ function attachDrag(
   return { dragged: () => justDragged };
 }
 
-function groupRow(inner: El, v: VisibleGroup, sc: Scale, today: string, collapsed: boolean, d: GanttViewDeps): void {
+/**
+ * 프로젝트 행(0.11.0~) — `Project:` 허브 하나. 라벨 클릭 = 접기/펼치기, 막대 클릭 = 허브 노트 열기.
+ * 막대는 노트 막대와 같은 모양(statusInfo). 드래그는 없다 — 허브 프로퍼티는 허브 노트에서 고친다.
+ */
+function projectRow(inner: El, vp: VisibleProject, sc: Scale, today: string, collapsed: boolean, d: GanttViewDeps): void {
+  const pr = vp.project;
+  const si = statusInfo(pr.status);
+  const { status, label, track } = line(inner, PROJECT_H);
+  status.setText(si.label);
+  status.style.color = si.color;
+  if (si.label) status.title = `Status: ${pr.status}`;
+  const toggle = () => {
+    const ck = PROJECT_KEY + pr.key;
+    const i = d.state.collapsed.indexOf(ck);
+    if (i >= 0) d.state.collapsed.splice(i, 1);
+    else d.state.collapsed.push(ck);
+    d.render();
+  };
+  const tog = label.createEl("span", { text: collapsed ? "▸" : "▾" });
+  tog.style.cssText = "cursor:pointer;width:12px;text-align:center;opacity:.7;";
+  tog.onclick = toggle;
+  const name = label.createEl("span", { text: "📁 " + pr.name });
+  name.style.cssText = "cursor:pointer;font-weight:700;overflow:hidden;text-overflow:ellipsis;" + (si.bar === "done" ? "opacity:.55;" : "");
+  const tip = projectTooltip(vp);
+  name.title = tip + "\n클릭=접기/펼치기";
+  name.onclick = toggle;
+  progressText(label, pr.progress);
+  if (collapsed) label.createEl("span", { text: `(노트 ${vp.groups.length})` }).style.cssText = "font-size:11px;opacity:.5;";
+
+  todayLine(track, sc, today);
+  const s = pr.span;
+  const b = s ? sc.bar(s.start, s.end) : null;
+  if (!s || !b) return;
+  const color = si.bar === "hold" ? HOLD_GRAY : ACCENT;
+  const look =
+    si.bar === "planned" ? `border:1px dashed ${color};box-sizing:border-box;`
+    : `background:${color};opacity:${si.bar === "done" ? ".25" : ".6"};`;
+  const el = track.createEl("div");
+  el.style.cssText =
+    `position:absolute;top:11px;height:12px;left:${b.left}px;width:${Math.max(b.width, 3)}px;` +
+    look + `border-radius:3px;${pr.hubPath ? "cursor:pointer;" : ""}`;
+  el.title = tip + (pr.hubPath ? "\n클릭=허브 노트 열기 · Ctrl+클릭=새 탭" : "");
+  if (pr.hubPath) el.onclick = (e: any) => d.openNote(pr.hubPath!, e);
+  if (b.clipL) clipMark(track, "L", b.left, 12);
+  if (b.clipR) clipMark(track, "R", b.left + b.width - 10, 12);
+}
+
+function projectTooltip(vp: VisibleProject): string {
+  const pr = vp.project;
+  const s = pr.span;
+  const p = pr.progress;
+  return (
+    `${pr.name}\n` +
+    (s ? `${s.start} ~ ${s.open ? "(종료일 없음)" : s.end}` : "날짜 없음") +
+    (s && !pr.fromHub ? "\n(허브 프로퍼티 없음 — 노트 구간의 합)" : "") +
+    (pr.status ? `\nStatus: ${pr.status}` : "") +
+    `\n노트 ${vp.groups.length}개` +
+    (p ? ` · 1단계 task ${p.done}/${p.total} 완료` : "")
+  );
+}
+
+function groupRow(inner: El, v: VisibleGroup, sc: Scale, today: string, collapsed: boolean, d: GanttViewDeps, nest = 0): void {
   const g = v.group;
   const si = statusInfo(g.status);
   const { status, label, track } = line(inner, GROUP_H);
@@ -337,7 +422,7 @@ function groupRow(inner: El, v: VisibleGroup, sc: Scale, today: string, collapse
   if (si.label) status.title = `Status: ${g.status}`;
 
   const tog = label.createEl("span", { text: v.rows.length ? (collapsed ? "▸" : "▾") : "·" });
-  tog.style.cssText = "cursor:pointer;width:12px;text-align:center;opacity:.7;";
+  tog.style.cssText = `cursor:pointer;width:12px;text-align:center;opacity:.7;${nest ? `margin-left:${nest}px;` : ""}`;
   if (v.rows.length) {
     tog.title = collapsed ? "펼치기" : "접기";
     tog.onclick = () => {
@@ -353,6 +438,7 @@ function groupRow(inner: El, v: VisibleGroup, sc: Scale, today: string, collapse
     (g.overrun ? `color:${OVERDUE_RED};` : "") + (si.bar === "done" ? "opacity:.55;" : "");
   name.title = groupTooltip(g, false);
   name.onclick = (e: any) => d.openNote(g.path, e);
+  progressText(label, g.progress);
   if (collapsed && v.rows.length) label.createEl("span", { text: `(${v.rows.length})` }).style.cssText = "opacity:.5;";
   const hidden = [
     v.outside ? `+${v.outside} 기간 밖` : "",
@@ -452,10 +538,27 @@ function dragOverrun(
   );
 }
 
-function taskRow(inner: El, r: GanttRow, sc: Scale, today: string, d: GanttViewDeps, tree: { open: boolean; kids: number } | null): void {
+function taskRow(
+  inner: El,
+  r: GanttRow,
+  sc: Scale,
+  today: string,
+  d: GanttViewDeps,
+  tree: { open: boolean; kids: number } | null,
+  nest = 0
+): void {
   const t = r.task;
   const dim = t.done || t.cancelled;
-  const { label, track } = line(inner, ROW_H);
+  const { status, label, track } = line(inner, ROW_H);
+  // 진행률(0.11.0~) — task 행의 상태 칸은 비어 있었다. #task 아닌 체크박스까지 센 `완료/전체`
+  if (r.progress) {
+    const p = r.progress;
+    status.setText(`${p.done}/${p.total}`);
+    status.style.cssText =
+      `flex:0 0 ${STATUS_W}px;width:${STATUS_W}px;text-align:center;font-size:11px;font-variant-numeric:tabular-nums;` +
+      `opacity:${p.done >= p.total ? ".4" : ".75"};`;
+    status.title = `하위 체크박스 완료 ${p.done} / 전체 ${p.total} (${Math.round((p.done / p.total) * 100)}%)`;
+  }
   let drag: { dragged: () => boolean } | null = null;
   const click = (e: any) => {
     if (drag?.dragged()) return;
@@ -470,22 +573,25 @@ function taskRow(inner: El, r: GanttRow, sc: Scale, today: string, d: GanttViewD
   // 들여쓰기 + ▸/▾ (자식이 있을 때만). 토글 자리는 항상 비워 둬 제목이 깊이별로 줄 맞게 한다.
   const tog = label.createEl("span", { text: tree ? (tree.open ? "▾" : "▸") : "" });
   tog.style.cssText =
-    `flex:0 0 14px;width:14px;margin-left:${16 + r.depth * INDENT}px;text-align:center;opacity:.7;` +
+    `flex:0 0 14px;width:14px;margin-left:${16 + nest + r.depth * INDENT}px;text-align:center;opacity:.7;` +
     (tree ? "cursor:pointer;" : "");
+  const toggle = () => {
+    const i = d.state.expanded.indexOf(r.key);
+    if (i >= 0) d.state.expanded.splice(i, 1);
+    else d.state.expanded.push(r.key);
+    d.render();
+  };
   if (tree) {
     tog.title = tree.open ? "하위 task 접기" : `하위 task ${tree.kids}개 펼치기`;
-    tog.onclick = () => {
-      const i = d.state.expanded.indexOf(r.key);
-      if (i >= 0) d.state.expanded.splice(i, 1);
-      else d.state.expanded.push(r.key);
-      d.render();
-    };
+    tog.onclick = toggle;
   }
   const lab = label.createEl("span", { text: statusMark(t, false) + (t.recurring ? "🔁 " : "") + titleOf(t) });
   lab.style.cssText =
     `cursor:pointer;overflow:hidden;text-overflow:ellipsis;${r.late ? `color:${OVERDUE_RED};` : ""}${dimCss(dim)}`;
-  lab.title = tip;
-  lab.onclick = click;
+  // 하위가 있으면 **이름 클릭 = 펼치기/접기**(0.11.0~). 원본 줄은 막대 클릭 · Ctrl/Cmd+클릭 · 우클릭으로.
+  // 하위가 없으면 지금처럼 이름 클릭 = 열기(폰은 액션시트).
+  lab.title = tree ? tip.replace(d.hint, (tree.open ? "이름 클릭=하위 접기" : `이름 클릭=하위 ${tree.kids}개 펼치기`) + " · Ctrl+클릭=열기\n" + d.hint) : tip;
+  lab.onclick = tree ? (e: any) => (e?.ctrlKey || e?.metaKey ? click(e) : toggle()) : click;
   lab.addEventListener("contextmenu", menu);
   if (tree && !tree.open) label.createEl("span", { text: `(${tree.kids})` }).style.cssText = "font-size:11px;opacity:.5;";
 

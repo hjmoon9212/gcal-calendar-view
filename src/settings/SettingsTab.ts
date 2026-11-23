@@ -96,7 +96,7 @@ export class GcalCalendarSettingTab extends PluginSettingTab {
         const gantt = containerEl.createEl("div");
         gantt.style.cssText = "font-size:12px;line-height:1.7;opacity:.85;";
         gantt.createEl("p", {
-            text: "노트 1개 = 그룹 1개. 그룹 막대 = 노트 프로퍼티(시작 ~ 끝), 그 아래 행 = 그 노트의 #task(🛫 ~ 📅, 📅 만이면 ◆).",
+            text: "프로젝트(📁, 노트의 Project: 허브) > 노트(📄, 막대 = 프로퍼티 시작 ~ 끝) > #task(🛫 ~ 📅, 📅 만이면 ◆). 처음엔 1단계 task 까지만 보인다.",
         }).style.margin = "0 0 6px";
         this.sample(gantt, "볼트 전체 (기본, Template 제외)", "```gcal-gantt\n```");
         this.sample(gantt, "이 경로 이하만 (폴더 또는 파일)", "```gcal-gantt\npath: 0. Note/1. Project/내 프로젝트\n```");
@@ -113,9 +113,10 @@ export class GcalCalendarSettingTab extends PluginSettingTab {
             "끝 프로퍼티가 비면 그 노트 task 의 가장 늦은 📅, 그것도 없으면 오늘까지 열린 기간(오른쪽이 흐려진다).",
             "상태 칸 = Status(진행·계획·보류·완료). 계획 = 점선 막대 · 보류 = 회색 · 완료 = 흐림. «완료 노트» 로 Done 노트 숨김.",
             "종료일보다 📅 가 늦은 미완료 task 가 있으면 노트 이름이 붉고, 막대 뒤에 붉은 점선이 이어진다(task 끼리도 같은 규칙).",
-            "탭 들여쓰기 = 하위 task. ▸/▾ 로 접고 편다 — 처음엔 최상위만. 날짜 없는 부모는 하위 기간을 괄호 막대로 보인다.",
+            "탭 들여쓰기 = 하위 task. 하위가 있는 task 는 이름 클릭(또는 ▸/▾)으로 펼친다 — 처음엔 최상위만. 날짜 없는 부모는 하위 기간을 괄호 막대로 보인다.",
+            "진행률 = 완료/전체. task 왼쪽 칸 = 하위 체크박스 전부(#task 아닌 것 포함, 취소 제외), 노트·프로젝트 = 1단계 task.",
             "막대 가운데 드래그 = 기간째 이동 · 양 끝 = 시작/끝만 · 붉은 점선 = 끝만(하루 단위). 노트 막대는 프로퍼티를, task 막대는 🛫/📅 를 고친다.",
-            "클릭 = 원본 열기 · Ctrl+클릭 = 새 탭 · 우클릭 = Tasks 편집 모달 (캘린더와 같다). 폰은 탭 = 액션시트, 드래그 없음.",
+            "막대 클릭 = 원본 열기 · Ctrl+클릭 = 새 탭 · 우클릭 = Tasks 편집 모달 (캘린더와 같다). 폰은 막대 탭 = 액션시트, 드래그 없음.",
         ]) {
             gul.createEl("li", { text: t });
         }

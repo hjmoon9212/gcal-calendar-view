@@ -158,6 +158,8 @@ export default class GcalCalendarViewPlugin extends Plugin {
                     startProp: opts.start || "",
                     endProps: parseList(opts.end),
                     excludeTypes: parseList(opts["exclude-type"]),
+                    // 묶음 단위(0.11.0~) — 기본 `Project:` 허브별, `group: note` 면 노트 단위
+                    groupBy: String(opts.group || "").trim().toLowerCase() === "note" ? "note" : "project",
                 })
                 : createCalendar({
                     plugin: this, api, container: el, source,

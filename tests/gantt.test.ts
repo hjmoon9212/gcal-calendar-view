@@ -15,7 +15,7 @@ import { toISODate, getProp, firstDate, noteSpan, writeKey } from "../src/gantt/
 import { daysFor, previewSpan, notePatch, taskChanges } from "../src/gantt/drag";
 import { viewWindow, stepAnchor, addMonths, windowLabel, makeScale, monthTicks, dayTicks } from "../src/gantt/scale";
 import { buildGantt, filterToWindow, reachEnd } from "../src/gantt/rows";
-import { buildTaskTree, taskParents, taskKey } from "../src/gantt/tree";
+import { buildTaskTree, taskParents, taskKey, checkProgress } from "../src/gantt/tree";
 import { statusInfo } from "../src/gantt/status";
 import { resolveSource, normalizePath } from "../src/core/blockOptions";
 import { Modal } from "./obsidian-stub";
@@ -203,6 +203,54 @@ const FILES: Record<string, string> = {
   const al2 = w2.groups.find((v) => v.group.name === "알림톡")!;
   eq([al2.rows.map((r) => r.task.title), al2.outside], [["템플릿 API", "리뷰"], 1], "창 밖 task 행은 숨기고 수를 센다");
   eq(filterToWindow(m, "2024-01-01", "2027-12-31", false).groups.map((v) => v.group.name).includes("옛날"), false, "완료 노트 숨김");
+
+  // ── 1단계 진행률 · 프로젝트 묶음(0.11.0) ──
+  eq(al.progress, { done: 1, total: 4 }, "노트 진행률 = 최상위 #task 완료/전체(날짜 없는 것 포함)");
+  eq(m.projects, null, "projectOf 가 없으면 노트 단위");
+  const HUB = "P/Hub.md";
+  const projOf = (p: any) =>
+    ({ "P/모듈/알림톡.md": { key: HUB, name: "Hub" }, "P/모듈/매장음악.md": { key: HUB, name: "Hub" }, "P/지난모듈.md": { key: "P/밖허브.md", name: "밖허브" } } as any)[p.file.path] ?? null;
+  const mp = buildGantt(pages as any, tasks, { ...O, projectOf: projOf });
+  eq(mp.projects!.map((p) => [p.name, p.groups.map((g) => g.name)]), [
+    ["Hub", ["알림톡", "매장음악"]],
+    ["밖허브", ["지난모듈"]],
+    ["(프로젝트 없음)", ["옛날", "보류", "오리엔트"]],
+  ], "Project 별 묶음 · 허브(task 없음)는 자식이 아니다 · 「없음」은 맨 아래");
+  const hubP = mp.projects![0];
+  eq([hubP.span, hubP.fromHub, hubP.hubPath], [{ start: "2026-04-01", end: "2026-12-09", open: false }, true, HUB], "허브 프로퍼티 = 프로젝트 막대");
+  eq(hubP.progress, { done: 2, total: 7 }, "프로젝트 진행률 = 자식 노트 1단계 합");
+  const outP = mp.projects![1];
+  eq([outP.span, outP.fromHub, outP.hubPath], [{ start: "2026-05-01", end: "2026-07-10", open: false }, false, null], "범위 밖 허브(못 읽음) = 자식 구간(초과분 포함)의 합");
+  const mh = buildGantt(pages as any, tasks, {
+    ...O, projectOf: projOf,
+    hubPage: (p) => (p === "P/밖허브.md" ? ({ file: { path: p, frontmatter: { StartDate: "2026-03-01", EndDate: "2026-12-31", Status: "InProgress" } } } as any) : null),
+  });
+  const ob = mh.projects!.find((p) => p.name === "밖허브")!;
+  eq([ob.span!.start, ob.status, ob.hubPath], ["2026-03-01", "InProgress", "P/밖허브.md"], "hubPage 로 범위 밖 허브의 프로퍼티를 읽는다");
+  eq(buildGantt(pages as any, tasks, { ...O, projectOf: projOf, groupBy: "note" }).projects, null, "group: note = 노트 단위");
+  eq(buildGantt(pages as any, tasks, { ...O, projectOf: () => null }).projects, null, "어느 노트에도 Project 가 없으면 노트 단위");
+  const wp = filterToWindow(mp, "2026-08-01", "2026-08-31", true);
+  eq(wp.projects!.map((v) => [v.project.name, v.groups.map((g) => g.group.name)]), [["Hub", ["알림톡", "매장음악"]], ["(프로젝트 없음)", ["오리엔트"]]], "창: 보이는 자식 노트가 있는 프로젝트만");
+}
+
+// ── 체크박스 진행률(0.11.0) ──
+{
+  const L = [
+    { line: 1, task: true, status: " " },
+    { line: 2, parent: 1, task: true, status: "x" },
+    { line: 3, parent: 1 }, // 일반 불릿
+    { line: 4, parent: 3, task: true, status: " " }, // 불릿 아래 체크박스도 센다
+    { line: 5, parent: 2, task: true, status: "X" }, // 손자
+    { line: 6, parent: 1, task: true, status: "-" }, // 취소 = 분모 제외
+    { line: 7, task: true, status: " " },
+    { line: 8, parent: 9, task: true, status: "x" },
+    { line: 9, parent: 8, task: true, status: " " },
+  ];
+  const pr = checkProgress(L, new Set([1, 2, 7, 8]));
+  eq(pr.get(1), { done: 2, total: 3 }, "모든 깊이 체크박스 자손 · 불릿 건너 내려감 · 취소 제외");
+  eq(pr.get(2), { done: 1, total: 1 }, "중간 task 도 자기 자손만");
+  eq(pr.has(7), false, "자손 체크박스가 없으면 없음");
+  eq(pr.get(8), { done: 0, total: 1 }, "순환은 끊는다");
 }
 
 // ── 드래그 규칙(0.10.0) ──
@@ -286,15 +334,17 @@ eq(writeKey(undefined, ["EndDate", "DueDate"]), { key: "EndDate", hasValue: fals
 
 // ── 화면 · 조작 ──
 /** Dataview 의 file.lists 흉내 — 목록 항목마다 들여쓰기로 부모 줄을 찾는다 */
-function listsOf(body: string): { line: number; parent?: number }[] {
-  const out: { line: number; parent?: number }[] = [];
+function listsOf(body: string): { line: number; parent?: number; task: boolean; status?: string }[] {
+  const out: { line: number; parent?: number; task: boolean; status?: string }[] = [];
   const stack: { indent: number; line: number }[] = [];
   body.split("\n").forEach((raw, line) => {
-    const m = raw.match(/^(\s*)[-*+]\s/);
+    const m = raw.match(/^(\s*)[-*+]\s(?:\[(.)\])?/);
     if (!m) return;
     const indent = m[1].replace(/\t/g, "    ").length;
     while (stack.length && stack[stack.length - 1].indent >= indent) stack.pop();
-    out.push(stack.length ? { line, parent: stack[stack.length - 1].line } : { line });
+    // Dataview 처럼 체크박스면 task·status 를 준다(0.11.0 진행률)
+    const cb = m[2] !== undefined ? { task: true, status: m[2] } : { task: false };
+    out.push(stack.length ? { line, parent: stack[stack.length - 1].line, ...cb } : { line, ...cb });
     stack.push({ indent, line });
   });
   return out;
@@ -302,13 +352,23 @@ function listsOf(body: string): { line: number; parent?: number }[] {
 
 const tick = () => new Promise((r) => setTimeout(r, 0));
 
-function open(extra: { excludeTypes?: string[]; notes?: string[]; tasksPluginEdit?: (l: string) => string; mobileUi?: string; indexLag?: boolean; defaultZoom?: boolean } = {}) {
+function open(extra: { excludeTypes?: string[]; notes?: string[]; tasksPluginEdit?: (l: string) => string; mobileUi?: string; indexLag?: boolean; defaultZoom?: boolean; projects?: boolean; groupBy?: "project" | "note" } = {}) {
   const h = makeHarness({ files: FILES, tasksPluginEdit: extra.tasksPluginEdit, settings: extra.mobileUi ? { mobileUi: extra.mobileUi } : {}, indexLag: extra.indexLag });
   // 아래 테스트는 월 줌(하루 10px)을 기준으로 적었다 — 기본(주)은 따로 확인한다
   if (!extra.defaultZoom) h.plugin.store.state["gantt:!\"Template\""] = { zoom: "month" };
   const base = h.args.api.pages;
   // 프로퍼티는 테스트마다 사본 — processFrontMatter 가 고친다. indexLag 면 Dataview 는 옛 사본을 준다
   const fm: Record<string, Record<string, any>> = JSON.parse(JSON.stringify(FM));
+  if (extra.projects) {
+    // 모듈 둘은 허브 소속(0.11.0) — 링크는 Obsidian 해석기(getFirstLinkpathDest)로 경로가 된다
+    fm["P/모듈/알림톡.md"].Project = "[[Hub]]";
+    fm["P/모듈/매장음악.md"].Project = "[[Hub]]";
+    fm["P/이슈/보류.md"].Project = "[[${hub.basename}]]"; // 템플릿 자리표시 = 없음
+    h.plugin.app.metadataCache = {
+      ...(h.plugin.app.metadataCache || {}),
+      getFirstLinkpathDest: (l: string) => (l === "Hub" ? { path: "P/Hub.md", basename: "Hub" } : null),
+    };
+  }
   const fmIndex = extra.indexLag ? JSON.parse(JSON.stringify(FM)) : fm;
   const fmWrites: { path: string; patch: Record<string, any> }[] = [];
   h.plugin.app.fileManager = {
@@ -328,6 +388,7 @@ function open(extra: { excludeTypes?: string[]; notes?: string[]; tasksPluginEdi
     plugin: h.plugin, api, container: h.container, source: "!\"Template\"", notes: extra.notes ?? [],
     sourcePath: "P/대시보드.md", component: h.args.component,
     startProp: "StartDate", endProps: ["EndDate", "DueDate"], excludeTypes: extra.excludeTypes ?? [],
+    groupBy: extra.groupBy,
   });
   return { ...h, g, fm, fmWrites, tree: () => serializeEl(h.container) };
 }
@@ -361,6 +422,29 @@ function find(root: FakeEl, pred: (e: FakeEl) => boolean): FakeEl[] {
     golden("render.gantt.week", c.tree());
   }
 
+  // 프로젝트 > 노트 > 1단계 task(0.11.0) — 진행률 · 프로젝트 접기 · 허브 열기
+  {
+    const c = open({ projects: true });
+    golden("render.gantt.projects", c.tree());
+    const names = find(c.container, (e) => e.tag === "span" && /^📁 /.test(e.text || "")).map((e) => e.text);
+    eq(names, ["📁 Hub", "📁 (프로젝트 없음)"], "허브별 머리 줄 · 템플릿 자리표시 링크는 「없음」");
+    const hubName = find(c.container, (e) => e.text === "📁 Hub")[0];
+    ok(!!hubName.parent!.children.find((x) => x.text === "2/7"), "프로젝트 진행률 = 자식 노트 1단계 합");
+    ok(!!find(c.container, (e) => e.text === "📄 알림톡")[0].parent!.children.find((x) => x.text === "1/4"), "노트 진행률 = 1단계 task");
+    ok(find(c.container, (e) => e.text === "0/3" && /하위 체크박스/.test(e.title || "")).length === 1, "task 상태 칸 = 체크박스 자손(불릿 아래 포함) 진행률");
+    ok(find(c.container, (e) => e.text === "스키마").length === 0, "1차 화면엔 1단계 task 만");
+    hubName.onclick!({});
+    await tick();
+    eq(c.plugin.store.state["gantt:!\"Template\""].collapsed, ["proj:P/Hub.md"], "프로젝트 이름 클릭 = 접기(proj: 키)");
+    ok(find(c.container, (e) => e.text === "📄 알림톡").length === 0, "접으면 자식 노트가 사라진다");
+    ok(find(c.container, (e) => e.text === "(노트 2)").length === 1, "접힌 프로젝트에 노트 수");
+    const bar = find(c.container, (e) => e.tag === "div" && (e.title || "").startsWith("Hub\n") && (e.title || "").includes("허브 노트 열기"))[0];
+    await bar.onclick!({});
+    eq(c.calls.opened.slice(-1).map((o) => o.path), ["P/Hub.md"], "프로젝트 막대 클릭 = 허브 노트 열기");
+    const n = open({ projects: true, groupBy: "note" });
+    eq(find(n.container, (e) => /^📁 /.test(e.text || "")).length, 0, "group: note = 프로젝트 층 없음");
+  }
+
   // 접기 — 행이 사라지고 개수가 붙는다
   {
     const c = open({ excludeTypes: ["Project-Hub"] });
@@ -372,15 +456,28 @@ function find(root: FakeEl, pred: (e: FakeEl) => boolean): FakeEl[] {
     eq(c.plugin.store.state["gantt:!\"Template\""].collapsed, ["P/모듈/알림톡.md"], "접힘은 블록 상태에 남는다");
   }
 
-  // 클릭은 캘린더와 같다(0.9.1) — 클릭 = 원본 줄, 우클릭 = 편집 모달
+  // 클릭은 캘린더와 같다(0.9.1) — 클릭 = 원본 줄, 우클릭 = 편집 모달.
+  // 0.11.0~: 하위가 있는 task 는 **이름 클릭 = 펼치기**, 원본은 막대 클릭 · Ctrl+클릭
   {
     const c = open({ tasksPluginEdit: (l) => l.replace("📅 2026-08-05", "📅 2026-08-07") });
     const lab = () => find(c.container, (e) => e.tag === "span" && e.text === "템플릿 API")[0];
-    await lab().onclick!({});
-    eq(c.calls.opened.map((o) => [o.path, o.line, o.mode]), [["P/모듈/알림톡.md", 1, false]], "클릭 = 원본 줄(현재 탭)");
+    await find(c.container, (e) => e.tag === "span" && e.text === "리뷰")[0].onclick!({});
+    eq(c.calls.opened.map((o) => [o.path, o.line, o.mode]), [["P/모듈/알림톡.md", 7, false]], "하위 없는 task 이름 클릭 = 원본 줄(현재 탭)");
     eq(c.calls.editModal.length, 0, "클릭으로는 모달이 안 뜬다");
-    await find(c.container, (e) => e.tag === "span" && e.text === "리뷰")[0].onclick!({ ctrlKey: true });
-    eq(c.calls.opened[1].mode, "tab", "Ctrl+클릭 = 새 탭");
+    await lab().onclick!({});
+    await tick();
+    eq(c.calls.opened.length, 1, "하위 있는 task 이름 클릭은 열지 않는다");
+    eq(c.plugin.store.state["gantt:!\"Template\""].expanded, ["id:tplApi"], "하위 있는 task 이름 클릭 = 펼치기");
+    ok(find(c.container, (e) => e.text === "스키마").length > 0, "펼치면 하위 task 행이 보인다");
+    await lab().onclick!({});
+    await tick();
+    eq(c.plugin.store.state["gantt:!\"Template\""].expanded, [], "한 번 더 = 접기");
+    await lab().onclick!({ ctrlKey: true });
+    eq(c.calls.opened[1].mode, "tab", "Ctrl+클릭 = 새 탭(하위가 있어도 열기)");
+    const bar = find(c.container, (e) => e.tag === "div" && e.text === "템플릿 API")[0];
+    await bar.onclick!({});
+    eq(c.calls.opened.map((o) => [o.path, o.line]).slice(-1), [["P/모듈/알림톡.md", 1]], "막대 클릭 = 원본 줄");
+    eq(c.plugin.store.state["gantt:!\"Template\""].expanded, [], "막대 클릭은 펼치지 않는다");
     let prevented = false;
     await Promise.all(lab().fire("contextmenu", { preventDefault: () => (prevented = true) }));
     await tick();
@@ -404,8 +501,14 @@ function find(root: FakeEl, pred: (e: FakeEl) => boolean): FakeEl[] {
       sheets++;
     };
     try {
-      await find(c.container, (e) => e.tag === "span" && e.text === "템플릿 API")[0].onclick!({});
+      await find(c.container, (e) => e.tag === "span" && e.text === "리뷰")[0].onclick!({});
       eq(sheets, 1, "탭 = 액션시트");
+      await find(c.container, (e) => e.tag === "span" && e.text === "템플릿 API")[0].onclick!({});
+      await tick();
+      eq(sheets, 1, "하위 있는 task 이름 탭 = 펼치기(시트 안 뜸)");
+      eq(c.plugin.store.state["gantt:!\"Template\""].expanded, ["id:tplApi"], "폰에서도 이름 탭으로 펼친다");
+      await find(c.container, (e) => e.tag === "div" && e.text === "템플릿 API")[0].onclick!({});
+      eq(sheets, 2, "막대 탭 = 액션시트");
       eq([c.calls.opened.length, c.calls.editModal.length], [0, 0], "원본 열기·편집 모달은 안 뜬다");
       await Promise.all(find(c.container, (e) => e.tag === "span" && e.text === "템플릿 API")[0].fire("contextmenu"));
       eq(c.calls.editModal.length, 0, "폰에서는 우클릭 편집 없음");

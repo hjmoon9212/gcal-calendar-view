@@ -19,6 +19,55 @@ export interface ListItemRef {
   line: number;
   /** 부모 목록 항목의 줄. 최상위면 undefined/null/음수 */
   parent?: number | null;
+  /** 체크박스 항목인가(Dataview `task`) — 진행률을 셀 때만 본다(0.11.0~) */
+  task?: boolean;
+  /** 체크박스 상태 글자(` `·`x`·`-` …) */
+  status?: string;
+}
+
+export interface Progress {
+  done: number;
+  total: number;
+}
+
+/**
+ * #task 줄마다 **모든 깊이의 체크박스 자손** 완료/전체(0.11.0~).
+ *
+ * 하위 체크리스트는 `#task` 없이 적는 일이 흔하다(`- [x] 페이징`) — Gantt 행은 안 되지만 진행률에는
+ * 들어가야 한다. 그래서 task 여부와 상관없이 `- [ ]` 이면 센다. 중간의 일반 불릿은 건너 내려가고,
+ * `[-]` 취소는 분모에서 뺀다. 자손 체크박스가 없으면 Map 에 넣지 않는다.
+ */
+export function checkProgress(lists: Iterable<ListItemRef>, taskLines: Set<number>): Map<number, Progress> {
+  const items = Array.from(lists);
+  const kids = new Map<number, ListItemRef[]>();
+  for (const l of items) {
+    const p = typeof l.parent === "number" && l.parent >= 0 ? l.parent : null;
+    if (p === null) continue;
+    const k = kids.get(p);
+    if (k) k.push(l);
+    else kids.set(p, [l]);
+  }
+  const out = new Map<number, Progress>();
+  for (const line of taskLines) {
+    const pr: Progress = { done: 0, total: 0 };
+    const seen = new Set<number>([line]);
+    const stack = [...(kids.get(line) ?? [])];
+    while (stack.length) {
+      const c = stack.pop()!;
+      if (seen.has(c.line)) continue; // 깨진 parent(순환)
+      seen.add(c.line);
+      if (c.task) {
+        const st = c.status ?? " ";
+        if (st !== "-") {
+          pr.total++;
+          if (st === "x" || st === "X") pr.done++;
+        }
+      }
+      for (const g of kids.get(c.line) ?? []) stack.push(g);
+    }
+    if (pr.total) out.set(line, pr);
+  }
+  return out;
 }
 
 /**
@@ -64,12 +113,16 @@ export interface TreeRow {
   overrun: { until: string; count: number } | null;
   /** 노트 종료일 또는 날짜 있는 가장 가까운 조상의 📅 보다 늦은 미완료 task — 붉은 테두리 */
   late: boolean;
+  /** 체크박스 자손 완료/전체(#task 아닌 체크박스 포함). 자손 체크박스가 없으면 null */
+  progress: Progress | null;
 }
 
 export interface TreeOptions {
   /** 노트 **프로퍼티** 종료일(없으면 null — task 로 메운 끝은 초과 판정에 안 쓴다) */
   noteEnd: string | null;
   showDone: boolean;
+  /** 줄 → 체크박스 자손 진행률(checkProgress). 없으면 진행률 없음 */
+  progress?: Map<number, Progress>;
 }
 
 const ID_RE = /🆔\s*([A-Za-z0-9_-]+)/u;
@@ -158,6 +211,7 @@ export function buildTaskTree(
       descendants: 0,
       overrun,
       late,
+      progress: o.progress?.get(t.line) ?? null,
     };
     rows.push(row);
     // 자손의 기준 = 날짜 있는 가장 가까운 조상의 📅 (없으면 노트 종료일)

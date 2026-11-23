@@ -18,7 +18,10 @@ import { syncCategories } from "../calendar/categories";
 import { createWriteService } from "../write/TaskWriteService";
 import { buildGantt, GanttModel, GanttPage } from "./rows";
 import { renderGantt, GanttViewState, LABEL_W } from "./GanttView";
-import { taskParents } from "./tree";
+import { checkProgress, taskParents } from "./tree";
+import type { Progress } from "./tree";
+import type { ProjectRef } from "./rows";
+import { getProp } from "./noteDates";
 import { parseList } from "../core/blockOptions";
 import { notePatch, taskChanges, DragMode, spanText, previewSpan } from "./drag";
 import { toISODate } from "./noteDates";
@@ -37,6 +40,8 @@ export interface GanttArgs {
   startProp: string;
   endProps: string[];
   excludeTypes: string[];
+  /** `group:` 옵션(0.11.0~). 기본 프로젝트 묶음, "note" 면 노트 단위 */
+  groupBy?: "project" | "note";
 }
 
 export function createGantt(a: GanttArgs) {
@@ -97,6 +102,26 @@ export function createGantt(a: GanttArgs) {
       return { ...p, file: { ...p.file, frontmatter: { ...fm, ...ov.patch } } };
     });
   };
+  /**
+   * 노트 → `Project:` 허브(0.11.0~). 값은 `"[[허브]]"` 문자열이거나 Dataview Link(.path).
+   * Obsidian 링크 해석(getFirstLinkpathDest)으로 실제 경로를 얻는다 — 못 찾으면 「프로젝트 없음」.
+   * 템플릿 자리표시(`[[${…}]]`)·빈 링크(`[[]]`)도 없음으로 본다.
+   */
+  const projectOf = (p: GanttPage): ProjectRef | null => {
+    const raw = getProp(p.file.frontmatter, "Project") ?? getProp(p, "Project");
+    const v = Array.isArray(raw) ? raw[0] : raw;
+    let link: string | null = null;
+    if (v && typeof v === "object" && typeof v.path === "string") link = v.path;
+    else if (typeof v === "string") {
+      const m = v.match(/\[\[([^\]|#]*)/);
+      link = m ? m[1].trim() : null;
+    }
+    if (!link || link.includes("${")) return null;
+    const f = app.metadataCache?.getFirstLinkpathDest?.(link, p.file.path);
+    if (!f || !f.path) return null;
+    return { key: f.path, name: f.basename ?? link.split("/").pop()!.replace(/\.md$/i, "") };
+  };
+
   let catColor: Record<string, string> = {};
   let catDefault = "";
 
@@ -109,6 +134,7 @@ export function createGantt(a: GanttArgs) {
     const tasks = gatherTasks(pages as any, { catDefault, pending: plugin.store.pending, now: Date.now() });
     // 탭 들여쓰기 = 상하위. Dataview 가 목록 항목마다 부모 줄을 준다(file.lists, 없으면 file.tasks).
     const parents = new Map<string, Map<number, number | null>>();
+    const progress = new Map<string, Map<number, Progress>>();
     const linesByPath = new Map<string, Set<number>>();
     for (const t of tasks) {
       let set = linesByPath.get(t.path);
@@ -118,11 +144,23 @@ export function createGantt(a: GanttArgs) {
     for (const p of pages as any[]) {
       const set = linesByPath.get(p.file.path);
       if (!set) continue;
-      const lists = p.file.lists ?? p.file.tasks ?? [];
-      parents.set(p.file.path, taskParents(Array.from(lists as Iterable<any>), set));
+      const lists = Array.from((p.file.lists ?? p.file.tasks ?? []) as Iterable<any>);
+      parents.set(p.file.path, taskParents(lists, set));
+      // 진행률 = #task 가 아닌 체크박스까지(0.11.0~). file.lists 의 task/status 를 그대로 본다
+      progress.set(p.file.path, checkProgress(lists, set));
     }
     return buildGantt(pages, tasks, {
       parents,
+      progress,
+      groupBy: a.groupBy,
+      projectOf,
+      hubPage: (path) => {
+        try {
+          return (api.page(path) as GanttPage) ?? null;
+        } catch (e) {
+          return null;
+        }
+      },
       startProp: a.startProp || plugin.settings.ganttStartProp || "StartDate",
       endProps: a.endProps.length ? a.endProps : parseList(plugin.settings.ganttEndProps || "EndDate, DueDate"),
       excludeTypes: a.excludeTypes,
@@ -185,8 +223,8 @@ export function createGantt(a: GanttArgs) {
         if (!mobileUi()) writer.editTask(t);
       },
       hint: mobileUi()
-        ? "탭=날짜·시각 편집"
-        : "드래그=기간 이동 · 양 끝=🛫/📅만\n클릭=열기 · Ctrl+클릭=새 탭 · 우클릭=편집",
+        ? "막대 탭=날짜·시각 편집"
+        : "드래그=기간 이동 · 양 끝=🛫/📅만\n막대 클릭=열기 · Ctrl+클릭=새 탭 · 우클릭=편집",
       // 막대 드래그(0.10.0~) — 데스크탑만. 폰은 탭 = 액션시트라 드래그가 설 자리가 없다
       canDrag: !mobileUi(),
       dragNote,
