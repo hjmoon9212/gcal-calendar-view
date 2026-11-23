@@ -21,7 +21,7 @@ export function createDesktopView(ctx: ViewCtx) {
         app, plugin, root, L, todayISO, CALF,
         S, st, ctrl, activeCats, saveState, syncCategories, collect, render, takeDrag,
         restorePageScroll, rememberScroll,
-        openAtLine, editTask, applyDates, dropOnDate, dropOnTime, writeBack, openMode, writer,
+        taskClick, editTask, applyDates, dropOnDate, dropOnTime, writeBack, openMode, writer,
         feed, feedPlugin, eventsFor, passesCalFilter, rangeForView,
         noteMarkdown, noteBlock, attachDrop,
         HOUR_H, DAY_BOX_H, GUTTER,
@@ -33,7 +33,7 @@ export function createDesktopView(ctx: ViewCtx) {
     let CAT_DEFAULT = "";
 
     // 한 주(weekStartISO~+6)에 걸치는 태스크를 기간 막대로 area 위에 배치.
-    // 막대 본체 드래그=기간째 이동, Shift+드래그=마감일 조정, 클릭=원본 열기. 반환=막대영역 높이(px).
+    // 막대 본체 드래그=기간째 이동, Shift+드래그=마감일 조정, 클릭=원본 열기(태블릿은 탭=액션시트 — ctx.taskClick). 반환=막대영역 높이(px).
     /**
      * 기간 막대 한 줄의 높이(px). 막대 자체는 `laneH - 3`.
      *
@@ -70,7 +70,7 @@ export function createDesktopView(ctx: ViewCtx) {
                 // 그 뒤 외부 드래그(파일 끌어오기 등)가 캘린더에 떨어지면 엉뚱한 태스크가 이동한다.
                 bar.addEventListener("dragstart", (e: any) => { st.dragging = t; e.dataTransfer.effectAllowed = "move"; });
                 bar.addEventListener("dragend", () => { st.dragging = null; });
-                bar.addEventListener("click", (e: any) => openAtLine(t, e));
+                bar.addEventListener("click", (e: any) => taskClick(t, e));
                 bar.addEventListener("contextmenu", (e: any) => { e.preventDefault(); editTask(t); });   // 우클릭=편집 모달
             }
         }
@@ -125,7 +125,7 @@ export function createDesktopView(ctx: ViewCtx) {
 
         el.addEventListener("dragstart", (e: any) => { st.dragging = task; e.dataTransfer.effectAllowed = "move"; });
         el.addEventListener("dragend", () => { st.dragging = null; });   // 취소된 드래그가 남지 않게
-        el.addEventListener("click", (e) => openAtLine(task, e));
+        el.addEventListener("click", (e) => taskClick(task, e));
         el.addEventListener("contextmenu", (e) => { e.preventDefault(); editTask(task); });   // 우클릭=편집 모달
         return el;
     }
@@ -232,7 +232,7 @@ export function createDesktopView(ctx: ViewCtx) {
             el.draggable = true;
             el.addEventListener("dragstart", (e: any) => { st.dragging = task; e.dataTransfer.effectAllowed = "move"; });
             el.addEventListener("dragend", () => { st.dragging = null; });
-            el.addEventListener("click", (e) => openAtLine(task, e));
+            el.addEventListener("click", (e) => taskClick(task, e));
             el.addEventListener("contextmenu", (e) => { e.preventDefault(); editTask(task); });
         }
         return el;
@@ -359,7 +359,7 @@ export function createDesktopView(ctx: ViewCtx) {
             // 리사이즈로 포인터를 놓으면 click 이 블록까지 버블링돼 원본 파일이 열려버린다
             // (pointerdown 의 stopPropagation 은 click 을 막지 못한다 — 별개 이벤트다).
             let resizing = false;
-            blk.addEventListener("click", (e: any) => { if (resizing) { e.preventDefault(); e.stopPropagation(); return; } openAtLine(t, e); });
+            blk.addEventListener("click", (e: any) => { if (resizing) { e.preventDefault(); e.stopPropagation(); return; } taskClick(t, e); });
             blk.addEventListener("contextmenu", (e: any) => { e.preventDefault(); editTask(t); });
 
             // 하단 리사이즈 핸들 — 종료 시각만 바꾼다.

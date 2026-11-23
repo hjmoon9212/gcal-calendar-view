@@ -522,5 +522,7 @@ export function createMobileView(ctx: ViewCtx) {
     return {
         setCategories: (v: Categories) => { ({ CATS, CATLABEL, CATCOLOR, CAT_DEFAULT } = v); },
         renderMobileNow,
+        /** 데스크탑 화면도 태블릿에서는 이 시트를 연다(createCalendar 의 taskClick) — 시트는 한 벌이다 */
+        openSheet,
     };
 }

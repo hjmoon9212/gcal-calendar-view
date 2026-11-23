@@ -44,6 +44,8 @@ export interface ViewCtx {
 
   // ── 쓰기(TaskWriteService) ──
   openAtLine: (task: CalItem, evt?: any) => any;
+  /** 데스크탑 화면의 task 클릭 — PC 는 원본 줄, 모바일 앱(태블릿)은 액션시트(ui/tapAction.ts) */
+  taskClick: (task: CalItem, evt?: any) => any;
   editTask: (task: CalItem) => any;
   toggleDone: (task: CalItem) => Promise<void>;
   applyDates: (task: CalItem, changes: any) => Promise<void>;

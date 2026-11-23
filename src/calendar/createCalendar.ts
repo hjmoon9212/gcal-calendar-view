@@ -20,6 +20,7 @@ import { rangeForView as viewRange } from "../feed/events";
 import { createFeedAdapter } from "../feed/FeedAdapter";
 import { createDesktopView } from "../ui/desktop/DesktopView";
 import { createMobileView } from "../ui/mobile/MobileView";
+import { tapOpensSheet } from "../ui/tapAction";
 
 /**
  * 캘린더 한 개를 container 안에 그린다. 반환값의 refresh() 를 호출부가 인덱스 변경에 물린다.
@@ -173,6 +174,12 @@ export function createCalendar({ plugin, api, container, source, notes, sourcePa
 
     const rangeForView = () => viewRange(st.mode, st.view);
 
+    // 데스크탑 화면의 task 클릭. PC 는 원본 줄을 열고, 모바일 앱(태블릿)은 **화면은 그대로 두고**
+    // 폰과 같은 액션시트를 연다 — 터치에는 드래그·우클릭이 없어 그게 유일한 수정 통로다.
+    // 매 클릭 평가한다(설정·기기 판정을 굳히지 않는다). mobile 은 아래에서 만들어진다.
+    const taskClick = (task: any, evt?: any) =>
+        tapOpensSheet(ctrl.isMobileUi()) ? mobile.openSheet(task) : openAtLine(task, evt);
+
     // ── 화면 ────────────────────────────────────────────────────────────────
     // 데스크탑과 모바일은 **화면만** 갈라진다. 수집·쓰기·피드는 위의 것을 그대로 쓴다 —
     // 사본이 갈라지면 ⏰ 삽입 규칙 같은 것이 한쪽에서만 고쳐진다(이 플러그인이 dataviewjs
@@ -181,7 +188,7 @@ export function createCalendar({ plugin, api, container, source, notes, sourcePa
         app, plugin, root, L, todayISO, CALF,
         S, st, ctrl, activeCats, saveState, syncCategories, collect, render, takeDrag,
         restorePageScroll, rememberScroll,
-        openAtLine, editTask, toggleDone, applyDates, dropOnDate, dropOnTime, writeBack, openMode, writer,
+        openAtLine, taskClick, editTask, toggleDone, applyDates, dropOnDate, dropOnTime, writeBack, openMode, writer,
         feed, feedPlugin, eventsFor, passesCalFilter, rangeForView,
         noteMarkdown, noteBlock, attachDrop,
         HOUR_H, DAY_BOX_H, GUTTER,

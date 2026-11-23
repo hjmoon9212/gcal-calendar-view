@@ -180,6 +180,40 @@ async function drag(from: FakeEl, to: FakeEl, ev: any = {}) {
     golden("interaction.edit-modal-recurring", { lines: taskLines(h) });
   }
 
+  // ── 클릭: PC 는 원본 줄 · 태블릿(모바일 앱, 데스크탑 화면)은 액션시트 ──
+  {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { TaskSheetModal } = require("../src/ui/TaskSheetModal");
+    const realOpen = TaskSheetModal.prototype.open;
+    const sheets: string[] = [];
+    TaskSheetModal.prototype.open = function () { sheets.push(this.task.title); };
+    try {
+      const pc = open();
+      await barByText(pc.root, "보고서")!.fire("click", {})[0];
+      await tick();
+      eq(pc.calls.opened.length, 1, "PC: 클릭 = 원본 줄 열기");
+      eq(sheets.length, 0, "PC: 액션시트는 뜨지 않는다");
+
+      (Platform as any).isMobile = true;   // 태블릿 — isPhone 은 false 라 화면은 데스크탑 그대로
+      const tab = open();
+      ok(bars(tab.root).length > 0, "태블릿: 화면은 데스크탑(막대) 그대로");
+      await barByText(tab.root, "보고서")!.fire("click", {})[0];
+      await tick();
+      eq(tab.calls.opened.length, 0, "태블릿: 탭해도 원본으로 튀지 않는다");
+      eq(sheets, ["보고서"], "태블릿: 탭 = 액션시트");
+      // 트레이 카드 · 일간 블록도 같은 길로 간다
+      await findAll(tab.root, (e) => !!e.listeners.dragstart && e.children.some((c) => c.text.includes("날짜 없음")))[0].fire("click", {})[0];
+      await click(tab.root, "일간");
+      await bars(tab.root).find((b) => b.children.some((c) => c.text.includes("09:00 겹침")))!.fire("click", {})[0];
+      await tick();
+      eq(sheets.length, 3, "태블릿: 트레이 카드 · 일간 블록 탭도 액션시트");
+      eq(tab.calls.opened.length, 0, "태블릿: 어느 탭도 원본을 열지 않는다");
+    } finally {
+      (Platform as any).isMobile = false;
+      TaskSheetModal.prototype.open = realOpen;
+    }
+  }
+
   // ── 📆 GCal 일정은 읽기 전용 ──
   {
     const h = open();

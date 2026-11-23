@@ -10,6 +10,7 @@
  */
 import { MarkdownRenderer, Notice, Platform } from "obsidian";
 import { TaskSheetModal } from "../ui/TaskSheetModal";
+import { tapOpensSheet } from "../ui/tapAction";
 import { isRO } from "../core/order";
 import { timeText, toMin, toHHMM } from "../core/time";
 import { addDays } from "../core/dates";
@@ -218,11 +219,12 @@ export function createGantt(a: GanttArgs) {
       // ★ 클릭은 **캘린더와 같다**(0.9.1~) — 데스크탑: 클릭 = 원본 줄(Ctrl=새 탭 · Ctrl+Shift=분할),
       //   우클릭 = Tasks 편집 모달 / 폰: 탭 = 액션시트(📅·🛫·⏰·편집·원본 열기). 두 화면에서 같은
       //   손버릇이 같은 결과를 내야 한다 — 0.8.x~0.9.0 은 클릭 = 편집 모달이라 캘린더와 반대였다.
-      taskClick: (t, e) => (mobileUi() ? openSheet(t) : writer.openAtLine(t, e)),
+      //   태블릿은 화면은 데스크탑 그대로, 탭만 액션시트다(ui/tapAction.ts).
+      taskClick: (t, e) => (tapOpensSheet(mobileUi()) ? openSheet(t) : writer.openAtLine(t, e)),
       taskMenu: (t) => {
         if (!mobileUi()) writer.editTask(t);
       },
-      hint: mobileUi()
+      hint: tapOpensSheet(mobileUi())
         ? "막대 탭=날짜·시각 편집"
         : "드래그=기간 이동 · 양 끝=🛫/📅만\n막대 클릭=열기 · Ctrl+클릭=새 탭 · 우클릭=편집",
       // 막대 드래그(0.10.0~) — 데스크탑만. 폰은 탭 = 액션시트라 드래그가 설 자리가 없다
