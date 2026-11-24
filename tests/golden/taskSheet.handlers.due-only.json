@@ -1,15 +1,5 @@
 [
   {
-    "target": "button ✅ 완료",
-    "calls": [
-      [
-        "toggleDone",
-        "task:장보기"
-      ]
-    ],
-    "closed": 1
-  },
-  {
     "target": "button 오늘",
     "calls": [
       [
@@ -59,6 +49,23 @@
       [
         "notice",
         "시작일은 마감일(📅 2026-08-07)보다 뒤일 수 없어요"
+      ]
+    ],
+    "closed": 1
+  },
+  {
+    "target": "button 시각 저장",
+    "calls": [
+      [
+        "applyDates",
+        "task:장보기",
+        {
+          "time": "12:00-13:00"
+        }
+      ],
+      [
+        "notice",
+        "⏰ 12:00-13:00"
       ]
     ],
     "closed": 1
@@ -115,23 +122,6 @@
     "closed": 1
   },
   {
-    "target": "button 저장",
-    "calls": [
-      [
-        "applyDates",
-        "task:장보기",
-        {
-          "time": "12:00-13:00"
-        }
-      ],
-      [
-        "notice",
-        "⏰ 12:00-13:00"
-      ]
-    ],
-    "closed": 1
-  },
-  {
     "target": "button ✏️ 편집",
     "calls": [
       [
@@ -146,6 +136,16 @@
     "calls": [
       [
         "openAtLine",
+        "task:장보기"
+      ]
+    ],
+    "closed": 1
+  },
+  {
+    "target": "button ✅ 완료",
+    "calls": [
+      [
+        "toggleDone",
         "task:장보기"
       ]
     ],

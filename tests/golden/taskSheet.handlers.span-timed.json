@@ -1,15 +1,5 @@
 [
   {
-    "target": "button ✅ 완료",
-    "calls": [
-      [
-        "toggleDone",
-        "task:보고서"
-      ]
-    ],
-    "closed": 1
-  },
-  {
     "target": "button 오늘",
     "calls": [
       [
@@ -64,13 +54,18 @@
     "closed": 1
   },
   {
-    "target": "input[date] 2026-08-08",
+    "target": "button 시각 저장",
     "calls": [
       [
-        "dropOnDate",
+        "applyDates",
         "task:보고서",
-        "2026-08-20",
-        false
+        {
+          "time": "09:00-10:00"
+        }
+      ],
+      [
+        "notice",
+        "⏰ 09:00-10:00"
       ]
     ],
     "closed": 1
@@ -127,23 +122,6 @@
     "closed": 1
   },
   {
-    "target": "button 저장",
-    "calls": [
-      [
-        "applyDates",
-        "task:보고서",
-        {
-          "time": "09:00-10:00"
-        }
-      ],
-      [
-        "notice",
-        "⏰ 09:00-10:00"
-      ]
-    ],
-    "closed": 1
-  },
-  {
     "target": "button 시각 제거",
     "calls": [
       [
@@ -175,6 +153,16 @@
     "calls": [
       [
         "openAtLine",
+        "task:보고서"
+      ]
+    ],
+    "closed": 1
+  },
+  {
+    "target": "button ✅ 완료",
+    "calls": [
+      [
+        "toggleDone",
         "task:보고서"
       ]
     ],

@@ -4,7 +4,7 @@
     {
       "tag": "div",
       "style": {
-        "cssText": "display:flex;gap:10px;align-items:flex-start;border-left:4px solid #123456;padding-left:10px;margin-bottom:4px;"
+        "cssText": "display:flex;gap:10px;align-items:flex-start;border-left:4px solid #123456;padding-left:10px;"
       },
       "children": [
         {
@@ -30,41 +30,22 @@
     },
     {
       "tag": "div",
-      "style": {
-        "cssText": "display:flex;flex-wrap:wrap;align-items:center;gap:8px;",
-        "marginTop": "12px"
-      },
-      "children": [
-        {
-          "tag": "button",
-          "text": "✅ 완료",
-          "style": {
-            "cssText": "min-height:40px;padding:0 14px;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600;flex:1 1 auto;"
-          },
-          "handlers": [
-            "onclick"
-          ]
-        }
-      ]
-    },
-    {
-      "tag": "div",
       "text": "📅 마감일 — 없음",
       "style": {
-        "cssText": "font-size:12px;opacity:.6;margin:16px 0 6px;"
+        "cssText": "font-size:12px;opacity:.6;margin-top:16px;"
       }
     },
     {
       "tag": "div",
       "style": {
-        "cssText": "display:flex;flex-wrap:wrap;align-items:center;gap:8px;"
+        "cssText": "display:grid;gap:8px;align-items:center;margin-top:8px;grid-template-columns:repeat(3,minmax(0,1fr)) minmax(118px,1.8fr);"
       },
       "children": [
         {
           "tag": "button",
           "text": "오늘",
           "style": {
-            "cssText": "min-height:40px;padding:0 14px;border-radius:8px;font-size:14px;cursor:pointer;"
+            "cssText": "height:40px;min-height:40px;box-sizing:border-box;margin:0;width:100%;min-width:0;padding:0 8px;border-radius:8px;font-size:14px;line-height:1;white-space:nowrap;cursor:pointer;"
           },
           "handlers": [
             "onclick"
@@ -74,7 +55,7 @@
           "tag": "button",
           "text": "내일",
           "style": {
-            "cssText": "min-height:40px;padding:0 14px;border-radius:8px;font-size:14px;cursor:pointer;"
+            "cssText": "height:40px;min-height:40px;box-sizing:border-box;margin:0;width:100%;min-width:0;padding:0 8px;border-radius:8px;font-size:14px;line-height:1;white-space:nowrap;cursor:pointer;"
           },
           "handlers": [
             "onclick"
@@ -84,7 +65,7 @@
           "tag": "button",
           "text": "+7일",
           "style": {
-            "cssText": "min-height:40px;padding:0 14px;border-radius:8px;font-size:14px;cursor:pointer;"
+            "cssText": "height:40px;min-height:40px;box-sizing:border-box;margin:0;width:100%;min-width:0;padding:0 8px;border-radius:8px;font-size:14px;line-height:1;white-space:nowrap;cursor:pointer;"
           },
           "handlers": [
             "onclick"
@@ -93,7 +74,7 @@
         {
           "tag": "input",
           "style": {
-            "cssText": "min-height:40px;font-size:14px;padding:0 8px;border-radius:8px;"
+            "cssText": "height:40px;min-height:40px;box-sizing:border-box;margin:0;width:100%;min-width:0;padding:0 8px;border-radius:8px;font-size:14px;line-height:1;white-space:nowrap;"
           },
           "type": "date",
           "value": "2026-08-06",
@@ -107,53 +88,71 @@
       "tag": "div",
       "text": "⏰ 시각 — 없음",
       "style": {
-        "cssText": "font-size:12px;opacity:.6;margin:16px 0 6px;"
+        "cssText": "font-size:12px;opacity:.6;margin-top:16px;"
       }
     },
     {
       "tag": "div",
       "style": {
-        "cssText": "display:flex;flex-wrap:wrap;align-items:center;gap:8px;"
+        "cssText": "display:grid;gap:8px;align-items:center;margin-top:8px;grid-template-columns:repeat(3,minmax(0,1fr)) minmax(118px,1.8fr);"
       },
       "children": [
         {
-          "tag": "input",
+          "tag": "div",
           "style": {
-            "cssText": "min-height:40px;font-size:14px;padding:0 8px;border-radius:8px;"
+            "cssText": "grid-column:1 / 4;min-width:0;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:6px;align-items:center;"
           },
-          "type": "time",
-          "value": "12:00",
-          "step": "900"
+          "children": [
+            {
+              "tag": "input",
+              "style": {
+                "cssText": "height:40px;min-height:40px;box-sizing:border-box;margin:0;width:100%;min-width:0;padding:0 8px;border-radius:8px;font-size:14px;line-height:1;white-space:nowrap;"
+              },
+              "type": "time",
+              "value": "12:00",
+              "step": "900"
+            },
+            {
+              "tag": "span",
+              "text": "~",
+              "style": {
+                "cssText": "opacity:.5;"
+              }
+            },
+            {
+              "tag": "input",
+              "style": {
+                "cssText": "height:40px;min-height:40px;box-sizing:border-box;margin:0;width:100%;min-width:0;padding:0 8px;border-radius:8px;font-size:14px;line-height:1;white-space:nowrap;"
+              },
+              "type": "time",
+              "value": "13:00",
+              "step": "900"
+            }
+          ]
         },
         {
-          "tag": "span",
-          "text": "~",
+          "tag": "button",
+          "text": "시각 저장",
           "style": {
-            "cssText": "opacity:.5;"
-          }
-        },
-        {
-          "tag": "input",
-          "style": {
-            "cssText": "min-height:40px;font-size:14px;padding:0 8px;border-radius:8px;"
+            "cssText": "height:40px;min-height:40px;box-sizing:border-box;margin:0;width:100%;min-width:0;padding:0 8px;border-radius:8px;font-size:14px;line-height:1;white-space:nowrap;cursor:pointer;font-weight:600;"
           },
-          "type": "time",
-          "value": "13:00",
-          "step": "900"
+          "handlers": [
+            "onclick"
+          ]
         }
       ]
     },
     {
       "tag": "div",
       "style": {
-        "cssText": "display:flex;flex-wrap:wrap;align-items:center;gap:8px;"
+        "cssText": "display:grid;gap:8px;align-items:center;margin-top:8px;grid-template-columns:repeat(3,minmax(0,1fr)) minmax(118px,1.8fr);"
       },
       "children": [
         {
           "tag": "button",
           "text": "15분",
           "style": {
-            "cssText": "min-height:40px;padding:0 14px;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600;"
+            "cssText": "height:40px;min-height:40px;box-sizing:border-box;margin:0;width:100%;min-width:0;padding:0 8px;border-radius:8px;font-size:14px;line-height:1;white-space:nowrap;cursor:pointer;"
           },
           "handlers": [
             "onclick"
@@ -163,7 +162,7 @@
           "tag": "button",
           "text": "30분",
           "style": {
-            "cssText": "min-height:40px;padding:0 14px;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600;"
+            "cssText": "height:40px;min-height:40px;box-sizing:border-box;margin:0;width:100%;min-width:0;padding:0 8px;border-radius:8px;font-size:14px;line-height:1;white-space:nowrap;cursor:pointer;"
           },
           "handlers": [
             "onclick"
@@ -173,7 +172,7 @@
           "tag": "button",
           "text": "1시간",
           "style": {
-            "cssText": "min-height:40px;padding:0 14px;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600;"
+            "cssText": "height:40px;min-height:40px;box-sizing:border-box;margin:0;width:100%;min-width:0;padding:0 8px;border-radius:8px;font-size:14px;line-height:1;white-space:nowrap;cursor:pointer;"
           },
           "handlers": [
             "onclick"
@@ -184,39 +183,14 @@
     {
       "tag": "div",
       "style": {
-        "cssText": "display:flex;flex-wrap:wrap;align-items:center;gap:8px;"
-      },
-      "children": [
-        {
-          "tag": "button",
-          "text": "저장",
-          "style": {
-            "cssText": "min-height:40px;padding:0 14px;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600;"
-          },
-          "handlers": [
-            "onclick"
-          ]
-        }
-      ]
-    },
-    {
-      "tag": "div",
-      "text": "그 밖",
-      "style": {
-        "cssText": "font-size:12px;opacity:.6;margin:16px 0 6px;"
-      }
-    },
-    {
-      "tag": "div",
-      "style": {
-        "cssText": "display:flex;flex-wrap:wrap;align-items:center;gap:8px;"
+        "cssText": "display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:16px;padding-top:16px;border-top:1px solid var(--background-modifier-border);"
       },
       "children": [
         {
           "tag": "button",
           "text": "✏️ 편집",
           "style": {
-            "cssText": "min-height:40px;padding:0 14px;border-radius:8px;font-size:14px;cursor:pointer;"
+            "cssText": "height:40px;min-height:40px;box-sizing:border-box;margin:0;width:100%;min-width:0;padding:0 8px;border-radius:8px;font-size:14px;line-height:1;white-space:nowrap;cursor:pointer;"
           },
           "handlers": [
             "onclick"
@@ -226,7 +200,17 @@
           "tag": "button",
           "text": "📄 원본 열기",
           "style": {
-            "cssText": "min-height:40px;padding:0 14px;border-radius:8px;font-size:14px;cursor:pointer;"
+            "cssText": "height:40px;min-height:40px;box-sizing:border-box;margin:0;width:100%;min-width:0;padding:0 8px;border-radius:8px;font-size:14px;line-height:1;white-space:nowrap;cursor:pointer;"
+          },
+          "handlers": [
+            "onclick"
+          ]
+        },
+        {
+          "tag": "button",
+          "text": "✅ 완료",
+          "style": {
+            "cssText": "height:40px;min-height:40px;box-sizing:border-box;margin:0;width:100%;min-width:0;padding:0 8px;border-radius:8px;font-size:14px;line-height:1;white-space:nowrap;cursor:pointer;font-weight:600;"
           },
           "handlers": [
             "onclick"

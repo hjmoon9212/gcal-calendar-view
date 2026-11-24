@@ -127,7 +127,7 @@ const TASKS: Record<string, any> = {
     const [si, ei] = findAll(m.contentEl, (e) => e.type === "time");
     si.value = "14:00";
     ei.value = "13:00";
-    const save = findAll(m.contentEl, (e) => e.text === "저장")[0];
+    const save = findAll(m.contentEl, (e) => e.text === "시각 저장")[0];
     await save.onclick!();
     golden("taskSheet.save-inverted", ctx.calls);
   }

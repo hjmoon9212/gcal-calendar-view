@@ -4,7 +4,7 @@
     {
       "tag": "div",
       "style": {
-        "cssText": "display:flex;gap:10px;align-items:flex-start;border-left:4px solid #123456;padding-left:10px;margin-bottom:4px;"
+        "cssText": "display:flex;gap:10px;align-items:flex-start;border-left:4px solid #123456;padding-left:10px;"
       },
       "children": [
         {
